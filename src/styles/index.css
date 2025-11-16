@@ -16,34 +16,36 @@
  * - And more... (see @wolffm/themes documentation)
  */
 
-.your-app-container {
+.resume-bot-container {
   /* REQUIRED: Use theme CSS variables, NOT hardcoded colors */
   min-height: 100vh;
   background-color: var(--theme-background, #ffffff);
   color: var(--theme-text, #000000);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.your-app {
+.resume-bot {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-.your-app__header {
+.resume-bot__header {
   margin-bottom: 2rem;
 }
 
-.your-app__header h1 {
+.resume-bot__header h1 {
   margin: 0;
   color: var(--theme-primary, #0066cc);
 }
 
-.your-app__content {
-  /* Your app content styles */
+.resume-bot__content {
+  /* resume bot content styles */
 }
 
 /* Dark theme adjustments (optional) */
-[data-dark-theme='true'] .your-app-container {
+[data-dark-theme='true'] .resume-bot-container {
   /* Additional dark theme overrides if needed */
 }

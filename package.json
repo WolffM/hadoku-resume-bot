@@ -1,11 +1,11 @@
 {
-  "name": "@wolffm/your-app",
-  "version": "1.0.0",
-  "description": "Your app description",
+  "name": "@wolffm/resume-bot",
+  "version": "1.0.1",
+  "description": "resume bot description",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WolffM/your-app.git"
+    "url": "git+https://github.com/WolffM/resume-bot.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -15,10 +15,10 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/entry.d.ts",
       "default": "./dist/index.js"
     },
-    "./style.css": "./dist/style.css"
+    "./resume-bot.css": "./dist/resume-bot.css"
   },
   "scripts": {
     "dev": "vite",

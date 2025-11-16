@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import type { YourAppProps } from './entry'
+import type { ResumeBotAppProps } from './entry'
 
-export default function App(props: YourAppProps = {}) {
+export default function App(props: ResumeBotAppProps = {}) {
   const { theme = 'default', userType = 'public', sessionId = 'public' } = props
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -36,13 +36,13 @@ export default function App(props: YourAppProps = {}) {
   }, [theme, isDarkTheme])
 
   return (
-    <div ref={containerRef} className="your-app-container">
-      <div className="your-app">
-        <header className="your-app__header">
-          <h1>Your App</h1>
+    <div ref={containerRef} className="resume-bot-container">
+      <div className="resume-bot">
+        <header className="resume-bot__header">
+          <h1>resume bot</h1>
         </header>
 
-        <main className="your-app__content">
+        <main className="resume-bot__content">
           <p>User Type: {userType}</p>
           <p>Session ID: {sessionId}</p>
           <p>Theme: {theme}</p>

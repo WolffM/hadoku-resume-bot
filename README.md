@@ -1,6 +1,6 @@
-# @wolffm/your-app
+# @wolffm/resume-bot
 
-Your app description goes here.
+resume bot description goes here.
 
 ## Overview
 
@@ -30,32 +30,33 @@ This app is a child component of the [hadoku_site](https://github.com/WolffM/had
 ### Props
 
 ```typescript
-interface YourAppProps {
-  theme?: string;              // 'default', 'ocean', 'forest', etc.
-  environment?: 'development' | 'production';
-  serverOrigin?: string;       // API endpoint
-  sessionId?: string;          // Session identifier
+interface ResumeBotAppProps {
+  theme?: string // 'default', 'ocean', 'forest', etc.
+  environment?: 'development' | 'production'
+  serverOrigin?: string // API endpoint
+  sessionId?: string // Session identifier
 }
 ```
 
 ### Mounting
 
 ```typescript
-import { mount, unmount } from '@wolffm/your-app';
+import { mount, unmount } from '@wolffm/resume-bot'
 
 // Mount the app
 mount(document.getElementById('app-root'), {
   theme: 'ocean',
   environment: 'production'
-});
+})
 
 // Unmount when done
-unmount(document.getElementById('app-root'));
+unmount(document.getElementById('app-root'))
 ```
 
 ## Deployment
 
 Pushes to `main` automatically:
+
 1. Build and publish to GitHub Packages
 2. Notify parent site to update
 3. Parent pulls new version and redeploys

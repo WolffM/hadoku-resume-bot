@@ -6,11 +6,11 @@ Template for building React-based child apps that integrate with the hadoku pare
 
 ## Quick Start
 
-1. Copy this template folder to your new repo
+1. Copy this template folder to ResumeBot new repo
 2. Replace all instances:
-   - `@wolffm/your-app` → `@wolffm/resume-bot`
-   - `your-app` → `resume-bot`
-   - `YourApp` → `ResumeBot`
+   - `@wolffm/resume-bot` → `@wolffm/resume-bot`
+   - `resume-bot` → `resume-bot`
+   - `ResumeBotApp` → `ResumeBot`
 3. Run setup:
    ```bash
    pnpm install
@@ -45,19 +45,22 @@ export function unmount(el: HTMLElement) {
 ## Theme Integration (MANDATORY)
 
 ### 1. Import in `entry.tsx`
+
 ```typescript
-import '@wolffm/themes/themes.css'; // REQUIRED
+import '@wolffm/themes/themes.css' // REQUIRED
 ```
 
 ### 2. Apply attributes in component
+
 ```typescript
 useEffect(() => {
-  containerRef.current?.setAttribute('data-theme', theme);
-  containerRef.current?.setAttribute('data-dark-theme', isDarkTheme ? 'true' : 'false');
-}, [theme, isDarkTheme]);
+  containerRef.current?.setAttribute('data-theme', theme)
+  containerRef.current?.setAttribute('data-dark-theme', isDarkTheme ? 'true' : 'false')
+}, [theme, isDarkTheme])
 ```
 
 ### 3. Use CSS variables only
+
 ```css
 /* ✅ Correct */
 background-color: var(--theme-background);
@@ -74,6 +77,7 @@ background-color: #ffffff; /* NO hardcoded colors! */
 ## Build Config
 
 ### `package.json` exports
+
 ```json
 {
   "exports": {
@@ -89,6 +93,7 @@ background-color: #ffffff; /* NO hardcoded colors! */
 ```
 
 ### `vite.config.ts` externals
+
 ```typescript
 rollupOptions: {
   external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@wolffm/themes']
@@ -109,7 +114,9 @@ pnpm format       # Format files
 ```
 
 ### Pre-Commit Hook
+
 Auto-runs on commit:
+
 1. ESLint auto-fix
 2. Prettier format
 3. Version bump (only if `src/` or `package.json` changed)
@@ -123,6 +130,7 @@ Skip with: `git commit --no-verify`
 ## Deployment
 
 Push to `main` triggers:
+
 1. Build package
 2. Publish to GitHub Packages
 3. Notify parent site
@@ -133,18 +141,22 @@ Push to `main` triggers:
 ## Troubleshooting
 
 **Build fails?**
+
 - Check externals in `vite.config.ts`
 
 **Version not bumping?**
+
 - `chmod +x .husky/pre-commit`
 - Only bumps on `src/` or `package.json` changes
 
 **Theme not working?**
+
 - Import `@wolffm/themes/themes.css` in `entry.tsx`
 - Set `data-theme` attributes
 - Use CSS variables only
 
 **Parent not loading?**
+
 - Export `mount()` from `entry.tsx`
 - Build outputs `dist/index.js` and `dist/style.css`
 
@@ -152,9 +164,9 @@ Push to `main` triggers:
 
 ## Replacement Checklist
 
-- [ ] `@wolffm/your-app` → actual package name
-- [ ] `your-app` → app name in CSS classes
-- [ ] `YourAppProps` → actual props interface name
+- [ ] `@wolffm/resume-bot` → actual package name
+- [ ] `resume-bot` → app name in CSS classes
+- [ ] `ResumeBotAppProps` → actual props interface name
 - [ ] Repository URL in `package.json`
 - [ ] Description in `package.json` and `README.md`
 - [ ] `HADOKU_SITE_TOKEN` in GitHub secrets
@@ -162,4 +174,4 @@ Push to `main` triggers:
 
 ---
 
-*For project-specific details, see [RESUME_BOT_PROJECT.md](../RESUME_BOT_PROJECT.md)*
+_For project-specific details, see [RESUME_BOT_PROJECT.md](../RESUME_BOT_PROJECT.md)_

@@ -40,7 +40,11 @@ export default [
         localStorage: 'readonly',
         fetch: 'readonly',
         // TypeScript/React
-        React: 'readonly'
+        React: 'readonly',
+        // DOM Types
+        HTMLElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        MediaQueryListEvent: 'readonly'
       }
     },
     settings: {
@@ -48,7 +52,10 @@ export default [
     },
     rules: {
       // TypeScript
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ],
       '@typescript-eslint/no-explicit-any': 'warn',
 
       // React

@@ -78,7 +78,7 @@ jobs:
             {
               "event_type": "packages_updated",
               "client_payload": {
-                "packages": ["@wolffm/your-app"],
+                "packages": ["@wolffm/resume-bot"],
                 "sha": "${{ github.sha }}",
                 "ref": "${{ github.ref }}"
               }

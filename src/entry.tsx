@@ -6,27 +6,27 @@ import '@wolffm/themes/themes.css'
 import './styles/index.css'
 
 // Props interface for configuration from parent app
-export interface YourAppProps {
+export interface ResumeBotAppProps {
   theme?: string // Theme passed from parent (e.g., 'default', 'ocean', 'forest')
   userType?: 'public' | 'friend' | 'admin'
   sessionId?: string
 }
 
 // Extend HTMLElement to include __root property
-interface YourAppElement extends HTMLElement {
+interface ResumeBotAppElement extends HTMLElement {
   __root?: Root
 }
 
-// Mount function - called by parent to initialize your app
-export function mount(el: HTMLElement, props: YourAppProps = {}) {
+// Mount function - called by parent to initialize resume bot
+export function mount(el: HTMLElement, props: ResumeBotAppProps = {}) {
   const root = createRoot(el)
   root.render(<App {...props} />)
-  ;(el as YourAppElement).__root = root
-  console.log('[your-app] Mounted successfully', props)
+  ;(el as ResumeBotAppElement).__root = root
+  console.log('[resume-bot] Mounted successfully', props)
 }
 
-// Unmount function - called by parent to cleanup your app
+// Unmount function - called by parent to cleanup resume bot
 export function unmount(el: HTMLElement) {
-  ;(el as YourAppElement).__root?.unmount()
-  console.log('[your-app] Unmounted successfully')
+  ;(el as ResumeBotAppElement).__root?.unmount()
+  console.log('[resume-bot] Unmounted successfully')
 }
