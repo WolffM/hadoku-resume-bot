@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import type { ResumeBotAppProps } from './entry'
 
 export default function App(props: ResumeBotAppProps = {}) {
-  const { theme = 'default', userType = 'public', sessionId = 'public' } = props
+  const { theme = 'default' } = props
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Detect and sync with browser's color scheme preference
@@ -43,10 +43,7 @@ export default function App(props: ResumeBotAppProps = {}) {
         </header>
 
         <main className="resume-bot__content">
-          <p>User Type: {userType}</p>
-          <p>Session ID: {sessionId}</p>
           <p>Theme: {theme}</p>
-          <p>Dark Mode: {isDarkTheme ? 'Yes' : 'No'}</p>
         </main>
       </div>
     </div>

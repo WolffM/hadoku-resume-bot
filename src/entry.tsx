@@ -7,9 +7,7 @@ import './styles/index.css'
 
 // Props interface for configuration from parent app
 export interface ResumeBotAppProps {
-  theme?: string // Theme passed from parent (e.g., 'default', 'ocean', 'forest')
-  userType?: 'public' | 'friend' | 'admin'
-  sessionId?: string
+  theme?: string
 }
 
 // Extend HTMLElement to include __root property
