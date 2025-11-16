@@ -1,0 +1,49 @@
+/**
+ * REQUIRED: @wolffm/themes integration
+ *
+ * IMPORTANT: You MUST use @wolffm/themes CSS variables for all colors!
+ *
+ * How to use:
+ * 1. Import '@wolffm/themes/themes.css' in entry.tsx (REQUIRED - already done)
+ * 2. Set data-theme and data-dark-theme attributes on container (REQUIRED - see App.tsx)
+ * 3. Use CSS variables for all colors: var(--theme-*)
+ *
+ * Available theme variables:
+ * - var(--theme-background)  - Main background color
+ * - var(--theme-text)         - Main text color
+ * - var(--theme-primary)      - Primary/accent color
+ * - var(--theme-secondary)    - Secondary color
+ * - And more... (see @wolffm/themes documentation)
+ */
+
+.your-app-container {
+  /* REQUIRED: Use theme CSS variables, NOT hardcoded colors */
+  min-height: 100vh;
+  background-color: var(--theme-background, #ffffff);
+  color: var(--theme-text, #000000);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.your-app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.your-app__header {
+  margin-bottom: 2rem;
+}
+
+.your-app__header h1 {
+  margin: 0;
+  color: var(--theme-primary, #0066cc);
+}
+
+.your-app__content {
+  /* Your app content styles */
+}
+
+/* Dark theme adjustments (optional) */
+[data-dark-theme='true'] .your-app-container {
+  /* Additional dark theme overrides if needed */
+}
