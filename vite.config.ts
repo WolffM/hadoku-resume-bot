@@ -13,10 +13,7 @@ export default defineConfig({
       // Externalize peer dependencies (parent provides them)
       external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@wolffm/themes'],
       output: {
-        assetFileNames: assetInfo => {
-          if (assetInfo.name === 'style.css') return 'style.css'
-          return assetInfo.name || 'asset'
-        }
+        assetFileNames: 'style.css'
       }
     },
     target: 'es2022',

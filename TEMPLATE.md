@@ -6,20 +6,19 @@ Template for building React-based child apps that integrate with the hadoku pare
 
 ## Quick Start
 
-1. Copy this template folder to ResumeBot new repo
-2. Replace all instances:
-   - `@wolffm/resume-bot` → `@wolffm/resume-bot`
-   - `resume-bot` → `resume-bot`
-   - `ResumeBotApp` → `ResumeBot`
-3. Run setup:
-   ```bash
-   pnpm install
-   pnpm exec husky init
-   chmod +x .husky/pre-commit
-   ```
-4. Add GitHub secret: `HADOKU_SITE_TOKEN` (get from hadoku_site admin)
-5. Start developing: `pnpm dev`
-6. Push to `main` to auto-deploy
+~~1. Copy this template folder to ResumeBot new repo~~
+~~2. Replace all instances:~~
+~~ - `@wolffm/resume-bot` → `@wolffm/resume-bot`~~
+~~ - `resume-bot` → `resume-bot`~~
+~~ - `ResumeBotApp` → `ResumeBot`~~ 3. Run setup:
+
+```bash
+pnpm install
+pnpm exec husky init
+chmod +x .husky/pre-commit
+```
+
+~~4. Add GitHub secret: `HADOKU_SITE_TOKEN` (get from hadoku_site admin)~~ 5. Start developing: `pnpm dev` 6. Push to `main` to auto-deploy
 
 ---
 
