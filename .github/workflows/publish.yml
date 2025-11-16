@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  packages: write  # Need write to publish, read is implied
 
 jobs:
   publish:
@@ -28,18 +28,14 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@wolffm'
           cache: 'pnpm'
-
-      - name: Configure npm for GitHub Packages
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
-          echo "@wolffm:registry=https://npm.pkg.github.com" >> ~/.npmrc
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use HADOKU_SITE_TOKEN for cross-repo package access
+          NODE_AUTH_TOKEN: ${{ secrets.HADOKU_SITE_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.HADOKU_SITE_TOKEN }}
 
       - name: Build package
         run: pnpm run build
@@ -59,7 +55,7 @@ jobs:
         if: steps.package_changed.outputs.changed == 'true'
         run: pnpm publish --no-git-checks
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.HADOKU_SITE_TOKEN }}
 
       # Notify parent app to update dependencies
       - name: Notify parent about package update
