@@ -26,7 +26,7 @@ chmod +x .husky/pre-commit
 
 ```typescript
 import { createRoot } from 'react-dom/client';
-import '@wolffm/themes/themes.css'; // REQUIRED
+import '@wolffm/themes/style.css'; // REQUIRED
 
 export function mount(el: HTMLElement, props = {}) {
   const root = createRoot(el);
@@ -46,7 +46,7 @@ export function unmount(el: HTMLElement) {
 ### 1. Import in `entry.tsx`
 
 ```typescript
-import '@wolffm/themes/themes.css' // REQUIRED
+import '@wolffm/themes/style.css' // REQUIRED
 ```
 
 ### 2. Apply attributes in component
@@ -150,7 +150,7 @@ Push to `main` triggers:
 
 **Theme not working?**
 
-- Import `@wolffm/themes/themes.css` in `entry.tsx`
+- Import `@wolffm/themes/style.css` in `entry.tsx`
 - Set `data-theme` attributes
 - Use CSS variables only
 
