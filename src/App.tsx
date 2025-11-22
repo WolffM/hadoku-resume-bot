@@ -1,49 +1,58 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
+import { ConnectedThemePicker, LoadingSkeleton } from '@wolffm/task-ui-components'
+import { THEME_ICON_MAP } from '@wolffm/themes'
+import { useTheme } from './hooks/useTheme'
 import type { ResumeBotAppProps } from './entry'
 
 export default function App(props: ResumeBotAppProps = {}) {
-  const { theme = 'default' } = props
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Detect and sync with browser's color scheme preference
-  const [isDarkTheme, setIsDarkTheme] = useState(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
+  // Detect system preference for loading skeleton
+  const [systemPrefersDark] = useState(() => {
+    if (window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches
     }
     return false
   })
 
-  // Listen for browser theme changes
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
+  const { theme, setTheme, isDarkTheme, isThemeReady, isInitialThemeLoad, THEME_FAMILIES } =
+    useTheme({
+      propsTheme: props.theme,
+      experimentalThemes: false, // Set to true to enable experimental themes
+      containerRef
+    })
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e: MediaQueryListEvent) => setIsDarkTheme(e.matches)
-
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
-  }, [])
-
-  // REQUIRED: Apply theme attributes for @wolffm/themes integration
-  // These attributes are REQUIRED for theming to work correctly
-  useEffect(() => {
-    if (containerRef.current) {
-      // REQUIRED: data-theme attribute (e.g., 'default', 'ocean', 'forest')
-      containerRef.current.setAttribute('data-theme', theme)
-      // REQUIRED: data-dark-theme attribute ('true' or 'false')
-      containerRef.current.setAttribute('data-dark-theme', isDarkTheme ? 'true' : 'false')
-    }
-  }, [theme, isDarkTheme])
+  // Show loading skeleton during initial theme load to prevent FOUC
+  if (isInitialThemeLoad && !isThemeReady) {
+    return <LoadingSkeleton isDarkTheme={systemPrefersDark} />
+  }
 
   return (
-    <div ref={containerRef} className="resume-bot-container">
+    <div
+      ref={containerRef}
+      className="resume-bot-container"
+      data-theme={theme}
+      data-dark-theme={isDarkTheme ? 'true' : 'false'}
+    >
       <div className="resume-bot">
         <header className="resume-bot__header">
-          <h1>resume bot</h1>
+          <h1>Resume Bot</h1>
+
+          {/* Theme Picker */}
+          <ConnectedThemePicker
+            themeFamilies={THEME_FAMILIES}
+            currentTheme={theme}
+            onThemeChange={setTheme}
+            getThemeIcon={(themeName: keyof typeof THEME_ICON_MAP) => {
+              const Icon = THEME_ICON_MAP[themeName]
+              return Icon ? <Icon /> : null
+            }}
+          />
         </header>
 
         <main className="resume-bot__content">
-          <p>Theme: {theme}</p>
+          <p>Current Theme: {theme}</p>
+          <p>Dark Mode: {isDarkTheme ? 'Yes' : 'No'}</p>
         </main>
       </div>
     </div>

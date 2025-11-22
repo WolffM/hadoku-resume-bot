@@ -1,29 +1,45 @@
 /**
- * REQUIRED: @wolffm/themes integration
- *
- * IMPORTANT: You MUST use @wolffm/themes CSS variables for all colors!
- *
- * How to use:
- * 1. Import '@wolffm/themes/style.css' in entry.tsx (REQUIRED - already done)
- * 2. Set data-theme and data-dark-theme attributes on container (REQUIRED - see App.tsx)
- * 3. Use CSS variables for all colors: var(--theme-*)
- *
- * Available theme variables:
- * - var(--theme-background)  - Main background color
- * - var(--theme-text)         - Main text color
- * - var(--theme-primary)      - Primary/accent color
- * - var(--theme-secondary)    - Secondary color
- * - And more... (see @wolffm/themes documentation)
+ * Theme System CSS
+ * Uses @wolffm/themes for consistent theming across all apps
  */
 
+/* Light themes - explicit color scheme */
+.resume-bot-container[data-theme='light'],
+.resume-bot-container[data-theme='coffee-light'],
+.resume-bot-container[data-theme='nature-light'],
+.resume-bot-container[data-theme='lavender-light'],
+.resume-bot-container[data-theme='strawberry-light'],
+.resume-bot-container[data-theme='ocean-light'],
+.resume-bot-container[data-theme='cyberpunk-light'],
+.resume-bot-container[data-theme='pink-light'] {
+  color-scheme: light;
+}
+
+/* Dark themes - explicit color scheme, tells Dark Reader not to invert */
+.resume-bot-container[data-theme='dark'],
+.resume-bot-container[data-theme='coffee-dark'],
+.resume-bot-container[data-theme='nature-dark'],
+.resume-bot-container[data-theme='lavender-dark'],
+.resume-bot-container[data-theme='strawberry-dark'],
+.resume-bot-container[data-theme='ocean-dark'],
+.resume-bot-container[data-theme='cyberpunk-dark'],
+.resume-bot-container[data-theme='pink-dark'] {
+  color-scheme: dark only; /* "only" tells Dark Reader to leave it alone */
+}
+
+/* Dark Reader detection helper */
+.resume-bot-container[data-dark-theme='true'] {
+  --is-dark-theme: 1;
+}
+
+/* Main container */
 .resume-bot-container {
-  /* REQUIRED: Use theme CSS variables, NOT hardcoded colors */
   min-height: 100vh;
-  background-color: var(--theme-background, #ffffff);
-  color: var(--theme-text, #000000);
+  background-color: var(--color-bg, #ffffff);
+  color: var(--color-text, #000000);
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .resume-bot {
@@ -33,19 +49,31 @@
 }
 
 .resume-bot__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
 }
 
 .resume-bot__header h1 {
   margin: 0;
-  color: var(--theme-primary, #0066cc);
+  color: var(--color-primary, #0066cc);
+  font-size: var(--font-size-lg, 1.5rem);
+  font-weight: var(--font-weight-bold, 700);
 }
 
 .resume-bot__content {
-  /* resume bot content styles */
+  padding: 1rem;
+  background-color: var(--color-bg-card, #f9fafb);
+  border-radius: var(--border-radius, 8px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 
-/* Dark theme adjustments (optional) */
-[data-dark-theme='true'] .resume-bot-container {
-  /* Additional dark theme overrides if needed */
+.resume-bot__content p {
+  margin: 0.5rem 0;
+  color: var(--color-text-secondary, #64748b);
+  font-size: var(--font-size-base, 1rem);
+  line-height: var(--line-height-relaxed, 1.625);
 }

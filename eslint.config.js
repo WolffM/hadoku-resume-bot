@@ -1,76 +1,100 @@
 import js from '@eslint/js'
-import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
-import reactPlugin from 'eslint-plugin-react'
-import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import globals from 'globals'
 import prettierConfig from 'eslint-config-prettier'
 
+// Fix globals bug: some keys have trailing whitespace
+const browserGlobals = Object.fromEntries(
+  Object.entries(globals.browser).map(([key, value]) => [key.trim(), value])
+)
+
 export default [
-  // Ignore build outputs and dependencies
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**', '**/coverage/**']
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/vite.config.ts'
+    ]
   },
 
-  // Base JavaScript config
-  js.configs.recommended,
-
-  // TypeScript and React config
+  // -------------------------------------------------------------
+  // Base TypeScript + React config
+  // -------------------------------------------------------------
   {
-    files: ['**/*.{ts,tsx,js,jsx}'],
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-      react: reactPlugin,
-      'react-hooks': reactHooksPlugin
-    },
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        ecmaFeatures: { jsx: true }
+        project: './tsconfig.json'
       },
       globals: {
-        // Node.js
-        console: 'readonly',
-        process: 'readonly',
-        // Browser
-        window: 'readonly',
-        document: 'readonly',
-        navigator: 'readonly',
-        localStorage: 'readonly',
-        fetch: 'readonly',
-        // TypeScript/React
-        React: 'readonly',
-        // DOM Types
-        HTMLElement: 'readonly',
-        HTMLDivElement: 'readonly',
-        MediaQueryListEvent: 'readonly'
+        ...browserGlobals
       }
     },
-    settings: {
-      react: { version: 'detect' }
+    plugins: {
+      '@typescript-eslint': tsPlugin
     },
     rules: {
-      // TypeScript
+      // Pull in all recommended + strict TS rules
+      ...js.configs.recommended.rules,
+      ...tsPlugin.configs['recommended'].rules,
+      ...tsPlugin.configs['recommended-type-checked'].rules,
+      ...tsPlugin.configs['stylistic-type-checked'].rules,
+
+      // -----------------------------
+      //     SENSIBLE STRICT RULES
+      // -----------------------------
+
+      // Prevent sloppy code paths
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+
+      // Avoid silent bugs
+      '@typescript-eslint/no-unnecessary-condition': 'off', // Allow defensive null checks
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
+
+      // Real-world strictness
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': ['warn', { fixToUnknown: false }],
+      '@typescript-eslint/no-non-null-assertion': 'off', // Allow ! after validation checks
 
-      // React
-      'react/react-in-jsx-scope': 'off',
-      'react/prop-types': 'off',
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      // Browser correctness
+      'no-restricted-globals': ['error', 'event', 'fdescribe'],
 
-      // General
-      'no-console': 'off',
+      // Safer equality
+      eqeqeq: ['error', 'always'],
+
+      // Clean imports
       'no-unused-vars': 'off',
-      'prefer-const': 'warn'
+      'no-duplicate-imports': 'error',
+      'no-unused-expressions': ['error', { allowShortCircuit: true, allowTernary: true }],
+
+      // Promises must be handled
+      'no-void': ['error', { allowAsStatement: true }],
+
+      // Allow console logs when intentional
+      'no-console': 'off',
+
+      // Allow intentional || for empty strings and falsy values
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off'
     }
   },
 
-  // Prettier config (must be last)
+  // -------------------------------------------------------------
+  // PRETTIER OVERRIDES (must be last)
+  // -------------------------------------------------------------
   prettierConfig
 ]

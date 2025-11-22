@@ -6,30 +6,22 @@
   <meta name="color-scheme" content="light dark">
   <title>Resume Bot - Dev</title>
   <script>
-    // CRITICAL: Set theme IMMEDIATELY to prevent white flash
-    // This runs before any CSS or React code loads
     (function() {
       try {
-        // Check sessionStorage first
         const savedTheme = sessionStorage.getItem('hadoku-theme');
-
-        // Then check browser preference
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        // Use saved theme, or fall back to browser preference
         const theme = savedTheme || (prefersDark ? 'dark' : 'light');
 
-        // Apply theme to document root IMMEDIATELY
         document.documentElement.setAttribute('data-theme', theme);
 
-        console.log('[theme-init] Applied initial theme:', theme, {
+        console.log('[theme-init] Applied initial theme:', {
+          theme,
           savedTheme,
           prefersDark,
-          timestamp: new Date().toISOString()
+          source: savedTheme ? 'sessionStorage' : prefersDark ? 'browser-preference' : 'default'
         });
       } catch (err) {
         console.error('[theme-init] Failed to set initial theme:', err);
-        // Fallback to light if anything fails
         document.documentElement.setAttribute('data-theme', 'light');
       }
     })();
@@ -42,7 +34,7 @@
 
     // Get params from URL
     const params = new URLSearchParams(window.location.search)
-    const theme = params.get('theme') || 'default'
+    const theme = params.get('theme') || undefined // Let the app handle default theme
 
     console.log('[mount] Mounting resume-bot with:', { theme })
 

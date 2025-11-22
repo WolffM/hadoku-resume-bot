@@ -3,6 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    watch: {
+      ignored: ['**/template/**']
+    }
+  },
+  optimizeDeps: {
+    exclude: ['template']
+  },
   build: {
     lib: {
       entry: 'src/entry.tsx',
