@@ -1,6 +1,9 @@
 #!/bin/sh
 echo "🔍 Running pre-commit checks..."
 
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
 # Auto-fix linting and formatting issues
 echo "📋 Running ESLint auto-fix..."
 pnpm run lint:fix
@@ -12,6 +15,10 @@ fi
 
 echo "✨ Auto-formatting code..."
 pnpm run format
+
+# Re-stage files that were originally staged and potentially modified
+echo "📥 Re-staging auto-fixed files..."
+echo "$STAGED_FILES" | xargs -r git add
 
 echo "✅ Linting and formatting complete!"
 

@@ -27,7 +27,10 @@ export function mount(el: HTMLElement, props: ResumeBotAppProps) {
   const root = createRoot(el)
   root.render(<App {...props} />)
   ;(el as ResumeBotAppElement).__root = root
-  logger.info('[resume-bot] Mounted successfully', { theme: props.theme, apiBaseUrl: props.apiBaseUrl })
+  logger.info('[resume-bot] Mounted successfully', {
+    theme: props.theme,
+    apiBaseUrl: props.apiBaseUrl
+  })
 }
 
 // Unmount function - called by parent to cleanup resume bot
