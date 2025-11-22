@@ -43,8 +43,8 @@ export default function App(props: ResumeBotAppProps = {}) {
             themeFamilies={THEME_FAMILIES}
             currentTheme={theme}
             onThemeChange={setTheme}
-            getThemeIcon={(themeName: keyof typeof THEME_ICON_MAP) => {
-              const Icon = THEME_ICON_MAP[themeName]
+            getThemeIcon={(themeName: string) => {
+              const Icon = THEME_ICON_MAP[themeName as keyof typeof THEME_ICON_MAP]
               return Icon ? <Icon /> : null
             }}
           />
