@@ -197,11 +197,11 @@
 
 /* Markdown styling in chat messages */
 .chat-message--assistant .chat-message__content p {
-  line-height: 1.;
+  line-height: 1;
 }
 
 .chat-message--assistant .chat-message__content li {
-  line-height: .8;
+  line-height: 0.8;
 }
 
 .chat-message--assistant .chat-message__content li strong {
