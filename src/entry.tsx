@@ -11,7 +11,7 @@ import './styles/index.css'
 // Props interface for configuration from parent app
 export interface ResumeBotAppProps {
   theme?: string // Theme passed from parent (e.g., 'default', 'ocean', 'forest')
-  apiBaseUrl: string // Backend API URL (required, e.g., 'https://api.yourapp.com')
+  apiBaseUrl: string // Backend API path or URL (required, e.g., '/resume' or 'https://api.yourapp.com')
 }
 
 // Extend HTMLElement to include __root property

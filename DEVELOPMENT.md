@@ -30,7 +30,7 @@ cd ..
 
 **Frontend (passed as props on mount):**
 
-- `apiBaseUrl` - Backend API URL (e.g., 'http://localhost:3001' for development)
+- `apiBaseUrl` - Backend API path or URL (e.g., 'http://localhost:3001' for development, '/resume' for production)
 
 ### Running the Application
 
@@ -117,9 +117,11 @@ import { mount } from '@wolffm/resume-bot'
 
 mount(document.getElementById('resume-bot'), {
   theme: 'ocean', // optional
-  apiBaseUrl: 'https://your-backend-api.com' // required
+  apiBaseUrl: '/resume' // required - path or full URL to backend
 })
 ```
+
+The `apiBaseUrl` can be a relative path (e.g., `/resume`) or a full URL (e.g., `https://api.yourapp.com`).
 
 **Backend:**
 
