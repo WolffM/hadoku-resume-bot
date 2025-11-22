@@ -74,20 +74,14 @@ setInterval(
   5 * 60 * 1000
 )
 
-// Chat endpoint
-app.post('/api/chat', rateLimiter, async (req, res) => {
+// System prompt endpoint
+app.get('/api/system-prompt', async (req, res) => {
   try {
-    const { messages } = req.body as { messages?: unknown }
-
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'Invalid request: messages array required' })
-    }
-
     // Load resume content
     const resumePath = join(dirname(fileURLToPath(import.meta.url)), '../../resume.md')
     const resumeContent = await readFile(resumePath, 'utf-8')
 
-    // Prepare messages with system prompt that includes resume content
+    // Prepare system prompt with resume content
     const basePrompt = process.env.SYSTEM_PROMPT || 'You are a helpful assistant.'
     const systemPrompt = `${basePrompt}
 
@@ -99,15 +93,37 @@ ${resumeContent}
 
 Remember: Only provide information that is explicitly stated in the resume above. Do not invent or speculate about information not present in the resume.`
 
-    const chatMessages: OpenAI.ChatCompletionMessageParam[] = [
-      { role: 'system', content: systemPrompt },
-      ...(messages as OpenAI.ChatCompletionMessageParam[])
-    ]
+    res.json({
+      systemPrompt
+    })
+  } catch (error) {
+    console.error('Error reading system prompt:', error)
 
-    // Call Groq API
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      res.status(404).json({
+        error: 'Resume file not found'
+      })
+    } else {
+      res.status(500).json({
+        error: 'Failed to read system prompt'
+      })
+    }
+  }
+})
+
+// Chat endpoint
+app.post('/api/chat', rateLimiter, async (req, res) => {
+  try {
+    const { messages } = req.body as { messages?: unknown }
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Invalid request: messages array required' })
+    }
+
+    // Call Groq API with the messages (system prompt should be included from frontend)
     const completion = await groq.chat.completions.create({
       model: 'openai/gpt-oss-120b',
-      messages: chatMessages,
+      messages: messages as OpenAI.ChatCompletionMessageParam[],
       temperature: 0.7,
       max_tokens: 1024
     })

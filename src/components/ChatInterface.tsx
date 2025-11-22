@@ -1,12 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { sendChatMessage, type ChatMessage } from '../services/api'
+import { sendChatMessage, fetchSystemPrompt, type ChatMessage } from '../services/api'
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [systemPrompt, setSystemPrompt] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Fetch system prompt on mount
+  useEffect(() => {
+    fetchSystemPrompt()
+      .then(prompt => setSystemPrompt(prompt))
+      .catch(err => console.error('Error fetching system prompt:', err))
+  }, [])
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -30,8 +38,22 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     try {
+      // Prepare messages to send to backend
+      const messagesToSend: ChatMessage[] = []
+
+      // Include system prompt if available
+      if (systemPrompt) {
+        messagesToSend.push({
+          role: 'system',
+          content: systemPrompt
+        })
+      }
+
+      // Add conversation history and current user message
+      messagesToSend.push(...messages, userMessage)
+
       // Send all messages to backend
-      const response = await sendChatMessage([...messages, userMessage])
+      const response = await sendChatMessage(messagesToSend)
 
       // Add assistant response to chat
       const assistantMessage: ChatMessage = {
