@@ -21,6 +21,7 @@ This document specifies the exact API contract that the frontend expects from th
 Send chat messages to the LLM and receive responses.
 
 #### Rate Limiting
+
 - **Limit**: 10 requests per minute per IP address
 - **Window**: 60 seconds (rolling)
 - **Storage**: In-memory (resets on server restart)
@@ -31,6 +32,7 @@ Send chat messages to the LLM and receive responses.
 **Content-Type**: `application/json`
 
 **Body**:
+
 ```json
 {
   "messages": [
@@ -43,12 +45,14 @@ Send chat messages to the LLM and receive responses.
 ```
 
 **Validation**:
+
 - `messages` field is required
 - `messages` must be an array
 - Each message must have `role` and `content` fields
 - Valid roles: `"system"`, `"user"`, `"assistant"`
 
 **Example**:
+
 ```json
 {
   "messages": [
@@ -70,6 +74,7 @@ Send chat messages to the LLM and receive responses.
 **Content-Type**: `application/json`
 
 **Body**:
+
 ```json
 {
   "message": "string",
@@ -82,6 +87,7 @@ Send chat messages to the LLM and receive responses.
 ```
 
 **Fields**:
+
 - `message` (string, required): The LLM's response text
 - `usage` (object, optional): Token usage statistics
   - `prompt_tokens` (number): Number of tokens in the prompt
@@ -89,6 +95,7 @@ Send chat messages to the LLM and receive responses.
   - `total_tokens` (number): Total tokens used
 
 **Example**:
+
 ```json
 {
   "message": "Based on the resume, I have 5 years of experience with React...",
@@ -103,6 +110,7 @@ Send chat messages to the LLM and receive responses.
 #### Error Responses
 
 **400 Bad Request** - Invalid request format
+
 ```json
 {
   "error": "Invalid request: messages array required"
@@ -110,6 +118,7 @@ Send chat messages to the LLM and receive responses.
 ```
 
 **429 Too Many Requests** - Rate limit exceeded
+
 ```json
 {
   "error": "Too many requests",
@@ -119,6 +128,7 @@ Send chat messages to the LLM and receive responses.
 ```
 
 **500 Internal Server Error** - Server or LLM API error
+
 ```json
 {
   "error": "Failed to process chat request",
@@ -143,6 +153,7 @@ Fetch the resume content in markdown format.
 **Content-Type**: `application/json`
 
 **Body**:
+
 ```json
 {
   "content": "string"
@@ -150,9 +161,11 @@ Fetch the resume content in markdown format.
 ```
 
 **Fields**:
+
 - `content` (string, required): Full resume content in markdown format
 
 **Example**:
+
 ```json
 {
   "content": "# Matthaeus Wolff\n\n## Experience\n\n### Senior Developer\n..."
@@ -162,6 +175,7 @@ Fetch the resume content in markdown format.
 #### Error Responses
 
 **404 Not Found** - Resume file not found
+
 ```json
 {
   "error": "Resume file not found"
@@ -169,6 +183,7 @@ Fetch the resume content in markdown format.
 ```
 
 **500 Internal Server Error** - File read error
+
 ```json
 {
   "error": "Failed to read resume file"
@@ -194,6 +209,7 @@ Fetch the complete system prompt including resume content.
 **Content-Type**: `application/json`
 
 **Body**:
+
 ```json
 {
   "systemPrompt": "string"
@@ -201,10 +217,12 @@ Fetch the complete system prompt including resume content.
 ```
 
 **Fields**:
+
 - `systemPrompt` (string, required): Complete system prompt including base instructions and resume content
 
 **Format**:
 The system prompt follows this structure:
+
 ```
 {BASE_PROMPT from SYSTEM_PROMPT env var}
 
@@ -218,6 +236,7 @@ Remember: Only provide information that is explicitly stated in the resume above
 ```
 
 **Example**:
+
 ```json
 {
   "systemPrompt": "You are a helpful assistant...\n\n## Resume Content\n\nHere is Matthaeus Wolff's complete resume..."
@@ -227,6 +246,7 @@ Remember: Only provide information that is explicitly stated in the resume above
 #### Error Responses
 
 **404 Not Found** - Resume file not found
+
 ```json
 {
   "error": "Resume file not found"
@@ -234,6 +254,7 @@ Remember: Only provide information that is explicitly stated in the resume above
 ```
 
 **500 Internal Server Error** - File read error
+
 ```json
 {
   "error": "Failed to read system prompt"
@@ -250,6 +271,7 @@ The backend must enable CORS to allow requests from the frontend origin.
 **Production**: Configure allowed origins based on deployment
 
 **Required Headers**:
+
 - `Access-Control-Allow-Origin`
 - `Access-Control-Allow-Methods`
 - `Access-Control-Allow-Headers`
@@ -263,6 +285,7 @@ The backend requires the following environment variables:
 ### Required
 
 **`GROQ_API_KEY`**
+
 - Type: String
 - Description: API key for Groq LLM service
 - Example: `gsk_...`
@@ -270,17 +293,20 @@ The backend requires the following environment variables:
 ### Optional
 
 **`SYSTEM_PROMPT`**
+
 - Type: String
 - Description: Base system prompt for the chatbot (resume content is appended automatically)
 - Default: `"You are a helpful assistant."`
 - Example: `"You are an AI assistant helping visitors learn about Matthaeus Wolff's professional background."`
 
 **`PORT`**
+
 - Type: Number
 - Description: Port for the backend server
 - Default: `3001`
 
 **`NODE_ENV`**
+
 - Type: String
 - Description: Environment mode
 - Values: `"development"` | `"production"`
@@ -291,15 +317,19 @@ The backend requires the following environment variables:
 ## LLM Configuration
 
 ### Provider
+
 **Groq** via OpenAI-compatible SDK
 
 ### Model
+
 **`openai/gpt-oss-120b`**
 
 ### API Base URL
+
 `https://api.groq.com/openai/v1`
 
 ### Parameters
+
 ```typescript
 {
   model: 'openai/gpt-oss-120b',
@@ -316,6 +346,7 @@ The backend requires the following environment variables:
 The backend expects the following file in the project root:
 
 **`resume.md`**
+
 - Location: Project root directory
 - Format: Markdown
 - Encoding: UTF-8
@@ -326,15 +357,19 @@ The backend expects the following file in the project root:
 ## Error Handling Guidelines
 
 ### Client Errors (4xx)
+
 - **400**: Request validation failures (missing required fields, invalid types)
 - **404**: Resource not found (resume file missing)
 - **429**: Rate limit exceeded
 
 ### Server Errors (5xx)
+
 - **500**: Internal server errors, LLM API failures, file read errors
 
 ### Error Response Format
+
 All errors return JSON with at least an `error` field:
+
 ```typescript
 {
   error: string         // Brief error identifier
@@ -405,6 +440,7 @@ When implementing the backend elsewhere, verify:
 ### From Current Express Server
 
 The current implementation uses:
+
 - **Runtime**: Node.js with ES modules
 - **Framework**: Express.js
 - **LLM SDK**: OpenAI SDK (configured for Groq)
@@ -412,6 +448,7 @@ The current implementation uses:
 - **File Reading**: `fs/promises` for resume.md
 
 When migrating to a different stack (e.g., Python/FastAPI, Go, etc.), ensure:
+
 1. All endpoint paths and methods match exactly
 2. Request/response JSON structures are identical
 3. Error status codes and formats match
@@ -424,6 +461,7 @@ When migrating to a different stack (e.g., Python/FastAPI, Go, etc.), ensure:
 ## Support
 
 For questions about this API specification, refer to:
+
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup guide
 - [RESUME_BOT_PROJECT.md](RESUME_BOT_PROJECT.md) - Project overview and phases
 - [src/services/api.ts](src/services/api.ts) - Frontend API client implementation
