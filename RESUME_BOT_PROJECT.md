@@ -15,51 +15,60 @@
 
 **Goal**: Build working chat interface with LLM integration and markdown viewer
 
+**LLM Provider**: Groq (openai/gpt-oss-120b model)
+
+**Architecture**:
+
+- Frontend: Chat UI component with markdown viewer
+- Backend: API server to handle Groq requests and serve resume content
+
 **Deliverables**:
 
-- Chat UI component
-- LLM integration (OpenAI/Anthropic/local model)
-- Markdown viewer for resume content
-- LLM generates responses based on resume markdown
-- Mount/unmount pattern following template
+1. **Backend Setup**
+   - Express/Node.js server with API endpoints
+   - Groq API integration (OpenAI SDK compatible)
+   - Environment variables for API key and system prompt
+   - `/api/chat` endpoint for LLM requests
+   - `/api/resume` endpoint to serve markdown content
+   - CORS configuration for frontend
+
+2. **Frontend Components**
+   - Chat UI component
+   - Markdown viewer for resume content
+   - API client to communicate with backend
+   - Mount/unmount pattern following template
+
+3. **Configuration**
+   - `.env` file with `GROQ_API_KEY` and `SYSTEM_PROMPT`
+   - Future: Migrate prompt to key vault/secrets manager
 
 **Success Criteria**:
 
 - User can chat with bot at `hadoku.me/resume`
-- Bot answers questions about resume accurately
+- Backend successfully proxies requests to Groq API
+- Bot answers questions about resume accurately using system prompt
 - Markdown content displays correctly
+- API key secured in environment variables
+
+**Implementation Steps**:
+
+1. Set up backend server with Groq integration
+2. Create API endpoints for chat and resume content
+3. Build frontend chat UI component
+4. Integrate markdown viewer
+5. Connect frontend to backend APIs
+6. Test end-to-end chat flow
 
 **Notes**:
 
 - Can use hardcoded colors/styling for MVP
-- Basic rate limiting acceptable (localStorage counter)
+- Basic rate limiting acceptable (localStorage counter or simple backend throttling)
 - Focus on functionality over polish
+- System prompt stored in `.env` for now, will migrate to key vault in future phase
 
 ---
 
-### Phase 2: Theme Integration
-
-**Goal**: Integrate with parent's theming system
-
-**Deliverables**:
-
-- Import and use `@wolffm/themes` package (mandatory)
-- Inherit theme from parent on mount via props
-- Apply `data-theme` and `data-dark-theme` attributes
-- Replace all hardcoded colors with CSS variables
-- Auto-detect dark mode with `matchMedia`
-
-**Success Criteria**:
-
-- Theme changes in parent reflect in resume bot
-- Dark mode toggles correctly
-- No hardcoded colors remain
-
-**Reference**: See [template/TEMPLATE.md](template/TEMPLATE.md) for theme integration details
-
----
-
-### Phase 3: Calendar Integration
+### Phase 2: Calendar Integration
 
 **Goal**: Add link to schedule meetings via `hadoku.me/appointment`
 
@@ -92,9 +101,8 @@
 
 ### Template Usage
 
-1. Copy `docs/child-apps/template/` to new repo
-2. Follow setup in [template/TEMPLATE.md](template/TEMPLATE.md)
-3. Replace `@wolffm/resume-bot` → `@wolffm/resume-bot`
+1. Follow template guide in [template/TEMPLATE.md](template/TEMPLATE.md)
+
 
 ### Additional Dependencies
 
