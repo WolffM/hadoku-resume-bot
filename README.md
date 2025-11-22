@@ -20,11 +20,11 @@ pnpm install
 pnpm dev
 
 # Build for production
-pnpm build
+# pnpm build
 
-# Lint and format
-pnpm lint:fix
-pnpm format
+# # Lint and format
+# pnpm lint:fix
+# pnpm format
 ```
 
 The dev server uses `index.html` which imports and mounts the component directly. You can pass different configurations via URL parameters:
