@@ -22,10 +22,10 @@ export default [
   },
 
   // -------------------------------------------------------------
-  // Base TypeScript + React config
+  // Frontend TypeScript + React config
   // -------------------------------------------------------------
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -90,6 +90,40 @@ export default [
       // Allow intentional || for empty strings and falsy values
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/prefer-optional-chain': 'off'
+    }
+  },
+
+  // -------------------------------------------------------------
+  // Backend TypeScript config (Node.js)
+  // -------------------------------------------------------------
+  {
+    files: ['server/**/*.ts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './server/tsconfig.json'
+      },
+      globals: {
+        ...globals.node
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...tsPlugin.configs['recommended'].rules,
+      ...tsPlugin.configs['recommended-type-checked'].rules,
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-console': 'off'
     }
   },
 
