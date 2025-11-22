@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { sendChatMessage, fetchSystemPrompt, type ChatMessage } from '../services/api'
 
 export default function ChatInterface() {
@@ -106,7 +108,13 @@ export default function ChatInterface() {
             <div className="chat-message__role">
               {message.role === 'user' ? 'You' : 'Resume Bot'}
             </div>
-            <div className="chat-message__content">{message.content}</div>
+            <div className="chat-message__content">
+              {message.role === 'assistant' ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+              ) : (
+                message.content
+              )}
+            </div>
           </div>
         ))}
 
