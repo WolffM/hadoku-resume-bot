@@ -57,7 +57,4 @@ else
   echo "ℹ️  No code changes detected, skipping version bump"
 fi
 
-# Stage linting and formatting changes
-git add -u
-
 echo "✅ All pre-commit checks passed!"
