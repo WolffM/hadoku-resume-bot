@@ -8,7 +8,6 @@ import ResumeViewer from './components/ResumeViewer'
 
 export default function App(props: ResumeBotAppProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [activeTab, setActiveTab] = useState<'chat' | 'resume'>('chat')
 
   // Detect system preference for loading skeleton
   const [systemPrefersDark] = useState(() => {
@@ -53,27 +52,12 @@ export default function App(props: ResumeBotAppProps = {}) {
           />
         </header>
 
-        <div className="resume-bot__tabs">
-          <button
-            className={`resume-bot__tab ${activeTab === 'chat' ? 'resume-bot__tab--active' : ''}`}
-            onClick={() => setActiveTab('chat')}
-          >
-            Chat
-          </button>
-          <button
-            className={`resume-bot__tab ${activeTab === 'resume' ? 'resume-bot__tab--active' : ''}`}
-            onClick={() => setActiveTab('resume')}
-          >
-            Resume
-          </button>
-        </div>
-
         <main className="resume-bot__content">
-          <div style={{ display: activeTab === 'chat' ? 'block' : 'none' }}>
-            <ChatInterface />
-          </div>
-          <div style={{ display: activeTab === 'resume' ? 'block' : 'none' }}>
+          <div className="resume-bot__resume-section">
             <ResumeViewer />
+          </div>
+          <div className="resume-bot__chat-section">
+            <ChatInterface />
           </div>
         </main>
       </div>

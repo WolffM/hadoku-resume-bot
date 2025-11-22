@@ -43,18 +43,22 @@
 }
 
 .resume-bot {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .resume-bot__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border, #e5e7eb);
+  flex-shrink: 0;
 }
 
 .resume-bot__header h1 {
@@ -65,55 +69,33 @@
 }
 
 .resume-bot__content {
-  padding: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.resume-bot__resume-section {
+  flex: 1;
+  overflow-y: auto;
   background-color: var(--color-bg-card, #f9fafb);
   border-radius: var(--border-radius, 8px);
   box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 
-.resume-bot__content p {
-  margin: 0.5rem 0;
-  color: var(--color-text-secondary, #64748b);
-  font-size: var(--font-size-base, 1rem);
-  line-height: var(--line-height-relaxed, 1.625);
-}
-
-/* Tabs */
-.resume-bot__tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid var(--color-border, #e5e7eb);
-}
-
-.resume-bot__tab {
-  padding: 0.75rem 1.5rem;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--color-text-secondary, #64748b);
-  font-size: var(--font-size-base, 1rem);
-  font-weight: var(--font-weight-medium, 500);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: -2px;
-}
-
-.resume-bot__tab:hover {
-  color: var(--color-primary, #0066cc);
-}
-
-.resume-bot__tab--active {
-  color: var(--color-primary, #0066cc);
-  border-bottom-color: var(--color-primary, #0066cc);
+.resume-bot__chat-section {
+  width: 400px;
+  flex-shrink: 0;
+  background-color: var(--color-bg-card, #f9fafb);
+  border-radius: var(--border-radius, 8px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 
 /* Chat Interface */
 .chat-interface {
   display: flex;
   flex-direction: column;
-  height: 600px;
-  max-height: 70vh;
+  height: 100%;
 }
 
 .chat-interface__header {
@@ -270,9 +252,8 @@
 /* Resume Viewer */
 .resume-viewer {
   padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
   color: var(--color-text, #000000);
+  height: 100%;
 }
 
 .resume-viewer--loading,
@@ -374,4 +355,21 @@
   border-radius: 4px;
   font-family: monospace;
   font-size: var(--font-size-sm, 0.875rem);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .resume-bot__content {
+    flex-direction: column;
+  }
+
+  .resume-bot__chat-section {
+    width: 100%;
+    height: 400px;
+  }
+
+  .resume-bot__resume-section {
+    flex: 1;
+    min-height: 500px;
+  }
 }
