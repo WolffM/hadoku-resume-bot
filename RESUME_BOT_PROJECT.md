@@ -103,7 +103,6 @@
 
 1. Follow template guide in [template/TEMPLATE.md](template/TEMPLATE.md)
 
-
 ### Additional Dependencies
 
 Beyond what's in the template, you'll need:
