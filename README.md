@@ -53,10 +53,8 @@ This app is a child component of the [hadoku_site](https://github.com/WolffM/had
 
 ```typescript
 interface ResumeBotAppProps {
-  theme?: string // 'default', 'ocean', 'forest', etc.
-  environment?: 'development' | 'production'
-  serverOrigin?: string // API endpoint
-  sessionId?: string // Session identifier
+  theme?: string // Optional: 'default', 'ocean', 'forest', etc.
+  apiBaseUrl: string // Required: Backend API URL (e.g., 'https://api.yourapp.com')
 }
 ```
 
@@ -66,14 +64,17 @@ interface ResumeBotAppProps {
 import { mount, unmount } from '@wolffm/resume-bot'
 
 // Mount the app
-mount(document.getElementById('app-root'), {
-  theme: 'ocean',
-  environment: 'production'
+const element = document.getElementById('app-root')
+mount(element, {
+  theme: 'ocean', // optional
+  apiBaseUrl: 'https://your-backend-api.com' // required
 })
 
 // Unmount when done
-unmount(document.getElementById('app-root'))
+unmount(element)
 ```
+
+**Important:** The backend API must be deployed separately. The `apiBaseUrl` should point to your deployed backend server that handles the resume bot API endpoints (`/api/chat`, `/api/resume`, `/api/system-prompt`).
 
 ## Deployment
 

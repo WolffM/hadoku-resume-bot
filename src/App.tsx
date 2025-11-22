@@ -6,7 +6,7 @@ import type { ResumeBotAppProps } from './entry'
 import ChatInterface from './components/ChatInterface'
 import ResumeViewer from './components/ResumeViewer'
 
-export default function App(props: ResumeBotAppProps = {}) {
+export default function App(props: ResumeBotAppProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Detect system preference for loading skeleton

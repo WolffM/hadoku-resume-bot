@@ -26,8 +26,16 @@ export interface ApiError {
   retryAfter?: number
 }
 
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) || 'http://localhost:3001'
+// Runtime API base URL - set by the mount function
+let API_BASE_URL = 'http://localhost:3001' // Default for development
+
+/**
+ * Set the API base URL at runtime
+ * Called by the mount function with the apiBaseUrl prop
+ */
+export function setApiBaseUrl(url: string): void {
+  API_BASE_URL = url
+}
 
 /**
  * Send a chat message to the backend

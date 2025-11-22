@@ -23,11 +23,14 @@ cd ..
 
 ### Environment Variables
 
-The project uses a single `.env` file in the root directory (already configured):
+**Backend (.env file in root directory):**
 
 - `GROQ_API_KEY` - Your Groq API key for LLM access
 - `SYSTEM_PROMPT` - The system prompt for the chatbot
-- `VITE_API_BASE_URL` - Backend API URL (default: http://localhost:3001)
+
+**Frontend (passed as props on mount):**
+
+- `apiBaseUrl` - Backend API URL (e.g., 'http://localhost:3001' for development)
 
 ### Running the Application
 
@@ -105,6 +108,19 @@ pnpm build
 
 Output: `dist/` directory
 
+**Using the Frontend Package:**
+
+When consuming `@wolffm/resume-bot` in a parent application, you must provide the `apiBaseUrl` prop on mount:
+
+```typescript
+import { mount } from '@wolffm/resume-bot'
+
+mount(document.getElementById('resume-bot'), {
+  theme: 'ocean', // optional
+  apiBaseUrl: 'https://your-backend-api.com' // required
+})
+```
+
 **Backend:**
 
 ```bash
@@ -113,6 +129,8 @@ pnpm build
 ```
 
 Output: `server/dist/` directory
+
+Deploy the backend separately and provide its URL to the frontend via the `apiBaseUrl` prop.
 
 ### Troubleshooting
 
@@ -124,7 +142,7 @@ Output: `server/dist/` directory
 
 **Frontend API errors:**
 
-- Ensure `VITE_API_BASE_URL` in `.env` points to the correct backend URL
+- Ensure the `apiBaseUrl` prop passed to `mount()` points to the correct backend URL
 - Verify CORS is enabled on the backend
 - Check browser console for CORS or network errors
 

@@ -35,12 +35,14 @@
     // Get params from URL
     const params = new URLSearchParams(window.location.search)
     const theme = params.get('theme') || undefined // Let the app handle default theme
+    const apiBaseUrl = params.get('apiBaseUrl') || 'http://localhost:3001' // Default to local backend
 
-    console.log('[mount] Mounting resume-bot with:', { theme })
+    console.log('[mount] Mounting resume-bot with:', { theme, apiBaseUrl })
 
     // Mount the app
     mount(document.getElementById('app'), {
-      theme
+      theme,
+      apiBaseUrl
     })
   </script>
 </body>
