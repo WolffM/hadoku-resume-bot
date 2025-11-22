@@ -34,16 +34,20 @@ The project uses a single `.env` file in the root directory (already configured)
 You need to run both the frontend and backend in separate terminals:
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd server
 pnpm dev
 ```
+
 The backend will start on http://localhost:3001
 
 **Terminal 2 - Frontend:**
+
 ```bash
 pnpm dev
 ```
+
 The frontend will start on http://localhost:5173
 
 ### API Endpoints
@@ -94,30 +98,37 @@ The frontend will start on http://localhost:5173
 ### Building for Production
 
 **Frontend:**
+
 ```bash
 pnpm build
 ```
+
 Output: `dist/` directory
 
 **Backend:**
+
 ```bash
 cd server
 pnpm build
 ```
+
 Output: `server/dist/` directory
 
 ### Troubleshooting
 
 **Backend not connecting:**
+
 - Check that `.env` file exists with `GROQ_API_KEY`
 - Verify the backend is running on port 3001
 - Check console for error messages
 
 **Frontend API errors:**
+
 - Ensure `VITE_API_BASE_URL` in `.env` points to the correct backend URL
 - Verify CORS is enabled on the backend
 - Check browser console for CORS or network errors
 
 **Resume not loading:**
+
 - Ensure `resume.md` exists in the project root
 - Check that the file is readable by the backend process

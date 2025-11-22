@@ -9,7 +9,7 @@ export default function ResumeViewer() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadResume().catch((err) => console.error('Error loading resume:', err))
+    loadResume().catch(err => console.error('Error loading resume:', err))
   }, [])
 
   async function loadResume() {
@@ -39,7 +39,7 @@ export default function ResumeViewer() {
         <p className="resume-viewer__error-message">Error: {error}</p>
         <button
           onClick={() => {
-            loadResume().catch((err) => console.error('Error loading resume:', err))
+            loadResume().catch(err => console.error('Error loading resume:', err))
           }}
           className="resume-viewer__retry-button"
         >

@@ -62,14 +62,17 @@ function rateLimiter(req: express.Request, res: express.Response, next: express.
 }
 
 // Clean up expired rate limit entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  for (const [ip, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(ip)
+setInterval(
+  () => {
+    const now = Date.now()
+    for (const [ip, entry] of rateLimitStore.entries()) {
+      if (now > entry.resetTime) {
+        rateLimitStore.delete(ip)
+      }
     }
-  }
-}, 5 * 60 * 1000)
+  },
+  5 * 60 * 1000
+)
 
 // Chat endpoint
 app.post('/api/chat', rateLimiter, async (req, res) => {

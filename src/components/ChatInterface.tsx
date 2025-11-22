@@ -24,7 +24,7 @@ export default function ChatInterface() {
     }
 
     // Add user message to chat
-    setMessages((prev) => [...prev, userMessage])
+    setMessages(prev => [...prev, userMessage])
     setInputValue('')
     setError(null)
     setIsLoading(true)
@@ -39,13 +39,13 @@ export default function ChatInterface() {
         content: response.message
       }
 
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages(prev => [...prev, assistantMessage])
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
       setError(errorMessage)
 
       // Remove the failed user message
-      setMessages((prev) => prev.slice(0, -1))
+      setMessages(prev => prev.slice(0, -1))
       // Restore the input
       setInputValue(userMessage.content)
     } finally {
@@ -105,20 +105,24 @@ export default function ChatInterface() {
       )}
 
       <form
-        onSubmit={(e) => {
-          handleSendMessage(e).catch((err) => console.error('Error sending message:', err))
+        onSubmit={e => {
+          handleSendMessage(e).catch(err => console.error('Error sending message:', err))
         }}
         className="chat-interface__input-form"
       >
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={e => setInputValue(e.target.value)}
           placeholder="Ask me about the resume..."
           disabled={isLoading}
           className="chat-interface__input"
         />
-        <button type="submit" disabled={isLoading || !inputValue.trim()} className="chat-interface__send-button">
+        <button
+          type="submit"
+          disabled={isLoading || !inputValue.trim()}
+          className="chat-interface__send-button"
+        >
           Send
         </button>
       </form>
