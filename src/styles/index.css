@@ -325,7 +325,7 @@
 .resume-viewer {
   padding: 2rem;
   color: var(--color-text);
-  height: 100%;
+  min-height: 100%;
 }
 
 .resume-viewer--loading,
@@ -392,6 +392,14 @@
   margin-bottom: 1rem;
   padding-left: 2rem;
   line-height: var(--line-height-relaxed);
+}
+
+.resume-viewer ul {
+  list-style-type: disc;
+}
+
+.resume-viewer ol {
+  list-style-type: decimal;
 }
 
 .resume-viewer li {
