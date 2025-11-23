@@ -22,58 +22,6 @@ const groq = new OpenAI({
 app.use(cors())
 app.use(express.json())
 
-// Rate limiting store (in-memory)
-interface RateLimitEntry {
-  count: number
-  resetTime: number
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>()
-const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 10
-
-// Rate limiting middleware
-function rateLimiter(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const ip = req.ip || req.socket.remoteAddress || 'unknown'
-  const now = Date.now()
-
-  const entry = rateLimitStore.get(ip)
-
-  if (!entry || now > entry.resetTime) {
-    // New window or expired window
-    rateLimitStore.set(ip, {
-      count: 1,
-      resetTime: now + RATE_LIMIT_WINDOW_MS
-    })
-    return next()
-  }
-
-  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
-    const resetIn = Math.ceil((entry.resetTime - now) / 1000)
-    return res.status(429).json({
-      error: 'Too many requests',
-      message: `Rate limit exceeded. Try again in ${resetIn} seconds.`,
-      retryAfter: resetIn
-    })
-  }
-
-  entry.count++
-  next()
-}
-
-// Clean up expired rate limit entries every 5 minutes
-setInterval(
-  () => {
-    const now = Date.now()
-    for (const [ip, entry] of rateLimitStore.entries()) {
-      if (now > entry.resetTime) {
-        rateLimitStore.delete(ip)
-      }
-    }
-  },
-  5 * 60 * 1000
-)
-
 // System prompt endpoint
 app.get('/api/system-prompt', async (req, res) => {
   try {
@@ -82,7 +30,7 @@ app.get('/api/system-prompt', async (req, res) => {
     const resumeContent = await readFile(resumePath, 'utf-8')
 
     // Prepare system prompt with resume content
-    const basePrompt = process.env.SYSTEM_PROMPT || 'You are a helpful assistant.'
+    const basePrompt = process.env.SYSTEM_PROMPT
     const systemPrompt = `${basePrompt}
 
 ## Resume Content
@@ -112,7 +60,7 @@ Remember: Only provide information that is explicitly stated in the resume above
 })
 
 // Chat endpoint
-app.post('/api/chat', rateLimiter, async (req, res) => {
+app.post('/api/chat', async (req, res) => {
   try {
     const { messages } = req.body as { messages?: unknown }
 
@@ -125,7 +73,7 @@ app.post('/api/chat', rateLimiter, async (req, res) => {
       model: 'openai/gpt-oss-120b',
       messages: messages as OpenAI.ChatCompletionMessageParam[],
       temperature: 0.7,
-      max_tokens: 1024
+      max_completion_tokens: 512
     })
 
     const responseMessage = completion.choices[0]?.message?.content || 'No response generated'

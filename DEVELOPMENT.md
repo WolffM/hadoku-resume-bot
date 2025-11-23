@@ -1,4 +1,4 @@
-# Resume Bot - Development Guide
+# Resume Bot - Development & Local Testing Guide
 
 ## Getting Started
 
@@ -30,7 +30,7 @@ cd ..
 
 **Frontend (passed as props on mount):**
 
-- `apiBaseUrl` - Backend API path or URL (e.g., 'http://localhost:3001' for development, '/resume' for production)
+- `apiBaseUrl` - Backend API path or URL (e.g., 'http://localhost:3001' for development)
 
 ### Running the Application
 
@@ -59,6 +59,7 @@ The frontend will start on http://localhost:5173
 
 - `POST /api/chat` - Send chat messages (rate limited: 10 requests/minute per IP)
 - `GET /api/resume` - Fetch resume markdown content
+- `GET /api/system-prompt` - Fetch the system prompt
 
 ### Project Structure
 
@@ -87,52 +88,13 @@ The frontend will start on http://localhost:5173
 
 - **Chat Interface**: Interactive chat with Groq-powered LLM (openai/gpt-oss-120b model)
 - **Resume Viewer**: Markdown-rendered resume display
-- **Rate Limiting**: Backend throttling (10 requests/minute per IP)
 - **Theme Support**: Full integration with @wolffm/themes package
 - **Responsive Design**: Theme-aware CSS using CSS variables
 
 ### Development Notes
 
 - The frontend uses CSS variables from `@wolffm/themes` - no hardcoded colors
-- Rate limiting is in-memory (resets on server restart)
 - Resume content is loaded from `resume.md` file (gitignored)
-- CORS is enabled for local development
-
-### Building for Production
-
-**Frontend:**
-
-```bash
-pnpm build
-```
-
-Output: `dist/` directory
-
-**Using the Frontend Package:**
-
-When consuming `@wolffm/resume-bot` in a parent application, you must provide the `apiBaseUrl` prop on mount:
-
-```typescript
-import { mount } from '@wolffm/resume-bot'
-
-mount(document.getElementById('resume-bot'), {
-  theme: 'ocean', // optional
-  apiBaseUrl: '/resume' // required - path or full URL to backend
-})
-```
-
-The `apiBaseUrl` can be a relative path (e.g., `/resume`) or a full URL (e.g., `https://api.yourapp.com`).
-
-**Backend:**
-
-```bash
-cd server
-pnpm build
-```
-
-Output: `server/dist/` directory
-
-Deploy the backend separately and provide its URL to the frontend via the `apiBaseUrl` prop.
 
 ### Troubleshooting
 

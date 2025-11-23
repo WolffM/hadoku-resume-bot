@@ -30,6 +30,7 @@
    - Environment variables for API key and system prompt
    - `/api/chat` endpoint for LLM requests
    - `/api/resume` endpoint to serve markdown content
+   - `/api/system-prompt` endpoint to fetch the system prompt
    - CORS configuration for frontend
 
 2. **Frontend Components**
@@ -39,8 +40,7 @@
    - Mount/unmount pattern following template
 
 3. **Configuration**
-   - `.env` file with `GROQ_API_KEY` and `SYSTEM_PROMPT`
-   - Future: Migrate prompt to key vault/secrets manager
+   - `.env` file with `GROQ_API_KEY` and `SYSTEM_PROMPT` for local testing
 
 **Success Criteria**:
 
@@ -61,10 +61,8 @@
 
 **Notes**:
 
-- Can use hardcoded colors/styling for MVP
-- Basic rate limiting acceptable (localStorage counter or simple backend throttling)
 - Focus on functionality over polish
-- System prompt stored in `.env` for now, will migrate to key vault in future phase
+- System prompt stored in `.env` for local testing
 
 ---
 
