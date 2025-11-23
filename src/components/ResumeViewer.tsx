@@ -1,12 +1,19 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { fetchResume } from '../services/api'
 
-export default function ResumeViewer() {
+interface ResumeViewerProps {
+  onAskAbout: (text: string) => void
+}
+
+export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
   const [resumeContent, setResumeContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; text: string } | null>(
+    null
+  )
 
   useEffect(() => {
     loadResume().catch(err => console.error('Error loading resume:', err))
@@ -22,6 +29,34 @@ export default function ResumeViewer() {
       setError(err instanceof Error ? err.message : 'Failed to load resume')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Close context menu when clicking anywhere
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [])
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const selection = window.getSelection()
+    const selectedText = selection?.toString().trim()
+
+    if (selectedText && selectedText.length > 0) {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        text: selectedText
+      })
+    }
+  }
+
+  const handleAskAboutClick = () => {
+    if (contextMenu) {
+      onAskAbout(contextMenu.text)
+      setContextMenu(null)
     }
   }
 
@@ -50,8 +85,25 @@ export default function ResumeViewer() {
   }
 
   return (
-    <div className="resume-viewer">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{resumeContent}</ReactMarkdown>
-    </div>
+    <>
+      <div className="resume-viewer" onContextMenu={handleContextMenu}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{resumeContent}</ReactMarkdown>
+      </div>
+      {contextMenu && (
+        <div
+          className="context-menu"
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 1000
+          }}
+        >
+          <button className="context-menu__item" onClick={handleAskAboutClick}>
+            Ask about this
+          </button>
+        </div>
+      )}
+    </>
   )
 }

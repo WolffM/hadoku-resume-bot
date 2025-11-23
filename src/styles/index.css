@@ -331,6 +331,34 @@
   padding: 2rem;
   color: var(--color-text);
   min-height: 100%;
+  user-select: text;
+}
+
+/* Context Menu */
+.context-menu {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  padding: 0.25rem;
+  min-width: 150px;
+}
+
+.context-menu__item {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  transition: background-color 0.2s ease;
+}
+
+.context-menu__item:hover {
+  background-color: var(--color-bg-hover);
 }
 
 .resume-viewer--loading,

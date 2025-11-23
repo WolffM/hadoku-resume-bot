@@ -1,10 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import { sendChatMessage, fetchSystemPrompt, type ChatMessage } from '../services/api'
 
-export default function ChatInterface() {
+export interface ChatInterfaceRef {
+  askAbout: (text: string) => void
+}
+
+const ChatInterface = forwardRef<ChatInterfaceRef>((props, ref) => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -33,6 +37,58 @@ export default function ChatInterface() {
       inputRef.current?.focus()
     }
   }, [isLoading])
+
+  // Expose method to parent component
+  useImperativeHandle(ref, () => ({
+    askAbout: (text: string) => {
+      // Create the message content
+      const messageContent = `Tell me about: ${text}`
+
+      // Create user message
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: messageContent
+      }
+
+      // Add user message to chat
+      setMessages(prev => [...prev, userMessage])
+      setError(null)
+      setIsLoading(true)
+
+      // Send the message automatically
+      const sendMessage = async () => {
+        try {
+          const messagesToSend: ChatMessage[] = []
+
+          if (systemPrompt) {
+            messagesToSend.push({
+              role: 'system',
+              content: systemPrompt
+            })
+          }
+
+          messagesToSend.push(...messages, userMessage)
+
+          const response = await sendChatMessage(messagesToSend)
+
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: response.message
+          }
+
+          setMessages(prev => [...prev, assistantMessage])
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
+          setError(errorMessage)
+          setMessages(prev => prev.slice(0, -1))
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      sendMessage().catch(err => console.error('Error sending message:', err))
+    }
+  }))
 
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault()
@@ -172,4 +228,8 @@ export default function ChatInterface() {
       </form>
     </div>
   )
-}
+})
+
+ChatInterface.displayName = 'ChatInterface'
+
+export default ChatInterface

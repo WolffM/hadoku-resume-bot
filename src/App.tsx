@@ -3,11 +3,12 @@ import { ConnectedThemePicker, LoadingSkeleton } from '@wolffm/task-ui-component
 import { THEME_ICON_MAP } from '@wolffm/themes'
 import { useTheme } from './hooks/useTheme'
 import type { ResumeBotAppProps } from './entry'
-import ChatInterface from './components/ChatInterface'
+import ChatInterface, { type ChatInterfaceRef } from './components/ChatInterface'
 import ResumeViewer from './components/ResumeViewer'
 
 export default function App(props: ResumeBotAppProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const chatRef = useRef<ChatInterfaceRef>(null)
 
   // Detect system preference for loading skeleton
   const [systemPrefersDark] = useState(() => {
@@ -23,6 +24,10 @@ export default function App(props: ResumeBotAppProps) {
       experimentalThemes: false, // Set to true to enable experimental themes
       containerRef
     })
+
+  const handleAskAbout = (text: string) => {
+    chatRef.current?.askAbout(text)
+  }
 
   // Show loading skeleton during initial theme load to prevent FOUC
   if (isInitialThemeLoad && !isThemeReady) {
@@ -54,10 +59,10 @@ export default function App(props: ResumeBotAppProps) {
 
         <main className="resume-bot__content">
           <div className="resume-bot__resume-section">
-            <ResumeViewer />
+            <ResumeViewer onAskAbout={handleAskAbout} />
           </div>
           <div className="resume-bot__chat-section">
-            <ChatInterface />
+            <ChatInterface ref={chatRef} />
           </div>
         </main>
       </div>
