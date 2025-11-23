@@ -38,7 +38,7 @@ export default function App(props: ResumeBotAppProps) {
     >
       <div className="resume-bot">
         <header className="resume-bot__header">
-          <h1>Resume Bot</h1>
+          <h1>Resume</h1>
 
           {/* Theme Picker */}
           <ConnectedThemePicker

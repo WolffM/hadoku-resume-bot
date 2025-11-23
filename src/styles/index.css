@@ -198,7 +198,7 @@
 
 /* Markdown styling in chat messages */
 .chat-message--assistant .chat-message__content p {
-  line-height: 1;
+  line-height: 1.4;
 }
 
 .chat-message--assistant .chat-message__content li {
