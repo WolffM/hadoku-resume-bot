@@ -10,6 +10,7 @@ export default function ChatInterface() {
   const [error, setError] = useState<string | null>(null)
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Fetch system prompt on mount
   useEffect(() => {
@@ -18,10 +19,19 @@ export default function ChatInterface() {
       .catch(err => console.error('Error fetching system prompt:', err))
   }, [])
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change (but not on initial render)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages])
+
+  // Re-focus input after loading completes
+  useEffect(() => {
+    if (!isLoading) {
+      inputRef.current?.focus()
+    }
+  }, [isLoading])
 
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault()
@@ -141,6 +151,7 @@ export default function ChatInterface() {
         className="chat-interface__input-form"
       >
         <input
+          ref={inputRef}
           type="text"
           value={inputValue}
           onChange={e => setInputValue(e.target.value)}
