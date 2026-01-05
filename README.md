@@ -1,6 +1,6 @@
 # @wolffm/resume-bot
 
-resume bot description goes here.
+AI-powered conversational interface for interactive resume exploration.
 
 ## Overview
 
