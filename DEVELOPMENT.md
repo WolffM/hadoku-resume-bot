@@ -7,7 +7,7 @@ This project consists of a frontend React app and a backend Express server.
 ### Prerequisites
 
 - Node.js 18+
-- pnpm
+- pnpm 10.15.0 or later (install with `npm install -g pnpm@10.15.0`)
 
 ### Installation
 
@@ -20,6 +20,8 @@ cd server
 pnpm install
 cd ..
 ```
+
+**Note:** This project uses pnpm 10.15.0 to avoid a known lockfile configuration mismatch bug in earlier versions. If you encounter `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` errors, ensure you're using pnpm 10.15.0 or later and regenerate the lockfile with `pnpm install --no-frozen-lockfile`.
 
 ### Environment Variables
 
