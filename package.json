@@ -60,5 +60,10 @@
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "mdast-util-to-hast": ">=13.2.1"
+    }
   }
 }
