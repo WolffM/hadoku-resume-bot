@@ -93,6 +93,19 @@ Pushes to `main` automatically:
 2. Notify parent site to update
 3. Parent pulls new version and redeploys
 
+### Versioning
+
+Version bumps are handled automatically through two mechanisms:
+
+1. **Pre-commit hook** (primary): The `.husky/pre-commit` hook automatically bumps the version for every commit
+2. **Workflow fallback**: The publish workflow checks if the current version already exists in the registry and bumps it if needed
+
+This dual approach ensures versions are always incremented, even if commits bypass the pre-commit hook (e.g., web UI edits, `--no-verify` commits).
+
+Version bumping follows this pattern:
+- Patch version increments on each commit (1.1.8 → 1.1.9)
+- At patch 20, rolls over to next minor (1.1.20 → 1.2.0)
+
 ## Documentation
 
 See [TEMPLATE.md](./TEMPLATE.md) for complete setup and integration instructions.
