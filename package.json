@@ -65,5 +65,6 @@
     "overrides": {
       "mdast-util-to-hast": ">=13.2.1"
     }
-  }
+  },
+  "packageManager": "pnpm@10.15.0"
 }
