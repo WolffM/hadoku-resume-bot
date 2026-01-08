@@ -63,7 +63,7 @@ The frontend will start on http://localhost:5173
 
 ### Project Structure
 
-```
+```text
 .
 ├── src/                    # Frontend React application
 │   ├── components/         # React components
