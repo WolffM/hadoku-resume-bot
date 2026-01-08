@@ -223,7 +223,7 @@ Fetch the complete system prompt including resume content.
 **Format**:
 The system prompt follows this structure:
 
-```
+```text
 {BASE_PROMPT from SYSTEM_PROMPT env var}
 
 ## Resume Content
