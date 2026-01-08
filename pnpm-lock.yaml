@@ -3,8 +3,9 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
-  overrides:
-    mdast-util-to-hast: '>=13.2.1'
+
+overrides:
+  mdast-util-to-hast: '>=13.2.1'
 
 importers:
 
