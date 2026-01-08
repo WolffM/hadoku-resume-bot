@@ -142,12 +142,12 @@ Send chat messages to the LLM and receive responses.
 
 Fetch the resume content in markdown format.
 
-#### Request
+#### Resume Request
 
 **Method**: `GET`
 **Parameters**: None
 
-#### Success Response
+#### Resume Success Response
 
 **Status**: `200 OK`
 **Content-Type**: `application/json`
@@ -172,7 +172,7 @@ Fetch the resume content in markdown format.
 }
 ```
 
-#### Error Responses
+#### Resume Error Responses
 
 **404 Not Found** - Resume file not found
 
@@ -198,12 +198,12 @@ Fetch the complete system prompt including resume content.
 
 **Note**: This endpoint is used by the frontend to retrieve the initial system prompt that includes the resume content. The system prompt is constructed by combining the base prompt from environment variables with the resume markdown content.
 
-#### Request
+#### System Prompt Request
 
 **Method**: `GET`
 **Parameters**: None
 
-#### Success Response
+#### System Prompt Success Response
 
 **Status**: `200 OK`
 **Content-Type**: `application/json`
@@ -243,7 +243,7 @@ Remember: Only provide information that is explicitly stated in the resume above
 }
 ```
 
-#### Error Responses
+#### System Prompt Error Responses
 
 **404 Not Found** - Resume file not found
 
