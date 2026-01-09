@@ -30,7 +30,7 @@ cd ..
 
 **Frontend (passed as props on mount):**
 
-- `apiBaseUrl` - Backend API path or URL (e.g., 'http://localhost:3001' for development)
+- `apiBaseUrl` - Backend API path or URL (e.g., '<http://localhost:3001>' for development)
 
 ### Running the Application
 
@@ -43,7 +43,7 @@ cd server
 pnpm dev
 ```
 
-The backend will start on http://localhost:3001
+The backend will start on <http://localhost:3001>
 
 **Terminal 2 - Frontend:**
 
@@ -51,11 +51,11 @@ The backend will start on http://localhost:3001
 pnpm dev
 ```
 
-The frontend will start on http://localhost:5173
+The frontend will start on <http://localhost:5173>
 
 ### API Endpoints
 
-**Backend (http://localhost:3001):**
+**Backend (<http://localhost:3001>):**
 
 - `POST /api/chat` - Send chat messages (rate limited: 10 requests/minute per IP)
 - `GET /api/resume` - Fetch resume markdown content
