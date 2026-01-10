@@ -18,7 +18,7 @@ pnpm run format
 
 # Re-stage files that were originally staged and potentially modified
 echo "📥 Re-staging auto-fixed files..."
-echo "$STAGED_FILES" | xargs -r git add
+echo "${STAGED_FILES}" | xargs -r git add
 
 echo "✅ Linting and formatting complete!"
 
@@ -37,7 +37,7 @@ patch=$(echo "$current_version" | cut -d. -f3)
 # Rollover at .20 to keep patch numbers manageable
 if [ "$patch" -eq 20 ]; then
   new_minor=$((minor + 1))
-  new_version="$major.$new_minor.0"
+  new_version="${major}.${new_minor}.0"
   echo "🚀 Rolling over to minor version"
 else
   new_patch=$((patch + 1))
