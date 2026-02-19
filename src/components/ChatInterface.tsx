@@ -152,7 +152,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef>((props, ref) => {
   return (
     <div className="chat-interface">
       <div className="chat-interface__header">
-        <h2>Chat with Resume Bot</h2>
+        <h3>Chat with Resume Bot</h3>
         {messages.length > 0 && (
           <button onClick={handleClearChat} className="chat-interface__clear-button">
             Clear Chat
