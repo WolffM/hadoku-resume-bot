@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react'
+import React, { lazy, Suspense, useRef, useState } from 'react'
 import { ConnectedThemePicker, LoadingSkeleton } from '@wolffm/task-ui-components'
 import { THEME_ICON_MAP } from '@wolffm/themes'
 import { useTheme } from './hooks/useTheme'
 import type { ResumeBotAppProps } from './entry'
-import ChatInterface, { type ChatInterfaceRef } from './components/ChatInterface'
-import ResumeViewer from './components/ResumeViewer'
+import type { ChatInterfaceRef } from './components/ChatInterface'
+
+const ResumeViewer = lazy(() => import('./components/ResumeViewer'))
+const ChatInterface = lazy(() => import('./components/ChatInterface'))
 
 export default function App(props: ResumeBotAppProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -43,7 +45,7 @@ export default function App(props: ResumeBotAppProps) {
     >
       <div className="resume-bot">
         <header className="resume-bot__header">
-          <h1>Resume</h1>
+          <h3>Resume</h3>
 
           {/* Theme Picker */}
           <ConnectedThemePicker
@@ -59,10 +61,20 @@ export default function App(props: ResumeBotAppProps) {
 
         <main className="resume-bot__content">
           <div className="resume-bot__resume-section">
-            <ResumeViewer onAskAbout={handleAskAbout} />
+            <Suspense
+              fallback={
+                <div className="resume-viewer resume-viewer--loading">
+                  <p>Loading resume...</p>
+                </div>
+              }
+            >
+              <ResumeViewer onAskAbout={handleAskAbout} />
+            </Suspense>
           </div>
           <div className="resume-bot__chat-section">
-            <ChatInterface ref={chatRef} />
+            <Suspense fallback={<div className="chat-interface__loading">Loading chat...</div>}>
+              <ChatInterface ref={chatRef} />
+            </Suspense>
           </div>
         </main>
       </div>
