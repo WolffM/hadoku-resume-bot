@@ -103,6 +103,7 @@ Version bumps are handled automatically through two mechanisms:
 This dual approach ensures versions are always incremented, even if commits bypass the pre-commit hook (e.g., web UI edits, `--no-verify` commits).
 
 Version bumping follows this pattern:
+
 - Patch version increments on each commit (1.1.8 → 1.1.9)
 - At patch 20, rolls over to next minor (1.1.20 → 1.2.0)
 

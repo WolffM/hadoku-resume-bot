@@ -12,6 +12,7 @@ import './styles/index.css'
 export interface ResumeBotAppProps {
   theme?: string // Theme passed from parent (e.g., 'default', 'ocean', 'forest')
   apiBaseUrl: string // Backend API path or URL (required, e.g., '/resume' or 'https://api.yourapp.com')
+  ownerName?: string // Name shown in chat welcome message (default: 'the candidate')
 }
 
 // Extend HTMLElement to include __root property

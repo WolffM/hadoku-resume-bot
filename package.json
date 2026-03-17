@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "repository": {
@@ -18,11 +18,15 @@
       "types": "./dist/entry.d.ts",
       "default": "./dist/index.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css",
+    "./api": {
+      "types": "./dist/worker.d.ts",
+      "default": "./dist/worker.js"
+    }
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc -p tsconfig.build.json",
+    "build": "vite build && vite build --config worker/vite.config.ts && tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -36,6 +40,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251230.0",
     "@eslint/js": "^9.39.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
@@ -54,9 +59,12 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "typescript": "^5.6.3",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
+    "hono": "^4.11.4",
+    "openai": "^6.21.0",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1"
