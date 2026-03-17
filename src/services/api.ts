@@ -16,10 +16,6 @@ export interface ResumeResponse {
   content: string
 }
 
-export interface SystemPromptResponse {
-  systemPrompt: string
-}
-
 export interface ApiError {
   error: string
   message?: string
@@ -70,19 +66,4 @@ export async function fetchResume(): Promise<string> {
 
   const data = (await response.json()) as ResumeResponse
   return data.content
-}
-
-/**
- * Fetch the system prompt from the backend
- */
-export async function fetchSystemPrompt(): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/api/system-prompt`)
-
-  if (!response.ok) {
-    const errorData = (await response.json()) as ApiError
-    throw new Error(errorData.error || 'Failed to fetch system prompt')
-  }
-
-  const data = (await response.json()) as SystemPromptResponse
-  return data.systemPrompt
 }

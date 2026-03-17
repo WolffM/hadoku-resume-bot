@@ -73,7 +73,7 @@ export default function App(props: ResumeBotAppProps) {
           </div>
           <div className="resume-bot__chat-section">
             <Suspense fallback={<div className="chat-interface__loading">Loading chat...</div>}>
-              <ChatInterface ref={chatRef} />
+              <ChatInterface ref={chatRef} ownerName={props.ownerName} />
             </Suspense>
           </div>
         </main>
