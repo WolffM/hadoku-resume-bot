@@ -6,7 +6,8 @@ export interface ResumeEnv {
 }
 
 export async function getResumeContent(env: ResumeEnv): Promise<string> {
-  const content = await env.CONTENT_KV.get('resume')
+  // Try resume:full first (new canonical key), fall back to legacy 'resume' key
+  const content = (await env.CONTENT_KV.get('resume:full')) ?? (await env.CONTENT_KV.get('resume'))
   if (!content) {
     throw new Error('Resume content not found in KV storage')
   }

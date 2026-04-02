@@ -17,6 +17,8 @@ import type { KVNamespace } from '@cloudflare/workers-types'
 import { checkRateLimit, recordRequest } from './rate-limit.js'
 import { getFullSystemPrompt, getResumeContent } from './resume.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
+import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
+import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
 
 interface ResumeEnv {
   GROQ_API_KEY: string
@@ -110,6 +112,55 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     } catch (error) {
       return c.json(
         { error: 'Failed to retrieve system prompt', message: (error as Error).message },
+        500
+      )
+    }
+  })
+
+  app.post(`${basePath}/tailored-resume`, async c => {
+    let body: TailoredResumeRequest
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid request body' }, 400)
+    }
+
+    if (!body.job_title || !body.company || !body.description) {
+      return c.json({ error: 'Missing required fields: job_title, company, description' }, 400)
+    }
+
+    try {
+      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const result = await generateTailoredResume(client, c.env.CONTENT_KV, body)
+      return c.json(result)
+    } catch (error) {
+      return c.json(
+        { error: 'Failed to generate tailored resume', message: (error as Error).message },
+        500
+      )
+    }
+  })
+
+  app.post(`${basePath}/cover-letter`, async c => {
+    let body: CoverLetterRequest
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid request body' }, 400)
+    }
+
+    if (!body.job_title || !body.company || !body.description) {
+      return c.json({ error: 'Missing required fields: job_title, company, description' }, 400)
+    }
+
+    try {
+      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const resumeContent = await getResumeContent(c.env)
+      const result = await generateCoverLetter(client, c.env.CONTENT_KV, resumeContent, body)
+      return c.json(result)
+    } catch (error) {
+      return c.json(
+        { error: 'Failed to generate cover letter', message: (error as Error).message },
         500
       )
     }
