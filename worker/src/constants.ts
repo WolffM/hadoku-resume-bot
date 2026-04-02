@@ -10,3 +10,10 @@ export const RATE_LIMIT_CONFIG = {
   WINDOW_DURATION_SECONDS: 60,
   KV_TTL_SECONDS: 120
 } as const
+
+export const TAILORED_RESUME_TOKENS = {
+  SELECTION: 2048,
+  TAILORING: 4096
+} as const
+
+export const COVER_LETTER_TOKENS = 2048

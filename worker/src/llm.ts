@@ -24,13 +24,14 @@ export function createLLMClient(apiKey: string): OpenAI {
 
 export async function sendChatCompletion(
   client: OpenAI,
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  options?: { maxTokens?: number; temperature?: number }
 ): Promise<ChatResponse> {
   const response = await client.chat.completions.create({
     model: LLM_CONFIG.MODEL,
     messages,
-    temperature: LLM_CONFIG.TEMPERATURE,
-    max_tokens: LLM_CONFIG.MAX_TOKENS
+    temperature: options?.temperature ?? LLM_CONFIG.TEMPERATURE,
+    max_tokens: options?.maxTokens ?? LLM_CONFIG.MAX_TOKENS
   })
 
   const choice = response.choices[0]
