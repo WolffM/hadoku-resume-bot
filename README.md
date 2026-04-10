@@ -4,7 +4,7 @@ AI-powered conversational interface for interactive resume exploration.
 
 ## Overview
 
-Brief description of what this child app does and how it integrates with the hadoku parent site.
+Two-panel UI: a markdown resume viewer on the left, an AI chat interface on the right. The chat uses Groq's LLM to answer questions about the resume. Also exposes a worker API for generating tailored resumes and cover letters.
 
 ## Development
 
@@ -107,6 +107,11 @@ Version bumping follows this pattern:
 - Patch version increments on each commit (1.1.8 → 1.1.9)
 - At patch 20, rolls over to next minor (1.1.20 → 1.2.0)
 
-## Documentation
+## Architecture
 
-See [TEMPLATE.md](./TEMPLATE.md) for complete setup and integration instructions.
+This package has two exports:
+
+- **UI component** (`.` export): `mount(el, props)` / `unmount(el)` — React app from `src/entry.tsx`
+- **Worker API** (`./api` export): `createResumeHandler(basePath)` — Hono router from `worker/src/index.ts`
+
+Both are built and published together as `@wolffm/resume-bot`.
