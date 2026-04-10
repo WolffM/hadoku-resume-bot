@@ -35,7 +35,7 @@
     // Get params from URL
     const params = new URLSearchParams(window.location.search)
     const theme = params.get('theme') || undefined // Let the app handle default theme
-    const apiBaseUrl = params.get('apiBaseUrl') || 'http://localhost:3001' // Default to local backend
+    const apiBaseUrl = params.get('apiBaseUrl') || 'https://hadoku.me/resume/api' // Set ?apiBaseUrl= to override
 
     console.log('[mount] Mounting resume-bot with:', { theme, apiBaseUrl })
 
