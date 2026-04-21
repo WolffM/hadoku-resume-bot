@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "repository": {
@@ -27,6 +27,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && vite build --config worker/vite.config.ts && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
