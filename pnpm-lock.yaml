@@ -55,11 +55,11 @@ importers:
         specifier: ^5.1.0
         version: 5.1.1(vite@7.2.2)
       '@wolffm/task-ui-components':
-        specifier: ^1.2.4
-        version: 1.2.4(react@19.2.0)
+        specifier: ^1.3.12
+        version: 1.3.12(react@19.2.0)
       '@wolffm/themes':
-        specifier: ^1.1.15
-        version: 1.1.15(@wolffm/task-ui-components@1.2.4(react@19.2.0))(react@19.2.0)
+        specifier: ^2.0.15
+        version: 2.0.15(@wolffm/task-ui-components@1.3.12(react@19.2.0))(react@19.2.0)
       eslint:
         specifier: ^9.39.1
         version: 9.39.1
@@ -556,67 +556,56 @@ packages:
     resolution: {integrity: sha512-EPlb95nUsz6Dd9Qy13fI5kUPXNSljaG9FiJ4YUGU1O/Q77i5DYFW5KR8g1OzTcdZUqQQ1KdDqsTohdFVwCwjqg==}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.53.2':
     resolution: {integrity: sha512-BOmnVW+khAUX+YZvNfa0tGTEMVVEerOxN0pDk2E6N6DsEIa2Ctj48FOMfNDdrwinocKaC7YXUZ1pHlKpnkja/Q==}
     cpu: [arm]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.53.2':
     resolution: {integrity: sha512-Xt2byDZ+6OVNuREgBXr4+CZDJtrVso5woFtpKdGPhpTPHcNG7D8YXeQzpNbFRxzTVqJf7kvPMCub/pcGUWgBjA==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.53.2':
     resolution: {integrity: sha512-+LdZSldy/I9N8+klim/Y1HsKbJ3BbInHav5qE9Iy77dtHC/pibw1SR/fXlWyAk0ThnpRKoODwnAuSjqxFRDHUQ==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.53.2':
     resolution: {integrity: sha512-8ms8sjmyc1jWJS6WdNSA23rEfdjWB30LH8Wqj0Cqvv7qSHnvw6kgMMXRdop6hkmGPlyYBdRPkjJnj3KCUHV/uQ==}
     cpu: [loong64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-gnu@4.53.2':
     resolution: {integrity: sha512-3HRQLUQbpBDMmzoxPJYd3W6vrVHOo2cVW8RUo87Xz0JPJcBLBr5kZ1pGcQAhdZgX9VV7NbGNipah1omKKe23/g==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-gnu@4.53.2':
     resolution: {integrity: sha512-fMjKi+ojnmIvhk34gZP94vjogXNNUKMEYs+EDaB/5TG/wUkoeua7p7VCHnE6T2Tx+iaghAqQX8teQzcvrYpaQA==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.53.2':
     resolution: {integrity: sha512-XuGFGU+VwUUV5kLvoAdi0Wz5Xbh2SrjIxCtZj6Wq8MDp4bflb/+ThZsVxokM7n0pcbkEr2h5/pzqzDYI7cCgLQ==}
     cpu: [riscv64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.53.2':
     resolution: {integrity: sha512-w6yjZF0P+NGzWR3AXWX9zc0DNEGdtvykB03uhonSHMRa+oWA6novflo2WaJr6JZakG2ucsyb+rvhrKac6NIy+w==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.53.2':
     resolution: {integrity: sha512-yo8d6tdfdeBArzC7T/PnHd7OypfI9cbuZzPnzLJIyKYFhAQ8SvlkKtKBMbXDxe1h03Rcr7u++nFS7tqXz87Gtw==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.53.2':
     resolution: {integrity: sha512-ah59c1YkCxKExPP8O9PwOvs+XRLKwh/mV+3YdKqQ5AMQ0r4M4ZDuOrpWkUaqO7fzAHdINzV9tEVu8vNw48z0lA==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-openharmony-arm64@4.53.2':
     resolution: {integrity: sha512-4VEd19Wmhr+Zy7hbUsFZ6YXEiP48hE//KPLCSVNY5RMGX2/7HZ+QkN55a3atM1C/BZCGIgqN+xrVgtdak2S9+A==}
@@ -830,25 +819,17 @@ packages:
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
-    peerDependenciesMeta:
-      react:
-        optional: true
 
-  '@wolffm/task-ui-components@1.2.4':
-    resolution: {integrity: sha512-Fe5WiwOasr0fXkSBwQAqVZC7krzNSHwVfDgrka9BoevcUf3j6NuZU7brpNr5CEqF6JeKkc41xYjtP8ypgrzO9g==, tarball: https://npm.pkg.github.com/download/@wolffm/task-ui-components/1.2.4/02f65e82f3fe7bafeafad08bc6e3be88d26a4e0c}
+  '@wolffm/task-ui-components@1.3.12':
+    resolution: {integrity: sha512-0vwu/dHUWGAEab1TsP0mHoAZFP6Dx1bCzzCCJfKOFrnmYI3nCETsPdbBt3ivGiSF1KtbNR3H0vbfBxbjZzEV2g==, tarball: https://npm.pkg.github.com/download/@wolffm/task-ui-components/1.3.12/fffe87b426759b0a65bc7a6ddf381630fc1d6894}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
-  '@wolffm/themes@1.1.15':
-    resolution: {integrity: sha512-E+Z4loELzPM+zzP/QcFTo5jEpDUFCvdt4/d1QKT0gTwNCaAwgLzYY88dUN8gsTiGeiqA2DiKKWjKuNSfhJjkkg==, tarball: https://npm.pkg.github.com/download/@wolffm/themes/1.1.15/bd4d0d11972fb0a265f009012fadfc33d9271dd2}
+  '@wolffm/themes@2.0.15':
+    resolution: {integrity: sha512-9WxtDqyA9em6WzlKx3sad0Y7UMUDn6GGyOwb3Og3R7FKPQ3pxb1S0EWnNwy0njv8fAkN/qwBK4JPaL8QM3TFZg==, tarball: https://npm.pkg.github.com/download/@wolffm/themes/2.0.15/8c802323c426cae3c0b29efeeb451d8a6b03e601}
     peerDependencies:
-      '@wolffm/task-ui-components': ^1.0.0
+      '@wolffm/task-ui-components': '*'
       react: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@wolffm/task-ui-components':
-        optional: true
-      react:
-        optional: true
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3312,17 +3293,16 @@ snapshots:
 
   '@wolffm/prefs-client@1.0.1(react@19.2.0)(zod@4.1.12)':
     dependencies:
-      zod: 4.1.12
-    optionalDependencies:
       react: 19.2.0
+      zod: 4.1.12
 
-  '@wolffm/task-ui-components@1.2.4(react@19.2.0)':
+  '@wolffm/task-ui-components@1.3.12(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@wolffm/themes@1.1.15(@wolffm/task-ui-components@1.2.4(react@19.2.0))(react@19.2.0)':
-    optionalDependencies:
-      '@wolffm/task-ui-components': 1.2.4(react@19.2.0)
+  '@wolffm/themes@2.0.15(@wolffm/task-ui-components@1.3.12(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      '@wolffm/task-ui-components': 1.3.12(react@19.2.0)
       react: 19.2.0
 
   acorn-jsx@5.3.2(acorn@8.15.0):
