@@ -65,7 +65,7 @@
 .resume-bot__header h3 {
   margin: 0;
   color: var(--color-primary);
-  font-size: var(--font-size-lg);
+  font-size: var(--hdk-text-lg);
   font-weight: var(--font-weight-bold);
 }
 
@@ -80,16 +80,16 @@
   flex: 1;
   overflow-y: auto;
   background-color: var(--color-bg-card);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--hdk-radius);
+  box-shadow: var(--hdk-shadow-sm);
 }
 
 .resume-bot__chat-section {
   width: 400px;
   flex-shrink: 0;
   background-color: var(--color-bg-card);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--hdk-radius);
+  box-shadow: var(--hdk-shadow-sm);
 }
 
 /* Chat Interface */
@@ -109,7 +109,7 @@
 
 .chat-interface__header h3 {
   margin: 0;
-  font-size: var(--font-size-md);
+  font-size: var(--hdk-text-md);
   color: var(--color-text);
 }
 
@@ -117,9 +117,9 @@
   padding: 0.5rem 1rem;
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
+  border-radius: var(--hdk-radius);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--hdk-text-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -142,7 +142,7 @@
   padding: 2rem;
   text-align: center;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
+  font-size: var(--hdk-text-base);
 }
 
 .chat-message {
@@ -162,7 +162,7 @@
 }
 
 .chat-message__role {
-  font-size: var(--font-size-xs);
+  font-size: var(--hdk-text-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   padding: 0 0.75rem;
@@ -170,7 +170,7 @@
 
 .chat-message__content {
   padding: 0.5rem 0.75rem;
-  border-radius: var(--border-radius);
+  border-radius: var(--hdk-radius);
   line-height: var(--line-height-normal);
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -272,9 +272,9 @@
   margin: 0 1rem;
   background-color: var(--color-danger-light);
   border: 1px solid var(--color-danger);
-  border-radius: var(--border-radius);
+  border-radius: var(--hdk-radius);
   color: var(--color-danger);
-  font-size: var(--font-size-sm);
+  font-size: var(--hdk-text-sm);
 }
 
 .chat-interface__input-form {
@@ -288,10 +288,10 @@
   flex: 1;
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
+  border-radius: var(--hdk-radius);
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-size: var(--font-size-base);
+  font-size: var(--hdk-text-base);
   transition: border-color 0.2s ease;
 }
 
@@ -309,9 +309,9 @@
   padding: 0.75rem 1.5rem;
   background-color: var(--color-success);
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: var(--hdk-radius);
   color: var(--color-bg);
-  font-size: var(--font-size-base);
+  font-size: var(--hdk-text-base);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: opacity 0.2s ease;
@@ -338,8 +338,8 @@
 .context-menu {
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--hdk-radius);
+  box-shadow: var(--hdk-shadow-md);
   padding: 0.25rem;
   min-width: 150px;
 }
@@ -351,9 +351,9 @@
   border: none;
   text-align: left;
   color: var(--color-text);
-  font-size: var(--font-size-sm);
+  font-size: var(--hdk-text-sm);
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--hdk-radius-sm);
   transition: background-color 0.2s ease;
 }
 
@@ -376,9 +376,9 @@
   padding: 0.5rem 1rem;
   background-color: var(--color-primary);
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: var(--hdk-radius);
   color: var(--color-bg);
-  font-size: var(--font-size-base);
+  font-size: var(--hdk-text-base);
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
@@ -389,7 +389,7 @@
 
 /* Markdown Styling */
 .resume-viewer h1 {
-  font-size: var(--font-size-lg);
+  font-size: var(--hdk-text-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   margin-top: 2rem;
@@ -397,7 +397,7 @@
 }
 
 .resume-viewer h2 {
-  font-size: var(--font-size-lg);
+  font-size: var(--hdk-text-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   margin-top: 1.5rem;
@@ -407,7 +407,7 @@
 }
 
 .resume-viewer h3 {
-  font-size: var(--font-size-md);
+  font-size: var(--hdk-text-md);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   margin-top: 1.25rem;
@@ -467,7 +467,7 @@
   border: 1px solid var(--color-border);
   border-radius: 4px;
   font-family: monospace;
-  font-size: var(--font-size-sm);
+  font-size: var(--hdk-text-sm);
 }
 
 /* Responsive Design */
