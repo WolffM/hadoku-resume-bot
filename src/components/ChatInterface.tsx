@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } f
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
+import { logger } from '@wolffm/logger/client'
 import { sendChatMessage, type ChatMessage } from '../services/api'
 
 export interface ChatInterfaceRef {
@@ -74,7 +75,11 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           }
         }
 
-        sendMessage().catch(err => console.error('Error sending message:', err))
+        sendMessage().catch(err =>
+          logger.error('[ChatInterface] Error sending message:', {
+            error: (err as Error)?.message ?? String(err)
+          })
+        )
       }
     }))
 
@@ -181,7 +186,11 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
 
         <form
           onSubmit={e => {
-            handleSendMessage(e).catch(err => console.error('Error sending message:', err))
+            handleSendMessage(e).catch(err =>
+              logger.error('[ChatInterface] Error sending message:', {
+                error: (err as Error)?.message ?? String(err)
+              })
+            )
           }}
           className="chat-interface__input-form"
         >

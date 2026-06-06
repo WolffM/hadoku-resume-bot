@@ -84,8 +84,9 @@ export default [
       // Promises must be handled
       'no-void': ['error', { allowAsStatement: true }],
 
-      // Allow console logs when intentional
-      'no-console': 'off',
+      // Unified logging: all logging must go through @wolffm/logger.
+      // No console.* — it bypasses dev/admin gating + telemetry.
+      'no-console': 'error',
 
       // Allow intentional || for empty strings and falsy values
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -94,18 +95,18 @@ export default [
   },
 
   // -------------------------------------------------------------
-  // Backend TypeScript config (Node.js)
+  // Cloudflare Worker API config
   // -------------------------------------------------------------
   {
-    files: ['server/**/*.ts'],
+    files: ['worker/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: './server/tsconfig.json'
+        sourceType: 'module'
       },
       globals: {
+        ...globals.serviceworker,
         ...globals.node
       }
     },
@@ -115,15 +116,16 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...tsPlugin.configs['recommended'].rules,
-      ...tsPlugin.configs['recommended-type-checked'].rules,
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-misused-promises': 'error',
+      // TS already checks for undefined identifiers; no-undef double-flags
+      // ambient Workers globals (env bindings, etc.).
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
-      'no-console': 'off'
+      // Unified logging: all logging must go through @wolffm/logger/worker.
+      'no-console': 'error'
     }
   },
 
