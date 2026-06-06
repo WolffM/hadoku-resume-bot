@@ -24,7 +24,8 @@ export default defineConfig({
         'react-dom/client',
         'react/jsx-runtime',
         '@wolffm/themes',
-        '@wolffm/task-ui-components'
+        '@wolffm/task-ui-components',
+        '@wolffm/logger/client'
       ],
       output: {
         entryFileNames: 'index.js',
