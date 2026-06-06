@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { logger } from '@wolffm/logger/client'
 import { fetchResume } from '../services/api'
 
 interface ResumeViewerProps {
@@ -16,7 +17,11 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
   )
 
   useEffect(() => {
-    loadResume().catch(err => console.error('Error loading resume:', err))
+    loadResume().catch(err =>
+      logger.error('[ResumeViewer] Error loading resume:', {
+        error: (err as Error)?.message ?? String(err)
+      })
+    )
   }, [])
 
   async function loadResume() {
@@ -74,7 +79,11 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
         <p className="resume-viewer__error-message">Error: {error}</p>
         <button
           onClick={() => {
-            loadResume().catch(err => console.error('Error loading resume:', err))
+            loadResume().catch(err =>
+              logger.error('[ResumeViewer] Error loading resume:', {
+                error: (err as Error)?.message ?? String(err)
+              })
+            )
           }}
           className="resume-viewer__retry-button"
         >
