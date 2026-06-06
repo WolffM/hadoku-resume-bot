@@ -3,6 +3,7 @@
   "version": "1.1.18",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
+  "packageManager": "pnpm@11.5.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WolffM/resume-bot.git"
