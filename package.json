@@ -69,8 +69,8 @@
     "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
-    "@wolffm/logger": "^1.1.0",
-    "@wolffm/prefs-client": "^1.0.1",
+    "@wolffm/logger": "^1.2.1",
+    "@wolffm/prefs-client": "^1.0.2",
     "hono": "^4.11.4",
     "openai": "^6.21.0",
     "react-markdown": "^10.1.0",
