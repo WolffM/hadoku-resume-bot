@@ -19,6 +19,14 @@ import { getFullSystemPrompt, getResumeContent } from './resume.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
 import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
 import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
+import {
+  getVariant,
+  renderVariant,
+  mintVariant,
+  listVariants,
+  deleteVariant,
+  type MintVariantRequest
+} from './variants.js'
 
 interface ResumeEnv {
   GROQ_API_KEY: string
@@ -98,10 +106,62 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
 
   app.get(`${basePath}/resume`, async c => {
     try {
+      // ?v={slug} serves a link-tailored variant; unknown/expired slugs fall
+      // back to the full resume so a shared link never renders a broken page.
+      const slug = c.req.query('v')
+      if (slug) {
+        const variant = await getVariant(c.env.CONTENT_KV, slug)
+        if (variant) {
+          const content = await renderVariant(c.env.CONTENT_KV, variant)
+          if (content) return c.json({ content, variant: variant.slug })
+        }
+      }
+
       const content = await getResumeContent(c.env)
       return c.json({ content })
     } catch (error) {
       return c.json({ error: 'Failed to retrieve resume', message: (error as Error).message }, 500)
+    }
+  })
+
+  // Variant management — friend/admin-gated at the edge-router, like
+  // tailored-resume and cover-letter.
+  app.post(`${basePath}/variants`, async c => {
+    let body: MintVariantRequest
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid request body' }, 400)
+    }
+
+    if (!body.label) {
+      return c.json({ error: 'Missing required field: label' }, 400)
+    }
+
+    try {
+      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const variant = await mintVariant(client, c.env.CONTENT_KV, body)
+      return c.json(variant)
+    } catch (error) {
+      return c.json({ error: 'Failed to mint variant', message: (error as Error).message }, 400)
+    }
+  })
+
+  app.get(`${basePath}/variants`, async c => {
+    try {
+      const variants = await listVariants(c.env.CONTENT_KV)
+      return c.json({ variants })
+    } catch (error) {
+      return c.json({ error: 'Failed to list variants', message: (error as Error).message }, 500)
+    }
+  })
+
+  app.delete(`${basePath}/variants/:slug`, async c => {
+    try {
+      const deleted = await deleteVariant(c.env.CONTENT_KV, c.req.param('slug'))
+      return deleted ? c.json({ deleted: true }) : c.json({ error: 'Not found' }, 404)
+    } catch (error) {
+      return c.json({ error: 'Failed to delete variant', message: (error as Error).message }, 500)
     }
   })
 

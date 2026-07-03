@@ -28,7 +28,9 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     try {
       setLoading(true)
       setError(null)
-      const content = await fetchResume()
+      // A shared link like /resume?v={slug} serves that link's tailored variant
+      const variant = new URLSearchParams(window.location.search).get('v') ?? undefined
+      const content = await fetchResume(variant)
       setResumeContent(content)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load resume')
