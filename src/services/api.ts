@@ -54,10 +54,15 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatResp
 }
 
 /**
- * Fetch the resume content from the backend
+ * Fetch the resume content from the backend.
+ * Pass a variant slug to fetch a link-tailored resume; the API falls back to
+ * the full resume for unknown or expired slugs.
  */
-export async function fetchResume(): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/api/resume`)
+export async function fetchResume(variant?: string): Promise<string> {
+  const url = variant
+    ? `${API_BASE_URL}/api/resume?v=${encodeURIComponent(variant)}`
+    : `${API_BASE_URL}/api/resume`
+  const response = await fetch(url)
 
   if (!response.ok) {
     const errorData = (await response.json()) as ApiError
