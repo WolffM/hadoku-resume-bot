@@ -34,4 +34,4 @@ coverage/
 .tmp/
 .cache/
 .npmrc
-resume.md
+resume.md.devvault.local.json
