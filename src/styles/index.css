@@ -49,6 +49,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  /* padding must live inside the 100vh or the host page grows a second scrollbar */
+  box-sizing: border-box;
 }
 
 .resume-bot__header {
@@ -332,6 +334,59 @@
   color: var(--color-text);
   min-height: 100%;
   user-select: text;
+}
+
+.resume-viewer__toolbar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.resume-viewer__download-button {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-bg);
+  color: var(--color-text-secondary, var(--color-text));
+  border: 1px solid var(--color-border);
+  border-radius: var(--hdk-radius);
+  font-size: var(--hdk-text-sm);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.resume-viewer__download-button:hover {
+  background-color: var(--color-primary);
+  color: var(--color-bg);
+}
+
+/* Print = the PDF path: show only the resume content, unclipped */
+@media print {
+  .resume-bot__header,
+  .resume-bot__chat-section,
+  .resume-viewer__toolbar,
+  .context-menu {
+    display: none !important;
+  }
+
+  .resume-bot,
+  .resume-bot-container {
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .resume-bot__content,
+  .resume-bot__resume-section {
+    overflow: visible;
+    display: block;
+    box-shadow: none;
+  }
+
+  .resume-viewer {
+    padding: 0;
+  }
 }
 
 /* Context Menu */
