@@ -67,6 +67,35 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     }
   }
 
+  const downloadBlob = (data: string, mimeType: string, filename: string) => {
+    const url = URL.createObjectURL(new Blob([data], { type: mimeType }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const variantSlug = new URLSearchParams(window.location.search).get('v')
+  const baseFilename = variantSlug ? `resume-${variantSlug}` : 'resume'
+
+  const handleDownloadMd = () => downloadBlob(resumeContent, 'text/markdown', `${baseFilename}.md`)
+
+  const handleDownloadJson = () =>
+    downloadBlob(
+      JSON.stringify(
+        { content: resumeContent, variant: variantSlug ?? undefined, format: 'markdown' },
+        null,
+        2
+      ),
+      'application/json',
+      `${baseFilename}.json`
+    )
+
+  // Print stylesheet isolates the resume panel; the browser's print dialog
+  // handles the actual PDF rendering.
+  const handleDownloadPdf = () => window.print()
+
   if (loading) {
     return (
       <div className="resume-viewer resume-viewer--loading">
@@ -98,6 +127,17 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
   return (
     <>
       <div className="resume-viewer" onContextMenu={handleContextMenu}>
+        <div className="resume-viewer__toolbar">
+          <button className="resume-viewer__download-button" onClick={handleDownloadPdf}>
+            PDF
+          </button>
+          <button className="resume-viewer__download-button" onClick={handleDownloadMd}>
+            .md
+          </button>
+          <button className="resume-viewer__download-button" onClick={handleDownloadJson}>
+            .json
+          </button>
+        </div>
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{resumeContent}</ReactMarkdown>
       </div>
       {contextMenu && (
