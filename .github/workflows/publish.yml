@@ -18,19 +18,24 @@ jobs:
         with:
           fetch-depth: 2
 
-      - uses: pnpm/action-setup@v5
-        with:
-          version: 11.5.0
-
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
           registry-url: https://npm.pkg.github.com
           scope: '@wolffm'
-          cache: pnpm
         env:
           # Use HADOKU_SITE_TOKEN for cross-repo package access
           NODE_AUTH_TOKEN: ${{ secrets.HADOKU_SITE_TOKEN }}
+
+      # pnpm via corepack, pinned by the `packageManager` field in package.json.
+      # Replaces pnpm/action-setup, whose self-installer intermittently died on
+      # this self-hosted runner with `ENOENT ... uv_cwd` (cwd removed mid-install).
+      # No pnpm cache needed: the store is already warm on the persistent runner.
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.5.0 --activate
+          pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
