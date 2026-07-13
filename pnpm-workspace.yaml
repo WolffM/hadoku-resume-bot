@@ -4,12 +4,16 @@ packages:
 allowBuilds:
   esbuild: true
 
-# No package-age gate. pnpm 11 defaults a ~24h minimum-release-age supply-chain
-# delay; we disable it so package updates (incl. @wolffm/* auto-sync) aren't held back.
-minimumReleaseAge: 0
-
 onlyBuiltDependencies:
   - esbuild
 
 overrides:
   mdast-util-to-hast: '>=13.2.1'
+
+# Supply-chain: dependency cooldown. External packages must be 7 days old before
+# they resolve — malicious npm releases are near-always caught within hours, so we let
+# the ecosystem find them first. @wolffm/* is EXEMPT: it's the cross-ecosystem deploy
+# path and must install immediately. Mirrored in ~/.npmrc for npm repos (which counts days).
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@wolffm/*'
