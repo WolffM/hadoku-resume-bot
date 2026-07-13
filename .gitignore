@@ -35,3 +35,9 @@ coverage/
 .cache/
 .npmrc
 resume.md.devvault.local.json
+
+# Playwright MCP scratch output (snapshots/console logs from browser checks)
+.playwright-mcp/
+
+# dev-vault caller key (raw service-tier UUID) — never commit
+.devvault.local.json
