@@ -14,6 +14,7 @@
 
 import { Hono } from 'hono'
 import type { KVNamespace } from '@cloudflare/workers-types'
+import { createEdgeAuth, requireUserType } from '@wolffm/worker-utils'
 import { checkRateLimit, recordRequest } from './rate-limit.js'
 import { getFullSystemPrompt, getResumeContent } from './resume.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
@@ -31,6 +32,13 @@ import {
 interface ResumeEnv {
   GROQ_API_KEY: string
   RESUME_SYSTEM_PROMPT: string
+  /**
+   * Shared secret proving a request arrived via edge-router. The edge strips any
+   * client-supplied X-Edge-Auth/X-Hadoku-Tier and stamps its own, so a valid
+   * X-Edge-Auth is proof of provenance and X-Hadoku-Tier can be trusted without
+   * re-validating keys here.
+   */
+  EDGE_AUTH_SECRET: string
   RATE_LIMIT_KV: KVNamespace
   CONTENT_KV: KVNamespace
 }
@@ -43,8 +51,25 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   const { ownerName = 'the candidate' } = options
   const app = new Hono<{ Bindings: ResumeEnv }>()
 
+  // Adopt the tier the edge-router resolved, but only when X-Edge-Auth proves the
+  // request actually came through the edge. A direct hit to the *.workers.dev
+  // origin has no valid secret, so it degrades to `public` and any forged
+  // X-Hadoku-Tier is ignored. Degrade-to-public rather than reject: the
+  // monitoring probe hits /health directly with no headers and must stay 200.
+  // The requireUserType gates below are what turn a direct hit into a 403.
+  app.use('*', createEdgeAuth())
+
   app.get(`${basePath}/`, c => c.json({ status: 'ok', service: 'resume-api' }))
   app.get(`${basePath}/health`, c => c.json({ status: 'ok', service: 'resume-api' }))
+
+  // Non-public surface. Mirrors the tiers the edge-router enforces, so the gate
+  // survives a direct origin hit instead of relying on the perimeter alone.
+  const friendOrAdmin = requireUserType(['admin', 'friend'])
+  app.use(`${basePath}/system-prompt`, friendOrAdmin)
+  app.use(`${basePath}/tailored-resume`, friendOrAdmin)
+  app.use(`${basePath}/cover-letter`, friendOrAdmin)
+  app.use(`${basePath}/variants`, friendOrAdmin)
+  app.use(`${basePath}/variants/*`, friendOrAdmin)
 
   app.post(`${basePath}/chat`, async c => {
     const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown'
@@ -124,8 +149,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
   })
 
-  // Variant management — friend/admin-gated at the edge-router, like
-  // tailored-resume and cover-letter.
+  // Variant management — friend/admin, enforced by the requireUserType gates above.
   app.post(`${basePath}/variants`, async c => {
     let body: MintVariantRequest
     try {
