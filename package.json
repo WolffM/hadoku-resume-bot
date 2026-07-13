@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
@@ -71,6 +71,7 @@
   },
   "dependencies": {
     "@wolffm/prefs-client": "^1.0.3",
+    "@wolffm/worker-utils": "^1.2.12",
     "hono": "^4.11.4",
     "openai": "^6.21.0",
     "react-markdown": "^10.1.0",

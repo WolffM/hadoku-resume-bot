@@ -14,6 +14,9 @@ importers:
       '@wolffm/prefs-client':
         specifier: ^1.0.3
         version: 1.0.3(react@19.2.0)(zod@4.1.12)
+      '@wolffm/worker-utils':
+        specifier: ^1.2.12
+        version: 1.2.12(zod@4.1.12)
       hono:
         specifier: ^4.11.4
         version: 4.12.8
@@ -53,7 +56,7 @@ importers:
         version: 8.46.4(eslint@9.39.1)(typescript@5.9.3)
       '@vitejs/plugin-react':
         specifier: ^5.1.0
-        version: 5.1.1(vite@7.2.2)
+        version: 5.1.1(vite@7.2.2(yaml@2.9.0))
       '@wolffm/logger':
         specifier: ^1.2.2
         version: 1.2.2
@@ -101,12 +104,17 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^7.1.12
-        version: 7.2.2
+        version: 7.2.2(yaml@2.9.0)
       vite-plugin-dts:
         specifier: ^4.5.4
-        version: 4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2)
+        version: 4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2(yaml@2.9.0))
 
 packages:
+
+  '@asteasolutions/zod-to-openapi@8.5.0':
+    resolution: {integrity: sha512-SABbKiObg5dLRiTFnqiW1WWwGcg1BJfmHtT2asIBnBHg6Smy/Ms2KHc650+JI4Hw7lSkdiNebEGXpwoxfben8Q==}
+    peerDependencies:
+      zod: ^4.0.0
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -446,6 +454,19 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@hono/zod-openapi@1.4.0':
+    resolution: {integrity: sha512-AFchqR1N/NxfI4hUOSGI2/g8zLROxA1OE7Oh5JJFlTaGxhrdRyH+93gd0tIBpb0z8s9r8hUoNnaOBfHbdb4NMw==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      hono: '>=4.10.0'
+      zod: ^4.0.0
+
+  '@hono/zod-validator@0.8.0':
+    resolution: {integrity: sha512-5uS4S1/LKtZQYvD4BtpPUFkOv8d1wNxHHrChm26buMiEYc1FrHWvDUaKVBwkiVtvSExHSpLGDvcnpI2Copyj9w==}
+    peerDependencies:
+      hono: '>=4.10.0'
+      zod: ^3.25.0 || ^4.0.0
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -828,6 +849,10 @@ packages:
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
 
+  '@wolffm/logger@1.2.0':
+    resolution: {integrity: sha512-9pqcvJDxovJM4Oa8HGOJjAsQhLWvKRggCYA/GxLLx4ecL5LfNQ7e0rloGj+7vmPVi99LSKM62bdFLCkqriQ8ow==, tarball: https://npm.pkg.github.com/download/@wolffm/logger/1.2.0/f5273f73dcd94c4a33615068e0710f988a9ad793}
+    engines: {node: '>=18'}
+
   '@wolffm/logger@1.2.2':
     resolution: {integrity: sha512-J03bC4YwzQhasl69s8QZTEgDK6Ac8sqczmWG1g4hiw1d0bwebzT6hhN25WnnObf0qcBYasO4hoUesbtzdIMTCQ==, tarball: https://npm.pkg.github.com/download/@wolffm/logger/1.2.2/4a825558de7e025630477699ba2bd74f7b44b651}
     engines: {node: '>=18'}
@@ -849,6 +874,9 @@ packages:
     peerDependencies:
       '@wolffm/task-ui-components': '*'
       react: ^18.0.0 || ^19.0.0
+
+  '@wolffm/worker-utils@1.2.12':
+    resolution: {integrity: sha512-IKe8vsKwAteIhJA+4fjSoBouzLObtWPYCWe5/1iirObx5m22dOoEXS+OJPXer7f2u/BgSrDDhMhnvVpbyikJEg==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.2.12/750d1c9e1f18849583ae7b86fde5b11f53d3e5e2}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2021,6 +2049,9 @@ packages:
       zod:
         optional: true
 
+  openapi3-ts@4.6.0:
+    resolution: {integrity: sha512-a4sfn6L2sIShhtzJqmjGrARvxAW/3F2BJDdyRVvNF9VhAsZSh5hSyI3a9TNvmzBxXmq66nY5LNT5bQcBxYAZZg==}
+
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -2599,6 +2630,11 @@ packages:
   yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
+  yaml@2.9.0:
+    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -2616,6 +2652,11 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
+
+  '@asteasolutions/zod-to-openapi@8.5.0(zod@4.1.12)':
+    dependencies:
+      openapi3-ts: 4.6.0
+      zod: 4.1.12
 
   '@babel/code-frame@7.27.1':
     dependencies:
@@ -2903,6 +2944,19 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@hono/zod-openapi@1.4.0(hono@4.12.8)(zod@4.1.12)':
+    dependencies:
+      '@asteasolutions/zod-to-openapi': 8.5.0(zod@4.1.12)
+      '@hono/zod-validator': 0.8.0(hono@4.12.8)(zod@4.1.12)
+      hono: 4.12.8
+      openapi3-ts: 4.6.0
+      zod: 4.1.12
+
+  '@hono/zod-validator@0.8.0(hono@4.12.8)(zod@4.1.12)':
+    dependencies:
+      hono: 4.12.8
+      zod: 4.1.12
 
   '@humanfs/core@0.19.1': {}
 
@@ -3253,7 +3307,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react@5.1.1(vite@7.2.2)':
+  '@vitejs/plugin-react@5.1.1(vite@7.2.2(yaml@2.9.0))':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.5)
@@ -3261,7 +3315,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.47
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 7.2.2
+      vite: 7.2.2(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -3310,6 +3364,8 @@ snapshots:
 
   '@vue/shared@3.5.30': {}
 
+  '@wolffm/logger@1.2.0': {}
+
   '@wolffm/logger@1.2.2': {}
 
   '@wolffm/prefs-client@1.0.3(react@19.2.0)(zod@4.1.12)':
@@ -3325,6 +3381,14 @@ snapshots:
     dependencies:
       '@wolffm/task-ui-components': 2.0.1(react@19.2.0)
       react: 19.2.0
+
+  '@wolffm/worker-utils@1.2.12(zod@4.1.12)':
+    dependencies:
+      '@hono/zod-openapi': 1.4.0(hono@4.12.8)(zod@4.1.12)
+      '@wolffm/logger': 1.2.0
+      hono: 4.12.8
+    transitivePeerDependencies:
+      - zod
 
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:
@@ -4849,6 +4913,10 @@ snapshots:
     optionalDependencies:
       zod: 4.1.12
 
+  openapi3-ts@4.6.0:
+    dependencies:
+      yaml: 2.9.0
+
   optionator@0.9.4:
     dependencies:
       deep-is: 0.1.4
@@ -5506,7 +5574,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-dts@4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2):
+  vite-plugin-dts@4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2(yaml@2.9.0)):
     dependencies:
       '@microsoft/api-extractor': 7.57.7
       '@rollup/pluginutils': 5.3.0(rollup@4.53.2)
@@ -5519,13 +5587,13 @@ snapshots:
       magic-string: 0.30.21
       typescript: 5.9.3
     optionalDependencies:
-      vite: 7.2.2
+      vite: 7.2.2(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - rollup
       - supports-color
 
-  vite@7.2.2:
+  vite@7.2.2(yaml@2.9.0):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.3)
@@ -5535,6 +5603,7 @@ snapshots:
       tinyglobby: 0.2.15
     optionalDependencies:
       fsevents: 2.3.3
+      yaml: 2.9.0
 
   vscode-uri@3.1.0: {}
 
@@ -5598,6 +5667,8 @@ snapshots:
   yallist@3.1.1: {}
 
   yallist@4.0.0: {}
+
+  yaml@2.9.0: {}
 
   yocto-queue@0.1.0: {}
 
