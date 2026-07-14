@@ -65,9 +65,13 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   // Non-public surface. Mirrors the tiers the edge-router enforces, so the gate
   // survives a direct origin hit instead of relying on the perimeter alone.
   const friendOrAdmin = requireUserType(['admin', 'friend'])
+  // Tailoring is also called service-to-service: jobplatform-api generates
+  // per-job application packets via a Cloudflare service binding, stamping
+  // X-Hadoku-Tier: service. Admit `service` on those two routes only.
+  const serviceFriendOrAdmin = requireUserType(['admin', 'friend', 'service'])
   app.use(`${basePath}/system-prompt`, friendOrAdmin)
-  app.use(`${basePath}/tailored-resume`, friendOrAdmin)
-  app.use(`${basePath}/cover-letter`, friendOrAdmin)
+  app.use(`${basePath}/tailored-resume`, serviceFriendOrAdmin)
+  app.use(`${basePath}/cover-letter`, serviceFriendOrAdmin)
   app.use(`${basePath}/variants`, friendOrAdmin)
   app.use(`${basePath}/variants/*`, friendOrAdmin)
 
