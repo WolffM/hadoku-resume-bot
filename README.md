@@ -55,6 +55,7 @@ This app is a child component of the [hadoku_site](https://github.com/WolffM/had
 interface ResumeBotAppProps {
   theme?: string // Optional: 'default', 'ocean', 'forest', etc.
   apiBaseUrl: string // Required: Backend API path or URL (e.g., '/resume' or 'https://api.yourapp.com')
+  ownerName?: string // Optional: name shown in the chat welcome message (default: 'the candidate')
 }
 ```
 
@@ -79,11 +80,15 @@ unmount(element)
 - A **path** (e.g., `/resume`) if the backend is hosted on the same domain
 - A **full URL** (e.g., `https://api.yourapp.com`) if the backend is on a different domain
 
-The backend must handle these endpoints:
+The backend handles these endpoints (public unless noted; non-public routes are
+gated in-worker via `@wolffm/worker-utils` edge-auth — see `worker/src/index.ts`):
 
-- `${apiBaseUrl}/api/chat` - POST - Chat with the bot
-- `${apiBaseUrl}/api/resume` - GET - Fetch resume content
-- `${apiBaseUrl}/api/system-prompt` - GET - Fetch system prompt
+- `${apiBaseUrl}/api/chat` - POST - Chat with the bot (public, rate-limited)
+- `${apiBaseUrl}/api/resume` - GET - Fetch resume content, incl. `?v={slug}` variants (public)
+- `${apiBaseUrl}/api/system-prompt` - GET - Fetch system prompt (admin/friend)
+- `${apiBaseUrl}/api/tailored-resume` - POST - Per-job tailored resume (admin/friend/service)
+- `${apiBaseUrl}/api/cover-letter` - POST - Per-job cover letter (admin/friend/service)
+- `${apiBaseUrl}/api/variants` - POST/GET/DELETE - Variant management (admin/friend)
 
 ## Deployment
 
@@ -112,6 +117,6 @@ Version bumping follows this pattern:
 This package has two exports:
 
 - **UI component** (`.` export): `mount(el, props)` / `unmount(el)` — React app from `src/entry.tsx`
-- **Worker API** (`./api` export): `createResumeHandler(basePath)` — Hono router from `worker/src/index.ts`
+- **Worker API** (`./api` export): `createResumeHandler(basePath, options)` — Hono router from `worker/src/index.ts` (`options.ownerName` sets the chat owner)
 
 Both are built and published together as `@wolffm/resume-bot`.

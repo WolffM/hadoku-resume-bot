@@ -22,8 +22,11 @@ export interface ApiError {
   retryAfter?: number
 }
 
-// Runtime API base URL - set by the mount function
-let API_BASE_URL = 'http://localhost:3001' // Default for development
+// Runtime API base URL — always set by mount() via setApiBaseUrl(props.apiBaseUrl).
+// The dev harness (index.html) supplies https://hadoku.me/resume/api; prod passes
+// the real path. Empty until then — there is no local backend to default to (the
+// old Express server was removed).
+let API_BASE_URL = ''
 
 /**
  * Set the API base URL at runtime
