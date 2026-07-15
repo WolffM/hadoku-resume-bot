@@ -1,0 +1,261 @@
+.rb-builder {
+  --rb-tech: #3fb950;
+  --rb-layer: #58a6ff;
+  --rb-story: #bc8cff;
+  --rb-plain: #8b949e;
+
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--hdk-space-lg, 1.5rem);
+  color: var(--color-text, #e6edf3);
+  font-size: var(--hdk-text-sm, 0.9rem);
+}
+
+.rb-builder__status {
+  padding: var(--hdk-space-lg, 1.5rem);
+  color: var(--color-text-secondary, #8b949e);
+}
+.rb-builder__status--error {
+  color: var(--color-danger, #f85149);
+}
+
+.rb-builder__header {
+  display: flex;
+  align-items: center;
+  gap: var(--hdk-space-md, 1rem);
+  flex-wrap: wrap;
+  margin-bottom: var(--hdk-space-md, 1rem);
+}
+.rb-builder__header h1 {
+  font-size: var(--hdk-text-lg, 1.25rem);
+  margin: 0;
+}
+.rb-builder__count {
+  color: var(--color-text-secondary, #8b949e);
+}
+.rb-builder__header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--hdk-space-sm, 0.5rem);
+}
+
+.rb-builder__controls {
+  display: flex;
+  gap: var(--hdk-space-sm, 0.5rem);
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: var(--hdk-space-sm, 0.5rem);
+}
+.rb-builder__search {
+  flex: 1;
+  min-width: 200px;
+}
+.rb-builder__andmode {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-secondary, #8b949e);
+  white-space: nowrap;
+}
+
+.rb-builder__search,
+.rb-builder__select,
+.rb-block__id-input,
+.rb-block__title,
+.rb-block__tags-input,
+.rb-block__type,
+.rb-block__prio input,
+.rb-block__content,
+.rb-block__feedback textarea {
+  background: var(--color-bg-card, #161b22);
+  color: var(--color-text, #e6edf3);
+  border: 1px solid var(--color-border, #30363d);
+  border-radius: var(--hdk-radius-sm, 4px);
+  padding: 0.4rem 0.5rem;
+  font-family: inherit;
+  font-size: var(--hdk-text-sm, 0.9rem);
+}
+
+.rb-builder__tagbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-height: 108px;
+  overflow-y: auto;
+  padding: var(--hdk-space-sm, 0.5rem) 0;
+  margin-bottom: var(--hdk-space-md, 1rem);
+  border-bottom: 1px solid var(--color-border, #30363d);
+}
+
+.rb-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--rb-plain);
+  color: var(--rb-plain);
+  background: transparent;
+  font-size: var(--hdk-text-xs, 0.75rem);
+  cursor: pointer;
+  font-family: var(--hdk-font-mono, monospace);
+}
+.rb-tag--tech {
+  border-color: var(--rb-tech);
+  color: var(--rb-tech);
+}
+.rb-tag--layer {
+  border-color: var(--rb-layer);
+  color: var(--rb-layer);
+}
+.rb-tag--story {
+  border-color: var(--rb-story);
+  color: var(--rb-story);
+}
+.rb-tag--active {
+  color: #0d1117;
+  background: currentColor;
+}
+.rb-tag--active {
+  filter: none;
+}
+.rb-tag--tech.rb-tag--active {
+  background: var(--rb-tech);
+  color: #0d1117;
+}
+.rb-tag--layer.rb-tag--active {
+  background: var(--rb-layer);
+  color: #0d1117;
+}
+.rb-tag--story.rb-tag--active {
+  background: var(--rb-story);
+  color: #0d1117;
+}
+.rb-tag__n {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.rb-builder__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hdk-space-md, 1rem);
+}
+
+.rb-block {
+  border: 1px solid var(--color-border, #30363d);
+  border-left: 3px solid transparent;
+  border-radius: var(--hdk-radius-md, 6px);
+  padding: var(--hdk-space-md, 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--hdk-space-sm, 0.5rem);
+  background: var(--color-bg, #0d1117);
+}
+.rb-block--has-feedback {
+  border-left-color: var(--rb-tech);
+}
+.rb-block--dirty {
+  border-left-color: #d29922;
+}
+
+.rb-block__row {
+  display: flex;
+  align-items: center;
+  gap: var(--hdk-space-sm, 0.5rem);
+}
+.rb-block__id {
+  font-family: var(--hdk-font-mono, monospace);
+  color: var(--rb-layer);
+  font-weight: bold;
+}
+.rb-block__id-input {
+  flex: 1;
+  font-family: var(--hdk-font-mono, monospace);
+}
+.rb-block__prio {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+  color: var(--color-text-secondary, #8b949e);
+}
+.rb-block__prio input {
+  width: 4rem;
+}
+
+.rb-block__title {
+  width: 100%;
+}
+.rb-block__content {
+  width: 100%;
+  resize: vertical;
+  font-family: var(--hdk-font-mono, monospace);
+  line-height: 1.5;
+}
+
+.rb-block__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.rb-block__tags-input {
+  width: 100%;
+  font-family: var(--hdk-font-mono, monospace);
+}
+
+.rb-block__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--hdk-space-sm, 0.5rem);
+}
+.rb-block__hint {
+  color: var(--color-text-secondary, #8b949e);
+  font-size: var(--hdk-text-xs, 0.75rem);
+}
+.rb-block__hint--error {
+  color: var(--color-danger, #f85149);
+}
+
+.rb-block__feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hdk-space-sm, 0.5rem);
+}
+.rb-block__feedback textarea {
+  flex: 1;
+  resize: vertical;
+}
+.rb-block__fb-status {
+  color: var(--rb-tech);
+  font-size: var(--hdk-text-xs, 0.75rem);
+  white-space: nowrap;
+  padding-top: 0.4rem;
+}
+
+.rb-builder__btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--hdk-radius-sm, 4px);
+  border: 1px solid var(--color-border, #30363d);
+  background: var(--color-bg-card, #161b22);
+  color: var(--color-text, #e6edf3);
+  cursor: pointer;
+  font-size: var(--hdk-text-sm, 0.9rem);
+}
+.rb-builder__btn:hover:not(:disabled) {
+  border-color: var(--color-text-secondary, #8b949e);
+}
+.rb-builder__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.rb-builder__btn--primary {
+  background: var(--color-primary, #238636);
+  border-color: var(--color-primary, #238636);
+  color: #fff;
+}
+.rb-builder__btn--danger {
+  color: var(--color-danger, #f85149);
+  border-color: var(--color-danger, #f85149);
+  background: transparent;
+}
