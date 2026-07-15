@@ -28,6 +28,16 @@ import {
   deleteVariant,
   type MintVariantRequest
 } from './variants.js'
+import { getAllBlocks } from './blocks.js'
+import {
+  validateBlock,
+  upsertBlock,
+  deleteBlock,
+  reorderBlocks,
+  getFeedback,
+  setFeedback,
+  exportBlocks
+} from './builder.js'
 
 interface ResumeEnv {
   GROQ_API_KEY: string
@@ -74,6 +84,82 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   app.use(`${basePath}/cover-letter`, serviceFriendOrAdmin)
   app.use(`${basePath}/variants`, friendOrAdmin)
   app.use(`${basePath}/variants/*`, friendOrAdmin)
+
+  // Resume builder — admin-only block CRUD (the hosted replacement for the local
+  // review UI). Writes go straight to CONTENT_KV, which is the source of truth;
+  // resume_ingest.py becomes seed/import only. GET /export dumps blocks.json for
+  // git backup.
+  const adminOnly = requireUserType(['admin'])
+  app.use(`${basePath}/builder/*`, adminOnly)
+
+  app.get(`${basePath}/builder/blocks`, async c => {
+    const [blocks, feedback] = await Promise.all([
+      getAllBlocks(c.env.CONTENT_KV),
+      getFeedback(c.env.CONTENT_KV)
+    ])
+    return c.json({ blocks, feedback })
+  })
+
+  app.get(`${basePath}/builder/export`, async c => {
+    const blocks = await exportBlocks(c.env.CONTENT_KV)
+    return c.json(blocks)
+  })
+
+  app.put(`${basePath}/builder/blocks/:id`, async c => {
+    const id = c.req.param('id')
+    let body: unknown
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid JSON body' }, 400)
+    }
+    // The path id is authoritative — ignore any id in the body.
+    const candidate = { ...(body as Record<string, unknown>), id }
+    let block
+    try {
+      block = validateBlock(candidate)
+    } catch (err) {
+      return c.json({ error: 'Invalid block', message: (err as Error).message }, 400)
+    }
+    await upsertBlock(c.env.CONTENT_KV, block)
+    return c.json({ block })
+  })
+
+  app.delete(`${basePath}/builder/blocks/:id`, async c => {
+    const deleted = await deleteBlock(c.env.CONTENT_KV, c.req.param('id'))
+    if (!deleted) return c.json({ error: 'Block not found' }, 404)
+    return c.json({ deleted: true, id: c.req.param('id') })
+  })
+
+  app.put(`${basePath}/builder/reorder`, async c => {
+    let body: { ids?: unknown }
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid JSON body' }, 400)
+    }
+    if (!Array.isArray(body.ids) || body.ids.some(x => typeof x !== 'string')) {
+      return c.json({ error: 'ids must be an array of strings' }, 400)
+    }
+    try {
+      await reorderBlocks(c.env.CONTENT_KV, body.ids as string[])
+    } catch (err) {
+      return c.json({ error: 'Invalid reorder', message: (err as Error).message }, 400)
+    }
+    return c.json({ ids: body.ids })
+  })
+
+  app.post(`${basePath}/builder/feedback/:id`, async c => {
+    let body: { text?: unknown }
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid JSON body' }, 400)
+    }
+    const text = typeof body.text === 'string' ? body.text : ''
+    const feedback = await setFeedback(c.env.CONTENT_KV, c.req.param('id'), text)
+    return c.json({ feedback })
+  })
 
   app.post(`${basePath}/chat`, async c => {
     const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown'
