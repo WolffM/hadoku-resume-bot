@@ -154,74 +154,98 @@ export function BuilderApp() {
 
   return (
     <div className="rb-builder">
-      <header className="rb-builder__header">
-        <h1>Resume Builder</h1>
-        <div className="rb-builder__count">
-          {visible.length} / {blocks.length} blocks
-        </div>
-        <div className="rb-builder__header-actions">
-          <button type="button" onClick={exportJson} className="rb-builder__btn">
-            Export blocks.json
-          </button>
-          <button
-            type="button"
-            onClick={() => setCreating(emptyBlock())}
-            className="rb-builder__btn rb-builder__btn--primary"
-            disabled={creating !== null}
-          >
-            + New block
-          </button>
-        </div>
-      </header>
+      <div className="rb-builder__toolbar">
+        <header className="rb-builder__header">
+          <h1>Resume Builder</h1>
+          <div className="rb-builder__count">
+            {visible.length} / {blocks.length} blocks
+          </div>
+          <div className="rb-builder__header-actions">
+            <button type="button" onClick={exportJson} className="rb-builder__btn">
+              Export blocks.json
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreating(emptyBlock())}
+              className="rb-builder__btn rb-builder__btn--primary"
+              disabled={creating !== null}
+            >
+              + New block
+            </button>
+          </div>
+        </header>
 
-      <div className="rb-builder__controls">
-        <input
-          type="search"
-          placeholder="Search id, title, content…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="rb-builder__search"
-        />
-        <select
-          value={typeFilter}
-          onChange={e => setTypeFilter(e.target.value as '' | BlockType)}
-          className="rb-builder__select"
-        >
-          <option value="">all types</option>
-          {BLOCK_TYPES.map(t => (
-            <option key={t} value={t}>
+        <div className="rb-builder__controls">
+          <input
+            type="search"
+            placeholder="Search id, title, content…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="rb-builder__search"
+          />
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value as '' | BlockType)}
+            className="rb-builder__select"
+          >
+            <option value="">all types</option>
+            {BLOCK_TYPES.map(t => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={e => setSort(e.target.value as SortMode)}
+            className="rb-builder__select"
+          >
+            <option value="order">render order</option>
+            <option value="priority">priority ↓</option>
+            <option value="type">type</option>
+            <option value="feedback">has feedback</option>
+          </select>
+          <label className="rb-builder__andmode">
+            <input type="checkbox" checked={andMode} onChange={e => setAndMode(e.target.checked)} />
+            match all tags
+          </label>
+        </div>
+
+        <div className="rb-builder__legend">
+          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-tech)' }}>
+            <span className="rb-builder__legend-dot" />
+            tech:
+          </span>
+          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-layer)' }}>
+            <span className="rb-builder__legend-dot" />
+            layer:
+          </span>
+          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-story)' }}>
+            <span className="rb-builder__legend-dot" />
+            story:
+          </span>
+          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-plain)' }}>
+            <span className="rb-builder__legend-dot" />
+            other / always
+          </span>
+          <span className="rb-builder__legend-item">
+            <strong>prio</strong>&nbsp;= how strongly you want a block (sort/rank hint)
+          </span>
+        </div>
+
+        <div className="rb-builder__tagbar">
+          {sortedTags.map(t => (
+            <button
+              type="button"
+              key={t}
+              onClick={() => toggleTag(t)}
+              className={`rb-tag rb-tag--${facetOf(t)}${activeTags.has(t) ? ' rb-tag--active' : ''}`}
+            >
               {t}
-            </option>
+              <span className="rb-tag__n">{tagCounts.get(t)}</span>
+            </button>
           ))}
-        </select>
-        <select
-          value={sort}
-          onChange={e => setSort(e.target.value as SortMode)}
-          className="rb-builder__select"
-        >
-          <option value="order">render order</option>
-          <option value="priority">priority ↓</option>
-          <option value="type">type</option>
-          <option value="feedback">has feedback</option>
-        </select>
-        <label className="rb-builder__andmode">
-          <input type="checkbox" checked={andMode} onChange={e => setAndMode(e.target.checked)} />
-          match all tags
-        </label>
-      </div>
-
-      <div className="rb-builder__tagbar">
-        {sortedTags.map(t => (
-          <button
-            type="button"
-            key={t}
-            onClick={() => toggleTag(t)}
-            className={`rb-tag rb-tag--${facetOf(t)}${activeTags.has(t) ? ' rb-tag--active' : ''}`}
-          >
-            {t}
-            <span className="rb-tag__n">{tagCounts.get(t)}</span>
-          </button>
-        ))}
+        </div>
       </div>
 
       <div className="rb-builder__list">
