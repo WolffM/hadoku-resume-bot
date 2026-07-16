@@ -122,10 +122,15 @@ export function BlockCard({
             </option>
           ))}
         </select>
-        <label className="rb-block__prio">
+        <label
+          className="rb-block__prio"
+          title="Priority — how strongly you want this block in a tailored resume. Higher sorts first; a ranking hint, not a hard rule."
+        >
           prio
           <input
             type="number"
+            min={0}
+            max={10}
             value={draft.priority}
             onChange={e => setDraft({ ...draft, priority: Number(e.target.value) })}
           />

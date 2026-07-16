@@ -1,14 +1,34 @@
+/* Resume Builder styles. Class prefix `rb-`. Injected as a global <style> by
+   entry.tsx (CSS is inlined into the bundle). Theme tokens come from the host
+   page (@wolffm/themes); every var() carries a fallback so the builder still
+   renders standalone. */
+
+/* The host layout (hadoku_site Base.astro) sets `body { overflow: hidden }` for
+   full-height micro-frontend apps, so a document-flow page like the builder can
+   never scroll the body. We own our scroll: the mount root becomes a
+   viewport-tall scroll container. Scoped to the id the host page mounts into. */
+#resume-builder-root {
+  height: 100vh;
+  overflow-y: auto;
+}
+
 .rb-builder {
   --rb-tech: #3fb950;
   --rb-layer: #58a6ff;
   --rb-story: #bc8cff;
   --rb-plain: #8b949e;
 
+  box-sizing: border-box;
   max-width: 1000px;
   margin: 0 auto;
-  padding: var(--hdk-space-lg, 1.5rem);
+  padding: 0 var(--hdk-space-lg, 1.5rem) var(--hdk-space-3xl, 4rem);
   color: var(--color-text, #e6edf3);
   font-size: var(--hdk-text-sm, 0.9rem);
+}
+.rb-builder *,
+.rb-builder *::before,
+.rb-builder *::after {
+  box-sizing: border-box;
 }
 
 .rb-builder__status {
@@ -17,6 +37,18 @@
 }
 .rb-builder__status--error {
   color: var(--color-danger, #f85149);
+}
+
+/* Toolbar — header + controls + tag bar. Sticks to the top of the scroll
+   container so filters stay reachable while the block list scrolls under it. */
+.rb-builder__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-bg, #0d1117);
+  padding-top: var(--hdk-space-lg, 1.5rem);
+  margin-bottom: var(--hdk-space-lg, 1.5rem);
+  border-bottom: 1px solid var(--color-border, #30363d);
 }
 
 .rb-builder__header {
@@ -29,9 +61,11 @@
 .rb-builder__header h1 {
   font-size: var(--hdk-text-lg, 1.25rem);
   margin: 0;
+  line-height: 1.2;
 }
 .rb-builder__count {
   color: var(--color-text-secondary, #8b949e);
+  font-variant-numeric: tabular-nums;
 }
 .rb-builder__header-actions {
   margin-left: auto;
@@ -47,17 +81,47 @@
   margin-bottom: var(--hdk-space-sm, 0.5rem);
 }
 .rb-builder__search {
-  flex: 1;
+  flex: 1 1 220px;
   min-width: 200px;
 }
 .rb-builder__andmode {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   color: var(--color-text-secondary, #8b949e);
   white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.rb-builder__andmode input {
+  accent-color: var(--color-primary, #238636);
 }
 
+/* Legend — explains the tag-facet colours and the priority field. */
+.rb-builder__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--hdk-space-md, 1rem);
+  padding: var(--hdk-space-sm, 0.5rem) 0;
+  color: var(--color-text-secondary, #8b949e);
+  font-size: var(--hdk-text-xs, 0.75rem);
+}
+.rb-builder__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.rb-builder__legend-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  border: 1px solid currentcolor;
+  flex: none;
+}
+
+/* Shared field styling for inputs / selects / textareas. */
 .rb-builder__search,
 .rb-builder__select,
 .rb-block__id-input,
@@ -67,38 +131,57 @@
 .rb-block__prio input,
 .rb-block__content,
 .rb-block__feedback textarea {
-  background: var(--color-bg-card, #161b22);
+  background: var(--color-bg, #0d1117);
   color: var(--color-text, #e6edf3);
   border: 1px solid var(--color-border, #30363d);
   border-radius: var(--hdk-radius-sm, 4px);
-  padding: 0.4rem 0.5rem;
+  padding: 0.45rem 0.6rem;
   font-family: inherit;
   font-size: var(--hdk-text-sm, 0.9rem);
+  line-height: 1.4;
+}
+.rb-builder__search:focus,
+.rb-builder__select:focus,
+.rb-block__id-input:focus,
+.rb-block__title:focus,
+.rb-block__tags-input:focus,
+.rb-block__type:focus,
+.rb-block__prio input:focus,
+.rb-block__content:focus,
+.rb-block__feedback textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #238636);
+  box-shadow: var(--hdk-shadow-focus, 0 0 0 2px rgb(35 134 54 / 40%));
 }
 
 .rb-builder__tagbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  max-height: 108px;
+  gap: 0.4rem;
+  max-height: 116px;
   overflow-y: auto;
-  padding: var(--hdk-space-sm, 0.5rem) 0;
-  margin-bottom: var(--hdk-space-md, 1rem);
-  border-bottom: 1px solid var(--color-border, #30363d);
+  padding: var(--hdk-space-sm, 0.5rem) 0 var(--hdk-space-md, 1rem);
 }
 
 .rb-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.1rem 0.45rem;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 999px;
   border: 1px solid var(--rb-plain);
   color: var(--rb-plain);
   background: transparent;
   font-size: var(--hdk-text-xs, 0.75rem);
+  line-height: 1.5;
   cursor: pointer;
-  font-family: var(--hdk-font-mono, monospace);
+  font-family: var(--hdk-font-mono, ui-monospace, monospace);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.rb-tag:hover {
+  background: color-mix(in srgb, currentcolor 15%, transparent);
 }
 .rb-tag--tech {
   border-color: var(--rb-tech);
@@ -114,10 +197,7 @@
 }
 .rb-tag--active {
   color: #0d1117;
-  background: currentColor;
-}
-.rb-tag--active {
-  filter: none;
+  background: currentcolor;
 }
 .rb-tag--tech.rb-tag--active {
   background: var(--rb-tech);
@@ -131,9 +211,13 @@
   background: var(--rb-story);
   color: #0d1117;
 }
+.rb-tag--active .rb-tag__n {
+  color: #0d1117;
+}
 .rb-tag__n {
-  opacity: 0.7;
+  opacity: 0.75;
   font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
 }
 
 .rb-builder__list {
@@ -145,18 +229,19 @@
 .rb-block {
   border: 1px solid var(--color-border, #30363d);
   border-left: 3px solid transparent;
-  border-radius: var(--hdk-radius-md, 6px);
+  border-radius: var(--hdk-radius-sm, 6px);
   padding: var(--hdk-space-md, 1rem);
   display: flex;
   flex-direction: column;
   gap: var(--hdk-space-sm, 0.5rem);
-  background: var(--color-bg, #0d1117);
+  background: var(--color-bg-card, #161b22);
+  box-shadow: var(--hdk-shadow-sm, 0 1px 2px rgb(0 0 0 / 30%));
 }
 .rb-block--has-feedback {
   border-left-color: var(--rb-tech);
 }
 .rb-block--dirty {
-  border-left-color: #d29922;
+  border-left-color: var(--color-warning, #d29922);
 }
 
 .rb-block__row {
@@ -165,23 +250,29 @@
   gap: var(--hdk-space-sm, 0.5rem);
 }
 .rb-block__id {
-  font-family: var(--hdk-font-mono, monospace);
+  font-family: var(--hdk-font-mono, ui-monospace, monospace);
   color: var(--rb-layer);
-  font-weight: bold;
+  font-weight: 600;
+  word-break: break-all;
 }
 .rb-block__id-input {
   flex: 1;
-  font-family: var(--hdk-font-mono, monospace);
+  font-family: var(--hdk-font-mono, ui-monospace, monospace);
+}
+.rb-block__type {
+  flex: none;
 }
 .rb-block__prio {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
   margin-left: auto;
   color: var(--color-text-secondary, #8b949e);
+  white-space: nowrap;
 }
 .rb-block__prio input {
-  width: 4rem;
+  width: 3.5rem;
+  text-align: center;
 }
 
 .rb-block__title {
@@ -190,24 +281,30 @@
 .rb-block__content {
   width: 100%;
   resize: vertical;
-  font-family: var(--hdk-font-mono, monospace);
+  min-height: 8rem;
+  font-family: var(--hdk-font-mono, ui-monospace, monospace);
   line-height: 1.5;
 }
 
 .rb-block__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 0.35rem;
+}
+.rb-block__chips:empty {
+  display: none;
 }
 .rb-block__tags-input {
   width: 100%;
-  font-family: var(--hdk-font-mono, monospace);
+  font-family: var(--hdk-font-mono, ui-monospace, monospace);
 }
 
 .rb-block__actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--hdk-space-sm, 0.5rem);
+  margin-top: 0.15rem;
 }
 .rb-block__hint {
   color: var(--color-text-secondary, #8b949e);
@@ -221,6 +318,9 @@
   display: flex;
   align-items: flex-start;
   gap: var(--hdk-space-sm, 0.5rem);
+  padding-top: var(--hdk-space-sm, 0.5rem);
+  margin-top: var(--hdk-space-xs, 0.25rem);
+  border-top: 1px dashed var(--color-border, #30363d);
 }
 .rb-block__feedback textarea {
   flex: 1;
@@ -230,32 +330,62 @@
   color: var(--rb-tech);
   font-size: var(--hdk-text-xs, 0.75rem);
   white-space: nowrap;
-  padding-top: 0.4rem;
+  padding-top: 0.5rem;
 }
 
+/* Buttons. Primary uses the theme's on-primary token for legible text on the
+   accent fill (previously hardcoded #fff, which vanished on light accents). */
 .rb-builder__btn {
-  padding: 0.4rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
   border-radius: var(--hdk-radius-sm, 4px);
   border: 1px solid var(--color-border, #30363d);
   background: var(--color-bg-card, #161b22);
   color: var(--color-text, #e6edf3);
   cursor: pointer;
+  font-family: inherit;
   font-size: var(--hdk-text-sm, 0.9rem);
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    opacity 0.12s ease;
 }
 .rb-builder__btn:hover:not(:disabled) {
+  background: var(--color-bg-hover, #1f242c);
   border-color: var(--color-text-secondary, #8b949e);
 }
+.rb-builder__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--hdk-shadow-focus, 0 0 0 2px rgb(35 134 54 / 40%));
+}
 .rb-builder__btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .rb-builder__btn--primary {
   background: var(--color-primary, #238636);
   border-color: var(--color-primary, #238636);
-  color: #fff;
+  color: var(--color-on-primary, #fff);
+}
+/* --color-primary-hover is a translucent overlay tint, not a solid fill, so a
+   filled button uses the solid --color-primary-dark shade for its hover state. */
+.rb-builder__btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-dark, #2ea043);
+  border-color: var(--color-primary-dark, #2ea043);
 }
 .rb-builder__btn--danger {
   color: var(--color-danger, #f85149);
   border-color: var(--color-danger, #f85149);
   background: transparent;
+}
+.rb-builder__btn--danger:hover:not(:disabled) {
+  background: var(--color-danger, #f85149);
+  border-color: var(--color-danger, #f85149);
+  color: var(--color-on-danger, #fff);
 }
