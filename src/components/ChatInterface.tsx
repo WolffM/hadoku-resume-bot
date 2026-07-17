@@ -76,7 +76,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         }
 
         sendMessage().catch(err =>
-          logger.error('[ChatInterface] Error sending message:', {
+          logger.error('[ChatInterface] Error sending message', {
             error: (err as Error)?.message ?? String(err)
           })
         )
@@ -187,7 +187,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         <form
           onSubmit={e => {
             handleSendMessage(e).catch(err =>
-              logger.error('[ChatInterface] Error sending message:', {
+              logger.error('[ChatInterface] Error sending message', {
                 error: (err as Error)?.message ?? String(err)
               })
             )

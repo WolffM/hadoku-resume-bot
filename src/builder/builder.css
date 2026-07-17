@@ -13,10 +13,15 @@
 }
 
 .rb-builder {
-  --rb-tech: #3fb950;
-  --rb-layer: #58a6ff;
-  --rb-story: #bc8cff;
-  --rb-plain: #8b949e;
+  /* Tag-facet palette. Light-theme (darker) values by default for legible text
+     on light surfaces; the dark override below swaps in the brighter pastels.
+     --rb-on-facet is the text colour on a FILLED chip and flips with the theme
+     so it always contrasts the fill. */
+  --rb-tech: #1a7f37;
+  --rb-layer: #0969da;
+  --rb-story: #8250df;
+  --rb-plain: #656d76;
+  --rb-on-facet: #ffffff;
 
   box-sizing: border-box;
   max-width: 1000px;
@@ -24,6 +29,13 @@
   padding: 0 var(--hdk-space-lg, 1.5rem) var(--hdk-space-3xl, 4rem);
   color: var(--color-text, #e6edf3);
   font-size: var(--hdk-text-sm, 0.9rem);
+}
+[data-theme='dark'] .rb-builder {
+  --rb-tech: #3fb950;
+  --rb-layer: #58a6ff;
+  --rb-story: #bc8cff;
+  --rb-plain: #8b949e;
+  --rb-on-facet: #0d1117;
 }
 .rb-builder *,
 .rb-builder *::before,
@@ -210,24 +222,24 @@
   border-color: var(--rb-story);
   color: var(--rb-story);
 }
+/* Active chip: fill with the facet colour, text flips to --rb-on-facet. The
+   fill is set explicitly per facet (not via currentColor, which would resolve
+   to the just-set text colour and make a plain chip invisible). */
 .rb-tag--active {
-  color: #0d1117;
-  background: currentcolor;
+  background: var(--rb-plain);
+  color: var(--rb-on-facet);
 }
 .rb-tag--tech.rb-tag--active {
   background: var(--rb-tech);
-  color: #0d1117;
 }
 .rb-tag--layer.rb-tag--active {
   background: var(--rb-layer);
-  color: #0d1117;
 }
 .rb-tag--story.rb-tag--active {
   background: var(--rb-story);
-  color: #0d1117;
 }
 .rb-tag--active .rb-tag__n {
-  color: #0d1117;
+  color: var(--rb-on-facet);
 }
 .rb-tag__n {
   opacity: 0.75;

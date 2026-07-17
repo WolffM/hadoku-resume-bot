@@ -17,12 +17,16 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
+      // Externalize exactly the specifiers the host importmap (Base.astro)
+      // provides, matching the main widget — so anything added later shares the
+      // host singletons instead of silently bundling a duplicate copy.
       external: [
         'react',
         'react-dom',
         'react-dom/client',
         'react/jsx-runtime',
         '@wolffm/themes',
+        '@wolffm/task-ui-components',
         '@wolffm/logger/client'
       ],
       output: {
