@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
@@ -40,9 +40,9 @@
     "prepare": "husky"
   },
   "peerDependencies": {
-    "@wolffm/logger": ">=1.0.0",
-    "@wolffm/task-ui-components": ">=1.0.0",
-    "@wolffm/themes": ">=1.0.0",
+    "@wolffm/logger": ">=1.2.0",
+    "@wolffm/task-ui-components": ">=2.0.0",
+    "@wolffm/themes": ">=2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

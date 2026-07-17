@@ -127,7 +127,7 @@ export function useTheme(options: UseThemeOptions = {}) {
     try {
       sessionStorage.setItem('hadoku-theme', newTheme)
     } catch (err) {
-      logger.error('[useTheme] Failed to save theme to sessionStorage:', {
+      logger.error('[useTheme] Failed to save theme to sessionStorage', {
         error: (err as Error)?.message ?? String(err)
       })
     }
@@ -137,7 +137,7 @@ export function useTheme(options: UseThemeOptions = {}) {
     // instead of swallowing — silent saves were the original "my theme
     // reset" bug.
     savePrefs({ theme: newTheme }, { scope: 'device' }).catch(err => {
-      logger.error('[useTheme] prefs save failed:', {
+      logger.error('[useTheme] prefs save failed', {
         error: (err as Error)?.message ?? String(err),
         theme: newTheme
       })

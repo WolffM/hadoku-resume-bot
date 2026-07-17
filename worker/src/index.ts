@@ -15,6 +15,7 @@
 import { Hono } from 'hono'
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { createEdgeAuth, requireUserType } from '@wolffm/worker-utils'
+import { createWorkerLogger } from '@wolffm/logger/worker'
 import { checkRateLimit, recordRequest } from './rate-limit.js'
 import { getFullSystemPrompt, getResumeContent } from './resume.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
@@ -60,6 +61,11 @@ export interface ResumeHandlerOptions {
 export function createResumeHandler(basePath: string, options: ResumeHandlerOptions = {}) {
   const { ownerName = 'the candidate' } = options
   const app = new Hono<{ Bindings: ResumeEnv }>()
+  // Structured logging via the ecosystem worker logger (sinks to console.*, which
+  // Cloudflare Workers Logs captures). We log genuine server faults (the 500
+  // paths + unhandled errors); 400 client-input rejections are expected and left
+  // unlogged to avoid noise.
+  const logger = createWorkerLogger({ service: 'resume-api' })
 
   // Adopt the tier the edge-router resolved, but only when X-Edge-Auth proves the
   // request actually came through the edge. A direct hit to the *.workers.dev
@@ -209,6 +215,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const response = await sendChatCompletion(client, messages)
       return c.json(response)
     } catch (error) {
+      logger.error('chat completion failed', { error: (error as Error).message })
       return c.json(
         {
           error: 'Failed to get response from LLM',
@@ -235,6 +242,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const content = await getResumeContent(c.env)
       return c.json({ content })
     } catch (error) {
+      logger.error('resume retrieval failed', { error: (error as Error).message })
       return c.json({ error: 'Failed to retrieve resume', message: (error as Error).message }, 500)
     }
   })
@@ -257,6 +265,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const variant = await mintVariant(client, c.env.CONTENT_KV, body)
       return c.json(variant)
     } catch (error) {
+      logger.error('variant mint failed', { error: (error as Error).message })
       return c.json({ error: 'Failed to mint variant', message: (error as Error).message }, 400)
     }
   })
@@ -266,6 +275,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const variants = await listVariants(c.env.CONTENT_KV)
       return c.json({ variants })
     } catch (error) {
+      logger.error('variant list failed', { error: (error as Error).message })
       return c.json({ error: 'Failed to list variants', message: (error as Error).message }, 500)
     }
   })
@@ -275,6 +285,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const deleted = await deleteVariant(c.env.CONTENT_KV, c.req.param('slug'))
       return deleted ? c.json({ deleted: true }) : c.json({ error: 'Not found' }, 404)
     } catch (error) {
+      logger.error('variant delete failed', { error: (error as Error).message })
       return c.json({ error: 'Failed to delete variant', message: (error as Error).message }, 500)
     }
   })
@@ -284,6 +295,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const systemPrompt = await getFullSystemPrompt(c.env, ownerName)
       return c.json({ systemPrompt })
     } catch (error) {
+      logger.error('system-prompt retrieval failed', { error: (error as Error).message })
       return c.json(
         { error: 'Failed to retrieve system prompt', message: (error as Error).message },
         500
@@ -308,6 +320,11 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const result = await generateTailoredResume(client, c.env.CONTENT_KV, body)
       return c.json(result)
     } catch (error) {
+      logger.error('tailored-resume generation failed', {
+        error: (error as Error).message,
+        company: body.company,
+        jobTitle: body.job_title
+      })
       return c.json(
         { error: 'Failed to generate tailored resume', message: (error as Error).message },
         500
@@ -333,6 +350,11 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const result = await generateCoverLetter(client, c.env.CONTENT_KV, resumeContent, body)
       return c.json(result)
     } catch (error) {
+      logger.error('cover-letter generation failed', {
+        error: (error as Error).message,
+        company: body.company,
+        jobTitle: body.job_title
+      })
       return c.json(
         { error: 'Failed to generate cover letter', message: (error as Error).message },
         500
@@ -341,7 +363,12 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   })
 
   app.notFound(c => c.json({ error: 'Not found' }, 404))
-  app.onError((_err, c) => c.json({ error: 'Internal server error' }, 500))
+  app.onError((err, c) => {
+    // Backstop for anything the route handlers let bubble (e.g. the builder KV
+    // ops, which have no local try/catch).
+    logger.error('unhandled error', { error: err.message, method: c.req.method, path: c.req.path })
+    return c.json({ error: 'Internal server error' }, 500)
+  })
 
   return app
 }

@@ -18,7 +18,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
 
   useEffect(() => {
     loadResume().catch(err =>
-      logger.error('[ResumeViewer] Error loading resume:', {
+      logger.error('[ResumeViewer] Error loading resume', {
         error: (err as Error)?.message ?? String(err)
       })
     )
@@ -111,7 +111,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
         <button
           onClick={() => {
             loadResume().catch(err =>
-              logger.error('[ResumeViewer] Error loading resume:', {
+              logger.error('[ResumeViewer] Error loading resume', {
                 error: (err as Error)?.message ?? String(err)
               })
             )
