@@ -11,6 +11,7 @@ import {
   type Feedback
 } from './api'
 import { BlockCard } from './BlockCard'
+import { useBuilderAuth, redirectToAuth } from './useBuilderAuth'
 
 const BLOCK_TYPES: BlockType[] = [
   'experience',
@@ -35,6 +36,7 @@ function emptyBlock(): ResumeBlock {
 }
 
 export function BuilderApp() {
+  const { status: authStatus, name: adminName } = useBuilderAuth()
   const [blocks, setBlocks] = useState<ResumeBlock[]>([])
   const [feedback, setFeedback] = useState<Feedback>({})
   const [loading, setLoading] = useState(true)
@@ -50,6 +52,7 @@ export function BuilderApp() {
   const [creating, setCreating] = useState<ResumeBlock | null>(null)
 
   useEffect(() => {
+    if (authStatus !== 'authorized') return
     let cancelled = false
     fetchBlocks()
       .then(res => {
@@ -59,12 +62,13 @@ export function BuilderApp() {
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        const msg =
-          err instanceof BuilderApiError && err.status === 403
-            ? 'Admin access required — sign in with an admin key.'
-            : err instanceof Error
-              ? err.message
-              : 'Failed to load blocks'
+        // Session lapsed between the whoami check and this call → bounce to
+        // sign-in, same as the initial gate. Everything else is a real error.
+        if (err instanceof BuilderApiError && (err.status === 401 || err.status === 403)) {
+          redirectToAuth()
+          return
+        }
+        const msg = err instanceof Error ? err.message : 'Failed to load blocks'
         setError(msg)
         logger.error('[builder] load failed', { error: msg })
       })
@@ -74,7 +78,7 @@ export function BuilderApp() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [authStatus])
 
   const tagCounts = useMemo(() => {
     const counts = new Map<string, number>()
@@ -149,6 +153,9 @@ export function BuilderApp() {
     URL.revokeObjectURL(url)
   }
 
+  if (authStatus === 'checking') return <p className="rb-builder__status">Checking access…</p>
+  if (authStatus === 'redirecting')
+    return <p className="rb-builder__status">Redirecting to sign in…</p>
   if (loading) return <p className="rb-builder__status">Loading blocks…</p>
   if (error) return <p className="rb-builder__status rb-builder__status--error">{error}</p>
 
@@ -160,6 +167,11 @@ export function BuilderApp() {
           <div className="rb-builder__count">
             {visible.length} / {blocks.length} blocks
           </div>
+          {adminName && (
+            <div className="rb-builder__whoami">
+              Signed in as <span className="rb-builder__whoami-name">{adminName}</span>
+            </div>
+          )}
           <div className="rb-builder__header-actions">
             <button type="button" onClick={exportJson} className="rb-builder__btn">
               Export blocks.json
