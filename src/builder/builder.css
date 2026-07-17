@@ -67,10 +67,25 @@
   color: var(--color-text-secondary, #8b949e);
   font-variant-numeric: tabular-nums;
 }
+.rb-builder__whoami {
+  margin-left: auto;
+  color: var(--color-text-secondary, #8b949e);
+  font-size: var(--hdk-text-xs, 0.75rem);
+  white-space: nowrap;
+}
+.rb-builder__whoami-name {
+  color: var(--color-text, #e6edf3);
+  font-weight: 600;
+}
+/* When the whoami label is present it consumes the auto margin, so actions sit
+   next to it; when absent, actions take the auto margin and push right. */
 .rb-builder__header-actions {
   margin-left: auto;
   display: flex;
   gap: var(--hdk-space-sm, 0.5rem);
+}
+.rb-builder__whoami + .rb-builder__header-actions {
+  margin-left: var(--hdk-space-md, 1rem);
 }
 
 .rb-builder__controls {
