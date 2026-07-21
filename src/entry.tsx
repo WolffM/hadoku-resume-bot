@@ -6,6 +6,7 @@ import { setApiBaseUrl } from './services/api'
 import '@wolffm/themes/style.css'
 // REQUIRED: Import theme picker CSS
 import '@wolffm/task-ui-components/theme-picker.css'
+import '@wolffm/task-ui-components/app-header.css'
 import './styles/index.css'
 
 // Props interface for configuration from parent app
