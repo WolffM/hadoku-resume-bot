@@ -218,14 +218,14 @@
 
 .chat-message--assistant .chat-message__content code {
   padding: 0.125rem 0.25rem;
-  background-color: var(--color-neutral-light);
+  background-color: var(--color-neutral-bg);
   border-radius: 3px;
   font-family: monospace;
   font-size: 0.9em;
 }
 
 .chat-message--assistant .chat-message__content pre {
-  background-color: var(--color-neutral-lighter);
+  background-color: var(--color-bg-alt);
   padding: 0.75rem;
   border-radius: 4px;
   overflow-x: auto;
@@ -272,10 +272,10 @@
 .chat-interface__error {
   padding: 0.75rem 1rem;
   margin: 0 1rem;
-  background-color: var(--color-danger-light);
+  background-color: var(--color-danger-bg);
   border: 1px solid var(--color-danger);
   border-radius: var(--hdk-radius);
-  color: var(--color-danger);
+  color: var(--color-on-danger-bg);
   font-size: var(--hdk-text-sm);
 }
 
