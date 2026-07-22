@@ -3,6 +3,7 @@ import type OpenAI from 'openai'
 import { cacheKey } from './blocks.js'
 import { sendChatCompletion } from './llm.js'
 import { COVER_LETTER_TOKENS } from './constants.js'
+import { stripCodeFence } from './tailored-resume.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
 
@@ -59,7 +60,7 @@ Return only the cover letter in markdown, no preamble or explanation.`
   })
 
   const result: CoverLetterResponse = {
-    cover_letter_markdown: response.message,
+    cover_letter_markdown: stripCodeFence(response.message),
     cached: false
   }
 

@@ -6,6 +6,19 @@ import { TAILORED_RESUME_TOKENS } from './constants.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
 
+/**
+ * LLMs sometimes wrap their entire response in a ```` ```markdown … ``` ```` code
+ * fence, which makes ReactMarkdown render the whole document as a `<pre><code>`
+ * block instead of formatted markdown. Unwrap only when the ENTIRE output is a
+ * single fenced block (leading fence + matching trailing fence) so we never
+ * clobber a legitimate embedded code block.
+ */
+export function stripCodeFence(text: string): string {
+  const trimmed = text.trim()
+  const match = /^```[^\n]*\n([\s\S]*)\n```$/.exec(trimmed)
+  return match ? match[1].trim() : trimmed
+}
+
 export interface TailoredResumeRequest {
   job_title: string
   company: string
@@ -115,7 +128,7 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
       { maxTokens: TAILORED_RESUME_TOKENS.TAILORING }
     )
 
-    resumeMarkdown = tailoredResponse.message
+    resumeMarkdown = stripCodeFence(tailoredResponse.message)
   }
 
   const result: TailoredResumeResponse = {
