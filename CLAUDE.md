@@ -31,6 +31,18 @@ All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/sy
 - Pre-commit hook auto-bumps patch version on src/ or config changes
 - Rolls over at .20 to next minor (1.1.20 -> 1.2.0)
 - publish.yml has fallback bump if hook was skipped
+- `BUMP=major|minor|patch|none git commit ...` overrides the default. **A major
+  needs `BUMP=major`** — the default can never reach one.
+- A `feat!:` / `BREAKING CHANGE:` commit without a major bump is rejected by
+  `.husky/commit-msg`, which tells you to re-run with `BUMP=major`. It can only
+  reject, not fix: pre-commit writes the version but runs before git has the
+  commit message, and the hooks that can read the message run after the tree is
+  snapshotted, so their staging lands in the _next_ commit.
+- Version arithmetic lives in `scripts/bump-version.mjs` (not published — `files`
+  is `["dist"]`)
+
+Majors reach production on their own: hadoku_site's update-packages workflow
+upgrades `@wolffm/*` across major boundaries, ignoring the semver range.
 
 ## Does NOT
 
