@@ -1,5 +1,3 @@
-import { normalizeApiBase } from './apiBase'
-
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -39,28 +37,26 @@ export interface ApiError {
   retryAfter?: number
 }
 
-// Runtime API base URL — always set by mount() via setApiBaseUrl(props.apiBaseUrl).
+// Runtime API root — always set by mount() via setApiBaseUrl(props.apiBaseUrl).
 // The dev harness (index.html) supplies https://hadoku.me/resume/api; prod passes
 // the real path. Empty until then — there is no local backend to default to (the
 // old Express server was removed).
-//
-// Normalised to the app root, so both the legacy '/resume' and the ecosystem
-// '/resume/api' forms work — see normalizeApiBase.
 let API_BASE_URL = ''
 
 /**
- * Set the API base URL at runtime
- * Called by the mount function with the apiBaseUrl prop
+ * Set the API root at runtime.
+ * Called by the mount function with the apiBaseUrl prop, which is the API root
+ * ('/resume/api') — endpoints are appended to it directly.
  */
 export function setApiBaseUrl(url: string): void {
-  API_BASE_URL = normalizeApiBase(url)
+  API_BASE_URL = url.replace(/\/+$/, '')
 }
 
 /**
  * Send a chat message to the backend
  */
 export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/chat`, {
+  const response = await fetch(`${API_BASE_URL}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -83,8 +79,8 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatResp
  */
 export async function fetchResume(variant?: string): Promise<ResumePacket> {
   const url = variant
-    ? `${API_BASE_URL}/api/resume?v=${encodeURIComponent(variant)}`
-    : `${API_BASE_URL}/api/resume`
+    ? `${API_BASE_URL}/resume?v=${encodeURIComponent(variant)}`
+    : `${API_BASE_URL}/resume`
   const response = await fetch(url)
 
   if (!response.ok) {

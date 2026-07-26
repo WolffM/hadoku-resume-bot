@@ -2,8 +2,6 @@
 // credentials:'include') so the caller's admin session cookie is resolved into
 // the X-Hadoku-Tier: admin stamp the worker's requireMinTier('admin') needs.
 
-import { normalizeApiBase } from '../services/apiBase'
-
 export type BlockType = 'experience' | 'project' | 'skills' | 'education' | 'summary' | 'header'
 
 export interface ResumeBlock {
@@ -31,15 +29,14 @@ export class BuilderApiError extends Error {
   }
 }
 
-// Normalised to the app root, so both the legacy '/resume' and the ecosystem
-// '/resume/api' forms work — see normalizeApiBase.
+// The API root ('/resume/api'); builder endpoints are appended to it directly.
 let baseUrl = ''
 export function setBuilderApiBaseUrl(url: string): void {
-  baseUrl = normalizeApiBase(url)
+  baseUrl = url.replace(/\/+$/, '')
 }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${baseUrl}/api/builder${path}`, {
+  const res = await fetch(`${baseUrl}/builder${path}`, {
     ...init,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) }

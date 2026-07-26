@@ -13,7 +13,7 @@ import './styles/index.css'
 export interface ResumeBotAppProps {
   theme?: string // Theme passed from parent (e.g., 'default', 'ocean', 'forest')
   // API root (required), e.g. '/resume/api' or 'https://api.yourapp.com/api'.
-  // The legacy app-root form ('/resume') is still accepted — see normalizeApiBase.
+  // Endpoints are appended directly: ${apiBaseUrl}/chat, ${apiBaseUrl}/resume.
   apiBaseUrl: string
   ownerName?: string // Name shown in chat welcome message (default: 'the candidate')
 }

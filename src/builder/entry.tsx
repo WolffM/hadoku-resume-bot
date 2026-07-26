@@ -18,10 +18,7 @@ function injectStyles() {
 
 export interface ResumeBuilderProps {
   theme?: string
-  /**
-   * API root, e.g. '/resume/api' — the builder calls ${apiBaseUrl}/builder/*.
-   * The legacy app-root form ('/resume') is still accepted — see normalizeApiBase.
-   */
+  /** API root, e.g. '/resume/api' — the builder calls ${apiBaseUrl}/builder/*. */
   apiBaseUrl: string
 }
 
