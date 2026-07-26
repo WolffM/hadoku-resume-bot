@@ -1,0 +1,45 @@
+#!/bin/sh
+# A commit that declares a breaking change must carry a major version bump.
+#
+# Why this is a guard and not an automatic fix: the version has to be written by
+# pre-commit, which git runs *before* it obtains the commit message — so the hook
+# that decides the bump cannot see `feat!:`. The hooks that can see the message
+# run after git has already snapshotted the tree, so anything they stage lands in
+# the *next* commit, not this one (verified; it is an easy thing to get wrong).
+# Rejecting is therefore the only reliable move.
+#
+# Recovery is one command. pre-commit has left the patch bump in package.json, so
+# re-running with BUMP=major computes the major from there and lands the right
+# number: HEAD 2.0.1 -> rejected at 2.0.2 -> BUMP=major -> 3.0.0.
+
+msg_file="$1"
+
+# An explicit BUMP means the human already decided. A breaking change to
+# something other than the published API is a legitimate reason to say
+# BUMP=patch, so don't override that judgement.
+[ -n "${BUMP:-}" ] && exit 0
+
+node scripts/is-breaking-commit.mjs "$msg_file" || exit 0
+
+git rev-parse --verify HEAD >/dev/null 2>&1 || exit 0
+head_version=$(git show HEAD:package.json | node -e \
+  'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).version))')
+current_version=$(node -p "require('./package.json').version")
+
+# No bump at all — nothing is being published, so nothing to police.
+[ "$head_version" = "$current_version" ] && exit 0
+
+head_major=$(printf '%s' "$head_version" | cut -d. -f1)
+current_major=$(printf '%s' "$current_version" | cut -d. -f1)
+[ "$current_major" != "$head_major" ] && exit 0
+
+echo ""
+echo "❌ This commit declares a breaking change but only bumps $head_version → $current_version."
+echo "   hadoku_site's update-packages workflow upgrades across major boundaries,"
+echo "   so shipping a break as a patch pushes it straight into production."
+echo ""
+echo "💡 Re-run the same commit with an explicit level:"
+echo "     BUMP=major git commit ..."
+echo "   If the break is not in the published API, BUMP=patch says so deliberately."
+echo ""
+exit 1
