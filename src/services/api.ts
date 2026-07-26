@@ -14,6 +14,21 @@ export interface ChatResponse {
 
 export interface ResumeResponse {
   content: string
+  variant?: string
+  label?: string
+  cover_letter?: string | null
+  company?: string | null
+  job_title?: string | null
+}
+
+/** The delivered application packet: résumé + optional tailored cover letter. */
+export interface ResumePacket {
+  content: string
+  coverLetter: string | null
+  variant: string | null
+  label: string | null
+  company: string | null
+  jobTitle: string | null
 }
 
 export interface ApiError {
@@ -61,7 +76,7 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatResp
  * Pass a variant slug to fetch a link-tailored resume; the API falls back to
  * the full resume for unknown or expired slugs.
  */
-export async function fetchResume(variant?: string): Promise<string> {
+export async function fetchResume(variant?: string): Promise<ResumePacket> {
   const url = variant
     ? `${API_BASE_URL}/api/resume?v=${encodeURIComponent(variant)}`
     : `${API_BASE_URL}/api/resume`
@@ -73,5 +88,12 @@ export async function fetchResume(variant?: string): Promise<string> {
   }
 
   const data = (await response.json()) as ResumeResponse
-  return data.content
+  return {
+    content: data.content,
+    coverLetter: data.cover_letter ?? null,
+    variant: data.variant ?? null,
+    label: data.label ?? null,
+    company: data.company ?? null,
+    jobTitle: data.job_title ?? null
+  }
 }

@@ -235,7 +235,15 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
         const variant = await getVariant(c.env.CONTENT_KV, slug)
         if (variant) {
           const content = await renderVariant(c.env.CONTENT_KV, variant)
-          if (content) return c.json({ content, variant: variant.slug })
+          if (content)
+            return c.json({
+              content,
+              variant: variant.slug,
+              label: variant.label,
+              cover_letter: variant.cover_letter_markdown ?? null,
+              company: variant.company ?? null,
+              job_title: variant.job_title ?? null
+            })
         }
       }
 
