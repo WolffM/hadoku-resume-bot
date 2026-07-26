@@ -14,7 +14,7 @@
 
 import { Hono } from 'hono'
 import type { KVNamespace } from '@cloudflare/workers-types'
-import { createEdgeAuth, requireUserType } from '@wolffm/worker-utils'
+import { createEdgeAuth, requireMinTier } from '@wolffm/worker-utils'
 import { createWorkerLogger } from '@wolffm/logger/worker'
 import { checkRateLimit, recordRequest } from './rate-limit.js'
 import { getFullSystemPrompt, getResumeContent } from './resume.js'
@@ -72,7 +72,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   // origin has no valid secret, so it degrades to `public` and any forged
   // X-Hadoku-Tier is ignored. Degrade-to-public rather than reject: the
   // monitoring probe hits /health directly with no headers and must stay 200.
-  // The requireUserType gates below are what turn a direct hit into a 403.
+  // The requireMinTier gates below are what turn a direct hit into a 403.
   app.use('*', createEdgeAuth())
 
   app.get(`${basePath}/`, c => c.json({ status: 'ok', service: 'resume-api' }))
@@ -80,22 +80,24 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
 
   // Non-public surface. Mirrors the tiers the edge-router enforces, so the gate
   // survives a direct origin hit instead of relying on the perimeter alone.
-  const friendOrAdmin = requireUserType(['admin', 'friend'])
-  // Tailoring is also called service-to-service: jobplatform-api generates
-  // per-job application packets via a Cloudflare service binding, stamping
-  // X-Hadoku-Tier: service. Admit `service` on those two routes only.
-  const serviceFriendOrAdmin = requireUserType(['admin', 'friend', 'service'])
-  app.use(`${basePath}/system-prompt`, friendOrAdmin)
-  app.use(`${basePath}/tailored-resume`, serviceFriendOrAdmin)
-  app.use(`${basePath}/cover-letter`, serviceFriendOrAdmin)
-  app.use(`${basePath}/variants`, friendOrAdmin)
-  app.use(`${basePath}/variants/*`, friendOrAdmin)
+  //
+  // One gate, not two: tiers rank (public < friend < service < admin), so
+  // 'friend' already admits service and admin. Tailoring is additionally called
+  // service-to-service — jobplatform-api generates per-job application packets
+  // via a Cloudflare service binding, stamping X-Hadoku-Tier: service — and
+  // that caller passes here by outranking friend, with no separate list.
+  const friendAndUp = requireMinTier('friend')
+  app.use(`${basePath}/system-prompt`, friendAndUp)
+  app.use(`${basePath}/tailored-resume`, friendAndUp)
+  app.use(`${basePath}/cover-letter`, friendAndUp)
+  app.use(`${basePath}/variants`, friendAndUp)
+  app.use(`${basePath}/variants/*`, friendAndUp)
 
   // Resume builder — admin-only block CRUD (the hosted replacement for the local
   // review UI). Writes go straight to CONTENT_KV, which is the source of truth;
   // resume_ingest.py becomes seed/import only. GET /export dumps blocks.json for
   // git backup.
-  const adminOnly = requireUserType(['admin'])
+  const adminOnly = requireMinTier('admin')
   app.use(`${basePath}/builder/*`, adminOnly)
 
   app.get(`${basePath}/builder/blocks`, async c => {
@@ -255,7 +257,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
   })
 
-  // Variant management — friend/admin, enforced by the requireUserType gates above.
+  // Variant management — friend and up, enforced by the requireMinTier gates above.
   app.post(`${basePath}/variants`, async c => {
     let body: MintVariantRequest
     try {
