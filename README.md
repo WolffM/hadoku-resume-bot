@@ -54,7 +54,7 @@ This app is a child component of the [hadoku_site](https://github.com/WolffM/had
 ```typescript
 interface ResumeBotAppProps {
   theme?: string // Optional: 'default', 'ocean', 'forest', etc.
-  apiBaseUrl: string // Required: Backend API path or URL (e.g., '/resume' or 'https://api.yourapp.com')
+  apiBaseUrl: string // Required: API root path or URL (e.g., '/resume/api' or 'https://api.yourapp.com/api')
   ownerName?: string // Optional: name shown in the chat welcome message (default: 'the candidate')
 }
 ```
@@ -68,27 +68,32 @@ import { mount, unmount } from '@wolffm/resume-bot'
 const element = document.getElementById('app-root')
 mount(element, {
   theme: 'ocean', // optional
-  apiBaseUrl: '/resume' // required - path to backend API
+  apiBaseUrl: '/resume/api' // required - path to the API root
 })
 
 // Unmount when done
 unmount(element)
 ```
 
-**Important:** The `apiBaseUrl` can be either:
+**Important:** `apiBaseUrl` is the **API root**, matching the rest of the hadoku
+ecosystem (`/oss/api`, `/jobplatform/api`). It can be either:
 
-- A **path** (e.g., `/resume`) if the backend is hosted on the same domain
-- A **full URL** (e.g., `https://api.yourapp.com`) if the backend is on a different domain
+- A **path** (e.g., `/resume/api`) if the backend is hosted on the same domain
+- A **full URL** (e.g., `https://api.yourapp.com/api`) if the backend is on a different domain
+
+For backwards compatibility the legacy app-root form (`/resume`) is still accepted:
+a trailing `/api` is stripped before endpoints are appended, so both spellings
+resolve to the same URLs. That shim goes away in the next major.
 
 The backend handles these endpoints (public unless noted; non-public routes are
 gated in-worker via `@wolffm/worker-utils` edge-auth — see `worker/src/index.ts`):
 
-- `${apiBaseUrl}/api/chat` - POST - Chat with the bot (public, rate-limited)
-- `${apiBaseUrl}/api/resume` - GET - Fetch resume content, incl. `?v={slug}` variants (public)
-- `${apiBaseUrl}/api/system-prompt` - GET - Fetch system prompt (admin/friend)
-- `${apiBaseUrl}/api/tailored-resume` - POST - Per-job tailored resume (admin/friend/service)
-- `${apiBaseUrl}/api/cover-letter` - POST - Per-job cover letter (admin/friend/service)
-- `${apiBaseUrl}/api/variants` - POST/GET/DELETE - Variant management (admin/friend)
+- `${apiBaseUrl}/chat` - POST - Chat with the bot (public, rate-limited)
+- `${apiBaseUrl}/resume` - GET - Fetch resume content, incl. `?v={slug}` variants (public)
+- `${apiBaseUrl}/system-prompt` - GET - Fetch system prompt (admin/friend)
+- `${apiBaseUrl}/tailored-resume` - POST - Per-job tailored resume (admin/friend/service)
+- `${apiBaseUrl}/cover-letter` - POST - Per-job cover letter (admin/friend/service)
+- `${apiBaseUrl}/variants` - POST/GET/DELETE - Variant management (admin/friend)
 
 ## Deployment
 

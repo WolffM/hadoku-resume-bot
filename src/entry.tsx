@@ -12,7 +12,9 @@ import './styles/index.css'
 // Props interface for configuration from parent app
 export interface ResumeBotAppProps {
   theme?: string // Theme passed from parent (e.g., 'default', 'ocean', 'forest')
-  apiBaseUrl: string // Backend API path or URL (required, e.g., '/resume' or 'https://api.yourapp.com')
+  // API root (required), e.g. '/resume/api' or 'https://api.yourapp.com/api'.
+  // The legacy app-root form ('/resume') is still accepted — see normalizeApiBase.
+  apiBaseUrl: string
   ownerName?: string // Name shown in chat welcome message (default: 'the candidate')
 }
 

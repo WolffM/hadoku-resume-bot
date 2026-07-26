@@ -1,3 +1,5 @@
+import { normalizeApiBase } from './apiBase'
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -41,6 +43,9 @@ export interface ApiError {
 // The dev harness (index.html) supplies https://hadoku.me/resume/api; prod passes
 // the real path. Empty until then — there is no local backend to default to (the
 // old Express server was removed).
+//
+// Normalised to the app root, so both the legacy '/resume' and the ecosystem
+// '/resume/api' forms work — see normalizeApiBase.
 let API_BASE_URL = ''
 
 /**
@@ -48,7 +53,7 @@ let API_BASE_URL = ''
  * Called by the mount function with the apiBaseUrl prop
  */
 export function setApiBaseUrl(url: string): void {
-  API_BASE_URL = url
+  API_BASE_URL = normalizeApiBase(url)
 }
 
 /**
