@@ -8,6 +8,28 @@ interface ResumeViewerProps {
   onAskAbout: (text: string) => void
 }
 
+// Remember the last variant slug so a recruiter who first opens a tailored
+// ?v={slug} link and later hits bare /resume still gets their packet. localStorage
+// is fine here per the owner (the shared-computer caveat is a non-issue).
+const VARIANT_STORAGE_KEY = 'hadoku_resume_variant'
+
+function readStoredVariant(): string | null {
+  try {
+    return localStorage.getItem(VARIANT_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeStoredVariant(slug: string | null): void {
+  try {
+    if (slug) localStorage.setItem(VARIANT_STORAGE_KEY, slug)
+    else localStorage.removeItem(VARIANT_STORAGE_KEY)
+  } catch {
+    /* private mode / storage disabled — sticky slug is best-effort */
+  }
+}
+
 export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
   const [packet, setPacket] = useState<ResumePacket | null>(null)
   const [view, setView] = useState<'resume' | 'cover'>('resume')
@@ -29,9 +51,20 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     try {
       setLoading(true)
       setError(null)
-      // A shared link like /resume?v={slug} serves that link's tailored variant
-      const variant = new URLSearchParams(window.location.search).get('v') ?? undefined
-      setPacket(await fetchResume(variant))
+      // A shared link like /resume?v={slug} serves that link's tailored variant.
+      // A fresh URL slug wins and is remembered; with no slug, fall back to the
+      // last remembered one so bare /resume still serves the same packet.
+      const urlSlug = new URLSearchParams(window.location.search).get('v')
+      if (urlSlug) writeStoredVariant(urlSlug)
+      const slug = urlSlug ?? readStoredVariant() ?? undefined
+
+      const result = await fetchResume(slug)
+      setPacket(result)
+
+      // Self-heal: if we requested a slug but the server fell back to the full
+      // résumé (expired/unknown → result.variant is null), drop the stale slug so
+      // we stop chasing a dead variant on the next bare visit.
+      if (slug && result.variant === null) writeStoredVariant(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load resume')
     } finally {
