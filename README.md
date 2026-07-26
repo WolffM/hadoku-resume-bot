@@ -76,14 +76,18 @@ unmount(element)
 ```
 
 **Important:** `apiBaseUrl` is the **API root**, matching the rest of the hadoku
-ecosystem (`/oss/api`, `/jobplatform/api`). It can be either:
+ecosystem (`/oss/api`, `/jobplatform/api`). Endpoints are appended to it directly.
+It can be either:
 
 - A **path** (e.g., `/resume/api`) if the backend is hosted on the same domain
 - A **full URL** (e.g., `https://api.yourapp.com/api`) if the backend is on a different domain
 
-For backwards compatibility the legacy app-root form (`/resume`) is still accepted:
-a trailing `/api` is stripped before endpoints are appended, so both spellings
-resolve to the same URLs. That shim goes away in the next major.
+> **Breaking change in 2.0.0.** Through 1.x this prop was the _app_ root (`/resume`)
+> and the package appended `/api/...` itself; 1.3.14 accepted both spellings. 2.0.0
+> removes that shim — pass the API root. Passing `/resume` now requests `/resume/chat`
+> and 404s. Migration is a one-line change at the mount site: `/resume` -> `/resume/api`.
+> This does not affect the `./api` worker export — `createResumeHandler(basePath)` is
+> unchanged.
 
 The backend handles these endpoints (public unless noted; non-public routes are
 gated in-worker via `@wolffm/worker-utils` edge-auth — see `worker/src/index.ts`):
