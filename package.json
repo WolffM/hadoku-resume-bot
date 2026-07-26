@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "1.2.14",
+  "version": "1.2.15",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
@@ -24,13 +24,13 @@
       "default": "./dist/builder.js"
     },
     "./api": {
-      "types": "./dist/worker.d.ts",
+      "types": "./dist/worker/index.d.ts",
       "default": "./dist/worker.js"
     }
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --config builder/vite.config.ts && vite build --config worker/vite.config.ts && tsc -p tsconfig.build.json",
+    "build": "vite build && vite build --config builder/vite.config.ts && vite build --config worker/vite.config.ts && tsc -p tsconfig.build.json && tsc -p tsconfig.worker-types.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
