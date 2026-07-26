@@ -1,6 +1,6 @@
 // Admin builder API client. All calls go through the edge-router (same-origin,
 // credentials:'include') so the caller's admin session cookie is resolved into
-// the X-Hadoku-Tier: admin stamp the worker's requireUserType(['admin']) needs.
+// the X-Hadoku-Tier: admin stamp the worker's requireMinTier('admin') needs.
 
 export type BlockType = 'experience' | 'project' | 'skills' | 'education' | 'summary' | 'header'
 
