@@ -2,6 +2,7 @@ import type { KVNamespace } from '@cloudflare/workers-types'
 import type OpenAI from 'openai'
 import { getAllBlocks } from './blocks.js'
 import { generateTailoredResume } from './tailored-resume.js'
+import { generateCoverLetter } from './cover-letter.js'
 
 const VARIANT_PREFIX = 'resume:variant:'
 
@@ -12,6 +13,11 @@ export interface ResumeVariant {
   markdown?: string
   /** Assembled from blocks at read time, in this order */
   block_ids?: string[]
+  /** Tailored cover letter delivered alongside the résumé (the packet). */
+  cover_letter_markdown?: string
+  /** Posting context, so the delivered page can label the packet. */
+  company?: string
+  job_title?: string
   created_at: string
 }
 
@@ -26,6 +32,14 @@ export interface MintVariantRequest {
   description?: string
   profile_type?: string
   tailor?: boolean
+  /** Pre-rendered cover letter to deliver with the résumé (skips generation). */
+  cover_letter_markdown?: string
+  /**
+   * When minting via the tailoring path (job_title+company+description), also
+   * generate a matching cover letter. Defaults to true; set false to skip the
+   * extra LLM call. Ignored when cover_letter_markdown is supplied.
+   */
+  cover_letter?: boolean
   /** Auto-expire the link after this many days */
   ttl_days?: number
 }
@@ -95,11 +109,29 @@ export async function mintVariant(
     })
     variant.markdown = tailored.resume_markdown
     variant.block_ids = tailored.blocks_used
+
+    // Deliver a matching cover letter as part of the packet unless opted out or
+    // one was supplied pre-rendered (handled below).
+    if (req.cover_letter !== false && !req.cover_letter_markdown) {
+      const letter = await generateCoverLetter(client, kv, tailored.resume_markdown, {
+        job_title: req.job_title,
+        company: req.company,
+        description: req.description
+      })
+      variant.cover_letter_markdown = letter.cover_letter_markdown
+    }
   } else {
     throw new Error(
       'Variant needs content: provide markdown, block_ids, or job_title+company+description'
     )
   }
+
+  // Pre-rendered cover letter + posting context (any path). The packet flow in
+  // jobplatform generates the résumé and cover letter separately — each within
+  // its own edge timeout carve-out — then mints one variant carrying both.
+  if (req.cover_letter_markdown) variant.cover_letter_markdown = req.cover_letter_markdown
+  if (req.job_title) variant.job_title = req.job_title
+  if (req.company) variant.company = req.company
 
   const opts =
     req.ttl_days && req.ttl_days > 0

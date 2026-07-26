@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { logger } from '@wolffm/logger/client'
-import { fetchResume } from '../services/api'
+import { fetchResume, type ResumePacket } from '../services/api'
 
 interface ResumeViewerProps {
   onAskAbout: (text: string) => void
 }
 
 export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
-  const [resumeContent, setResumeContent] = useState<string>('')
+  const [packet, setPacket] = useState<ResumePacket | null>(null)
+  const [view, setView] = useState<'resume' | 'cover'>('resume')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; text: string } | null>(
@@ -30,8 +31,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
       setError(null)
       // A shared link like /resume?v={slug} serves that link's tailored variant
       const variant = new URLSearchParams(window.location.search).get('v') ?? undefined
-      const content = await fetchResume(variant)
-      setResumeContent(content)
+      setPacket(await fetchResume(variant))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load resume')
     } finally {
@@ -76,15 +76,37 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     URL.revokeObjectURL(url)
   }
 
-  const variantSlug = new URLSearchParams(window.location.search).get('v')
+  const resumeContent = packet?.content ?? ''
+  const coverLetter = packet?.coverLetter ?? null
+  const hasCover = coverLetter !== null && coverLetter.length > 0
+  const activeContent = view === 'cover' && hasCover ? coverLetter : resumeContent
+
+  const variantSlug = packet?.variant ?? new URLSearchParams(window.location.search).get('v')
   const baseFilename = variantSlug ? `resume-${variantSlug}` : 'resume'
 
-  const handleDownloadMd = () => downloadBlob(resumeContent, 'text/markdown', `${baseFilename}.md`)
+  // The full packet as one markdown doc — résumé, then a page break, then the
+  // cover letter under a heading.
+  const packetMarkdown = hasCover
+    ? `${resumeContent}\n\n---\n\n# Cover Letter\n\n${coverLetter}`
+    : resumeContent
+
+  const handleDownloadMd = () =>
+    hasCover
+      ? downloadBlob(packetMarkdown, 'text/markdown', `${baseFilename}-packet.md`)
+      : downloadBlob(resumeContent, 'text/markdown', `${baseFilename}.md`)
 
   const handleDownloadJson = () =>
     downloadBlob(
       JSON.stringify(
-        { content: resumeContent, variant: variantSlug ?? undefined, format: 'markdown' },
+        {
+          content: resumeContent,
+          cover_letter: coverLetter ?? undefined,
+          variant: variantSlug ?? undefined,
+          label: packet?.label ?? undefined,
+          company: packet?.company ?? undefined,
+          job_title: packet?.jobTitle ?? undefined,
+          format: 'markdown'
+        },
         null,
         2
       ),
@@ -93,7 +115,8 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     )
 
   // Print stylesheet isolates the resume panel; the browser's print dialog
-  // handles the actual PDF rendering.
+  // handles the actual PDF rendering. The print-only block below renders the
+  // full packet (résumé + cover letter) regardless of the on-screen toggle.
   const handleDownloadPdf = () => window.print()
 
   if (loading) {
@@ -128,17 +151,64 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     <>
       <div className="resume-viewer" onContextMenu={handleContextMenu}>
         <div className="resume-viewer__toolbar">
-          <button className="resume-viewer__download-button" onClick={handleDownloadPdf}>
-            PDF
-          </button>
-          <button className="resume-viewer__download-button" onClick={handleDownloadMd}>
-            .md
-          </button>
-          <button className="resume-viewer__download-button" onClick={handleDownloadJson}>
-            .json
-          </button>
+          {hasCover && (
+            <div className="resume-viewer__toggle" role="tablist" aria-label="Packet document">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'resume'}
+                className={
+                  view === 'resume'
+                    ? 'resume-viewer__toggle-btn resume-viewer__toggle-btn--active'
+                    : 'resume-viewer__toggle-btn'
+                }
+                onClick={() => setView('resume')}
+              >
+                Résumé
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'cover'}
+                className={
+                  view === 'cover'
+                    ? 'resume-viewer__toggle-btn resume-viewer__toggle-btn--active'
+                    : 'resume-viewer__toggle-btn'
+                }
+                onClick={() => setView('cover')}
+              >
+                Cover letter
+              </button>
+            </div>
+          )}
+          <div className="resume-viewer__downloads">
+            <button className="resume-viewer__download-button" onClick={handleDownloadPdf}>
+              PDF
+            </button>
+            <button className="resume-viewer__download-button" onClick={handleDownloadMd}>
+              {hasCover ? 'Packet .md' : '.md'}
+            </button>
+            <button className="resume-viewer__download-button" onClick={handleDownloadJson}>
+              .json
+            </button>
+          </div>
         </div>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{resumeContent}</ReactMarkdown>
+
+        {/* On screen: the toggle-selected document. */}
+        <div className="resume-viewer__screen">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeContent}</ReactMarkdown>
+        </div>
+
+        {/* On print / PDF: the full packet — résumé, then cover letter. */}
+        <div className="resume-viewer__print">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{resumeContent}</ReactMarkdown>
+          {hasCover && (
+            <>
+              <div className="resume-viewer__pagebreak" />
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{coverLetter}</ReactMarkdown>
+            </>
+          )}
+        </div>
       </div>
       {contextMenu && (
         <div
