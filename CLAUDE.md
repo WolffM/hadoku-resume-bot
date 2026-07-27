@@ -28,17 +28,29 @@ All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/sy
 
 ## Versioning
 
-- Pre-commit hook auto-bumps patch version on src/ or config changes
-- Rolls over at .20 to next minor (1.1.20 -> 1.2.0)
-- publish.yml has fallback bump if hook was skipped
-- `BUMP=major|minor|patch|none git commit ...` overrides the default. **A major
-  needs `BUMP=major`** — the default can never reach one.
-- A `feat!:` / `BREAKING CHANGE:` commit without a major bump is rejected by
-  `.husky/commit-msg`, which tells you to re-run with `BUMP=major`. It can only
-  reject, not fix: pre-commit writes the version but runs before git has the
-  commit message, and the hooks that can read the message run after the tree is
-  snapshotted, so their staging lands in the _next_ commit.
-- Version arithmetic lives in `scripts/bump-version.mjs` (not published — `files`
+**The commit message decides the version. There is nothing to remember.**
+
+- `feat!:` / `<type>(scope)!:` / a `BREAKING CHANGE:` footer → **major**
+- `feat:` → **minor**
+- anything else → patch, rolling over at .20 to the next minor (1.1.20 -> 1.2.0)
+
+Two hooks, because one cannot do it alone:
+
+- `.husky/pre-commit` writes the ordinary patch/auto bump. It is the only hook
+  whose staging lands in the commit it runs on — and the only one that cannot
+  see the commit message, because git has not obtained it yet.
+- `.husky/post-commit` runs `scripts/version-from-commit.mjs`, which reads the
+  message, and if it asks for a higher level, recomputes from the parent
+  commit's version and amends. Idempotent (always derived from `HEAD^`, so
+  `--amend` converges rather than climbing), and it skips merges, rebases and
+  cherry-picks.
+
+`BUMP=major|minor|patch|none git commit ...` still overrides the message when
+you need it — e.g. `BUMP=patch` for a break that is not in the published API.
+
+- publish.yml has a fallback bump if the hook was skipped
+- Version arithmetic lives in `scripts/bump-version.mjs`; the message→level
+  mapping in `scripts/version-from-commit.mjs`. Neither is published (`files`
   is `["dist"]`)
 
 Majors reach production on their own: hadoku_site's update-packages workflow
