@@ -1,12 +1,12 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WolffM/resume-bot.git"
+    "url": "git+https://github.com/WolffM/hadoku-resume-bot.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
