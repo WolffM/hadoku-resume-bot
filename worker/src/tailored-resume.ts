@@ -52,13 +52,25 @@ export async function generateTailoredResume(
     throw new Error('No resume blocks found in KV storage')
   }
 
-  // Pass 1: block selection
+  // Pass 1: block selection. Send only enough of each block to judge RELEVANCE
+  // (id + type + tags + title + a snippet) — the FULL content is used at
+  // assembly below. Sending every block's full content blew past Groq's
+  // per-minute token limit once the palette grew past ~30 blocks (a 51-block
+  // set requested ~9.2k tokens against an 8k TPM cap → 413).
+  const SELECT_SNIPPET_CHARS = 200
+  const snippet = (s: string) =>
+    s.length > SELECT_SNIPPET_CHARS ? `${s.slice(0, SELECT_SNIPPET_CHARS)}…` : s
   const blockSummaries = blocks
     .map(
       b =>
-        `ID: ${b.id}\nType: ${b.type}\nTags: ${b.tags.join(', ')}\nTitle: ${b.title}\n---\n${b.content}`
+        `ID: ${b.id}\nType: ${b.type}\nTags: ${b.tags.join(', ')}\nTitle: ${b.title}\n---\n${snippet(b.content)}`
     )
     .join('\n\n')
+
+  // The selector needs the gist of the posting, not every word — cap it so a
+  // long JD can't push pass 1 back over the token limit. Pass 2 gets the full
+  // description.
+  const jdForSelection = description.length > 2500 ? `${description.slice(0, 2500)}…` : description
 
   const profileHint = profile_type
     ? `\nProfile preference: "${profile_type}" — prefer blocks tagged with this, but include cross-tag blocks where genuinely relevant (e.g. a Staff ML role will usually want a leadership block too).`
@@ -68,7 +80,7 @@ export async function generateTailoredResume(
 
 Job: ${job_title} at ${company}
 Description:
-${description}
+${jdForSelection}
 
 Available blocks:
 ${blockSummaries}
