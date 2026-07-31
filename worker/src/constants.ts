@@ -17,3 +17,8 @@ export const TAILORED_RESUME_TOKENS = {
 } as const
 
 export const COVER_LETTER_TOKENS = 2048
+
+// The application-extras call emits a compact JSON bundle (email + hook + ~6
+// screening answers + LinkedIn note + a few talking points). ~1.5k output
+// tokens is comfortable headroom; the input is capped in application-extras.ts.
+export const APPLICATION_EXTRAS_TOKENS = 2048

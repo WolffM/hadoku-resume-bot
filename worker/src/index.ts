@@ -22,6 +22,10 @@ import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
 import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
 import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
 import {
+  generateApplicationExtras,
+  type ApplicationExtrasRequest
+} from './application-extras.js'
+import {
   getVariant,
   renderVariant,
   mintVariant,
@@ -90,6 +94,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   app.use(`${basePath}/system-prompt`, friendAndUp)
   app.use(`${basePath}/tailored-resume`, friendAndUp)
   app.use(`${basePath}/cover-letter`, friendAndUp)
+  app.use(`${basePath}/application-extras`, friendAndUp)
   app.use(`${basePath}/variants`, friendAndUp)
   app.use(`${basePath}/variants/*`, friendAndUp)
 
@@ -367,6 +372,40 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       })
       return c.json(
         { error: 'Failed to generate cover letter', message: (error as Error).message },
+        500
+      )
+    }
+  })
+
+  app.post(`${basePath}/application-extras`, async c => {
+    let body: ApplicationExtrasRequest
+    try {
+      body = await c.req.json()
+    } catch {
+      return c.json({ error: 'Invalid request body' }, 400)
+    }
+
+    if (!body.job_title || !body.company || !body.description || !body.resume_markdown) {
+      return c.json(
+        {
+          error: 'Missing required fields: job_title, company, description, resume_markdown'
+        },
+        400
+      )
+    }
+
+    try {
+      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const result = await generateApplicationExtras(client, c.env.CONTENT_KV, body)
+      return c.json(result)
+    } catch (error) {
+      logger.error('application-extras generation failed', {
+        error: (error as Error).message,
+        company: body.company,
+        jobTitle: body.job_title
+      })
+      return c.json(
+        { error: 'Failed to generate application extras', message: (error as Error).message },
         500
       )
     }
