@@ -1,7 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
-import type OpenAI from 'openai'
 import { cacheKey } from './blocks.js'
-import { sendChatCompletion } from './llm.js'
+import { sendChatCompletion, type LLMChain } from './llm.js'
 import { stripCodeFence } from './tailored-resume.js'
 import { APPLICATION_EXTRAS_TOKENS } from './constants.js'
 import {
@@ -74,7 +73,7 @@ function cap(s: string, n: number): string {
  * The standard-fields block is assembled deterministically, not generated.
  */
 export async function generateApplicationExtras(
-  client: OpenAI,
+  client: LLMChain,
   kv: KVNamespace,
   req: ApplicationExtrasRequest
 ): Promise<ApplicationExtrasResponse> {

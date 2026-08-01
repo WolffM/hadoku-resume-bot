@@ -45,7 +45,10 @@ import {
 } from './builder.js'
 
 interface ResumeEnv {
+  /** Groq API key — the fallback provider in the free-tier chain. */
   GROQ_API_KEY: string
+  /** Nebius API key — the primary free-tier provider. Optional: absent → Groq-only. */
+  NEBIUS_API_KEY?: string
   RESUME_SYSTEM_PROMPT: string
   /**
    * Shared secret proving a request arrived via edge-router. The edge strips any
@@ -218,7 +221,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
         messages.unshift({ role: 'system', content: systemPrompt })
       }
 
-      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const client = createLLMClient(c.env)
       const response = await sendChatCompletion(client, messages)
       return c.json(response)
     } catch (error) {
@@ -276,7 +279,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const client = createLLMClient(c.env)
       const variant = await mintVariant(client, c.env.CONTENT_KV, body)
       return c.json(variant)
     } catch (error) {
@@ -331,7 +334,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const client = createLLMClient(c.env)
       const result = await generateTailoredResume(client, c.env.CONTENT_KV, body)
       return c.json(result)
     } catch (error) {
@@ -360,7 +363,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const client = createLLMClient(c.env)
       const resumeContent = await getResumeContent(c.env)
       const result = await generateCoverLetter(client, c.env.CONTENT_KV, resumeContent, body)
       return c.json(result)
@@ -395,7 +398,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env.GROQ_API_KEY)
+      const client = createLLMClient(c.env)
       const result = await generateApplicationExtras(client, c.env.CONTENT_KV, body)
       return c.json(result)
     } catch (error) {

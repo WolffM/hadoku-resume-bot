@@ -1,5 +1,5 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
-import type OpenAI from 'openai'
+import type { LLMChain } from './llm.js'
 import { getAllBlocks } from './blocks.js'
 import { generateTailoredResume } from './tailored-resume.js'
 import { generateCoverLetter } from './cover-letter.js'
@@ -77,7 +77,7 @@ export async function renderVariant(
 }
 
 export async function mintVariant(
-  client: OpenAI,
+  client: LLMChain,
   kv: KVNamespace,
   req: MintVariantRequest
 ): Promise<ResumeVariant> {
