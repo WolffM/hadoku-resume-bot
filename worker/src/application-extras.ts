@@ -26,6 +26,13 @@ export interface ScreeningAnswer {
 }
 
 export interface ApplicationExtras {
+  /**
+   * The cover letter, produced in the same call as the rest of the kit. Folding
+   * it in here (rather than a separate /cover-letter request) removes one LLM
+   * call from a cold packet, so the extras can't fail independently after the
+   * cover letter has already succeeded — the two share one call and one retry.
+   */
+  cover_letter_markdown: string
   /** Short outreach note to a recruiter or hiring manager. */
   intro_email: string
   /** 2-3 sentences on why this company/role — reused in the email and form fields. */
@@ -93,7 +100,7 @@ export async function generateApplicationExtras(
     return { ...cachedExtras, standard_fields, contact, cached: true }
   }
 
-  const prompt = `You are preparing everything a candidate needs to apply for a job, besides the résumé and cover letter. Produce it as one JSON object.
+  const prompt = `You are preparing everything a candidate needs to apply for a job, besides the résumé itself — including the cover letter. Produce it as one JSON object.
 
 Candidate facts (use verbatim where relevant — never invent or contradict these):
 - Name: ${contact.name}
@@ -111,6 +118,7 @@ ${cap(resume_markdown, RESUME_CHARS)}
 
 Return ONLY a JSON object with exactly these keys, no preamble, no markdown fence:
 {
+  "cover_letter_markdown": "A tailored cover letter in markdown, exactly 3 paragraphs — (1) why this company/role specifically, referencing something genuine about their work; (2) what the candidate brings, connecting the most relevant résumé experience to what the role needs; (3) a brief, confident close. Conversational but professional; no placeholders.",
   "intro_email": "A short (100-140 word) outreach email to a recruiter or hiring manager. Confident, human, specific to this role. No subject line, no placeholders like [Name] — sign it as ${contact.name}.",
   "why_hook": "2-3 sentences on why this company/role specifically, grounded in something real about their work or the role. Reusable in a form field.",
   "screening_answers": [
@@ -144,6 +152,10 @@ Keep every answer truthful to the résumé and the candidate facts. Do not fabri
   // array belongs. Fall back to sane values (and the deterministic salary line)
   // rather than 500ing on a shape wobble.
   const extras: ApplicationExtras = {
+    cover_letter_markdown:
+      typeof parsed.cover_letter_markdown === 'string'
+        ? stripCodeFence(parsed.cover_letter_markdown)
+        : '',
     intro_email: typeof parsed.intro_email === 'string' ? parsed.intro_email : '',
     why_hook: typeof parsed.why_hook === 'string' ? parsed.why_hook : '',
     screening_answers: Array.isArray(parsed.screening_answers)
