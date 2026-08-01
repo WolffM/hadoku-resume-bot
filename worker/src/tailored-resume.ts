@@ -1,7 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
-import type OpenAI from 'openai'
 import { getAllBlocks, cacheKey, type ResumeBlock } from './blocks.js'
-import { sendChatCompletion } from './llm.js'
+import { sendChatCompletion, type LLMChain } from './llm.js'
 import { TAILORED_RESUME_TOKENS } from './constants.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
@@ -34,7 +33,7 @@ export interface TailoredResumeResponse {
 }
 
 export async function generateTailoredResume(
-  client: OpenAI,
+  client: LLMChain,
   kv: KVNamespace,
   req: TailoredResumeRequest
 ): Promise<TailoredResumeResponse> {

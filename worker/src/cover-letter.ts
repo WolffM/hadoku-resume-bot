@@ -1,7 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
-import type OpenAI from 'openai'
 import { cacheKey } from './blocks.js'
-import { sendChatCompletion } from './llm.js'
+import { sendChatCompletion, type LLMChain } from './llm.js'
 import { COVER_LETTER_TOKENS } from './constants.js'
 import { stripCodeFence } from './tailored-resume.js'
 
@@ -20,7 +19,7 @@ export interface CoverLetterResponse {
 }
 
 export async function generateCoverLetter(
-  client: OpenAI,
+  client: LLMChain,
   kv: KVNamespace,
   resumeContent: string,
   req: CoverLetterRequest
