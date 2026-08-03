@@ -28,7 +28,7 @@ export type LLMChain = LLMProvider[]
 /** Just the key bindings the chain reads — a subset of the worker env. */
 export interface LLMEnv {
   GROQ_API_KEY?: string
-  NEBIUS_API_KEY?: string
+  CEREBRAS_API_KEY?: string
 }
 
 /**
