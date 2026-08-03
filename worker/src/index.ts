@@ -47,8 +47,8 @@ import {
 interface ResumeEnv {
   /** Groq API key — the fallback provider in the free-tier chain. */
   GROQ_API_KEY: string
-  /** Nebius API key — the primary free-tier provider. Optional: absent → Groq-only. */
-  NEBIUS_API_KEY?: string
+  /** Cerebras API key — the primary free-tier provider. Optional: absent → Groq-only. */
+  CEREBRAS_API_KEY?: string
   RESUME_SYSTEM_PROMPT: string
   /**
    * Shared secret proving a request arrived via edge-router. The edge strips any

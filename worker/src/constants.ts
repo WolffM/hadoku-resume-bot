@@ -8,15 +8,19 @@ export const LLM_CONFIG = {
 // one to the next (see llm.ts). A provider joins the chain only when its key
 // binding is set, so this list can name providers that aren't configured yet.
 //
-// Nebius is primary (400k TPM free tier, no card); Groq is the fallback (8k TPM
-// free) using the key that was already wired. Keeping the whole chain on free
-// tiers means the public /chat endpoint can never run up a bill.
+// Cerebras is primary (free tier: 30k TPM, no card, ~2000 tok/s); Groq is the
+// fallback (8k TPM free) using the key that was already wired. A request that
+// Cerebras rejects — e.g. its free-tier 8k-context cap on a large tailoring
+// prompt — falls over to Groq's full 131k context automatically (see llm.ts).
+// Keeping the whole chain on free tiers means the public /chat endpoint can
+// never run up a bill. Note the model ids differ per provider: Cerebras serves
+// it as `gpt-oss-120b`, Groq as `openai/gpt-oss-120b`.
 export const LLM_PROVIDERS = [
   {
-    name: 'nebius',
-    envKey: 'NEBIUS_API_KEY',
-    baseUrl: 'https://api.studio.nebius.com/v1/',
-    model: 'openai/gpt-oss-120b'
+    name: 'cerebras',
+    envKey: 'CEREBRAS_API_KEY',
+    baseUrl: 'https://api.cerebras.ai/v1',
+    model: 'gpt-oss-120b'
   },
   {
     name: 'groq',
