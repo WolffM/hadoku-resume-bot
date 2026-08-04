@@ -229,7 +229,7 @@
 }
 
 .chat-message--assistant .chat-message__content a:hover {
-  color: var(--color-danger-dark);
+  text-decoration-thickness: 2px;
 }
 
 .chat-message--assistant .chat-message__content h1,
@@ -459,7 +459,9 @@
 }
 
 .resume-viewer__error-message {
-  color: var(--color-danger);
+  border-left: 3px solid var(--color-danger);
+  padding-left: 0.5rem;
+  color: var(--color-text);
   margin-bottom: 1rem;
 }
 
@@ -482,7 +484,7 @@
 .resume-viewer h1 {
   font-size: var(--hdk-text-lg);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
+  color: var(--color-text);
   margin-top: 2rem;
   margin-bottom: 1rem;
 }
@@ -532,8 +534,8 @@
 }
 
 .resume-viewer a {
-  color: var(--color-primary);
-  text-decoration: none;
+  color: var(--color-text);
+  text-decoration: underline;
   transition: opacity 0.2s ease;
 }
 
