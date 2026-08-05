@@ -230,10 +230,10 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
           )}
           <div className="resume-viewer__downloads">
             <button className="resume-viewer__download-button" onClick={handleDownloadPdf}>
-              PDF
+              .pdf
             </button>
             <button className="resume-viewer__download-button" onClick={handleDownloadMd}>
-              {hasCover ? 'Packet .md' : '.md'}
+              .md
             </button>
             <button className="resume-viewer__download-button" onClick={handleDownloadJson}>
               .json
