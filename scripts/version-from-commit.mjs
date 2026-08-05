@@ -49,7 +49,7 @@ function gitQuiet(...args) {
   try {
     return execFileSync('git', args, {
       encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
+      stdio: ['ignore', 'pipe', 'ignore']
     }).trim()
   } catch {
     return null
@@ -109,22 +109,20 @@ function main() {
     'MERGE_HEAD',
     'REVERT_HEAD',
     'BISECT_LOG',
-    'sequencer',
+    'sequencer'
   ]
-  if (inFlight.some((marker) => existsSync(`${gitDir}/${marker}`))) return
+  if (inFlight.some(marker => existsSync(`${gitDir}/${marker}`))) return
 
   const message = git('log', '-1', '--pretty=%B')
-  const level = ['major', 'minor', 'patch'].includes(envBump)
-    ? envBump
-    : levelFromMessage(message)
+  const level = ['major', 'minor', 'patch'].includes(envBump) ? envBump : levelFromMessage(message)
   if (!level) return // fix:/chore:/docs: — pre-commit's auto bump already stands
 
   // Only the package.json files THIS commit actually changed, so we inherit
   // whatever gating the repo's pre-commit applied.
   const changed = git('diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD')
     .split('\n')
-    .filter((p) => p === 'package.json' || p.endsWith('/package.json'))
-    .filter((p) => !p.includes('node_modules/'))
+    .filter(p => p === 'package.json' || p.endsWith('/package.json'))
+    .filter(p => !p.includes('node_modules/'))
 
   const rewritten = []
   for (const path of changed) {
@@ -153,7 +151,7 @@ function main() {
   try {
     execFileSync('git', ['commit', '--amend', '--no-edit', '--no-verify'], {
       stdio: 'ignore',
-      env: { ...process.env, HUSKY: '0', SKIP_VERSION_LEVEL: '1' },
+      env: { ...process.env, HUSKY: '0', SKIP_VERSION_LEVEL: '1' }
     })
   } catch {
     // The bumped files are staged but the commit was not rewritten. Say so
