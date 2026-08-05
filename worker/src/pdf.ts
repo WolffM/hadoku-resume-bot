@@ -59,7 +59,8 @@ function parseInline(text: string): InlineRun[] {
     }
     const token = match[0]
     if (token.startsWith('**')) {
-      runs.push({ text: token.slice(2, -2), bold: true, italic: false })
+      // Recurse so `**[title](url)**` and `**_x_**` keep their inner structure.
+      runs.push(...parseInline(token.slice(2, -2)).map(r => ({ ...r, bold: true })))
     } else if (token.startsWith('[')) {
       const close = token.indexOf('](')
       runs.push({
@@ -69,7 +70,7 @@ function parseInline(text: string): InlineRun[] {
         link: token.slice(close + 2, -1)
       })
     } else {
-      runs.push({ text: token.slice(1, -1), bold: false, italic: true })
+      runs.push(...parseInline(token.slice(1, -1)).map(r => ({ ...r, italic: true })))
     }
     last = match.index + token.length
   }
@@ -158,7 +159,14 @@ const CHAR_SUBSTITUTIONS: Record<string, string> = {
   '‘': "'",
   '’': "'",
   '“': '"',
-  '”': '"'
+  '”': '"',
+  '−': '-',
+  '→': '->',
+  '←': '<-',
+  '↔': '<->',
+  '⇒': '=>',
+  '✓': 'yes',
+  '★': '*'
 }
 
 function sanitize(text: string, charset: Set<number>): string {
