@@ -3,11 +3,7 @@ import { cacheKey } from './blocks.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { stripCodeFence } from './tailored-resume.js'
 import { APPLICATION_EXTRAS_TOKENS } from './constants.js'
-import {
-  getContactProfile,
-  renderStandardFields,
-  type ContactProfile
-} from './contact.js'
+import { getContactProfile, renderStandardFields, type ContactProfile } from './contact.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
 
@@ -144,7 +140,9 @@ Keep every answer truthful to the résumé and the candidate facts. Do not fabri
   try {
     parsed = JSON.parse(stripCodeFence(response.message)) as Partial<ApplicationExtras>
   } catch {
-    throw new Error(`Application-extras returned unparseable response: ${response.message.slice(0, 300)}`)
+    throw new Error(
+      `Application-extras returned unparseable response: ${response.message.slice(0, 300)}`
+    )
   }
 
   // Normalise: the model occasionally omits a key or returns a string where an
@@ -159,8 +157,7 @@ Keep every answer truthful to the résumé and the candidate facts. Do not fabri
     why_hook: typeof parsed.why_hook === 'string' ? parsed.why_hook : '',
     screening_answers: Array.isArray(parsed.screening_answers)
       ? parsed.screening_answers.filter(
-          (x): x is ScreeningAnswer =>
-            !!x && typeof x.q === 'string' && typeof x.a === 'string'
+          (x): x is ScreeningAnswer => !!x && typeof x.q === 'string' && typeof x.a === 'string'
         )
       : [],
     salary_line:

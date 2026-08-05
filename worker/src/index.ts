@@ -21,10 +21,7 @@ import { getFullSystemPrompt, getResumeContent } from './resume.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
 import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
 import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
-import {
-  generateApplicationExtras,
-  type ApplicationExtrasRequest
-} from './application-extras.js'
+import { generateApplicationExtras, type ApplicationExtrasRequest } from './application-extras.js'
 import {
   getVariant,
   renderVariant,
