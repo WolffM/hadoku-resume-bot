@@ -169,9 +169,21 @@ const CHAR_SUBSTITUTIONS: Record<string, string> = {
   '★': '*'
 }
 
+// LLM-generated content (cover letters, tailored variants) uses typographic
+// Unicode freely — narrow no-break spaces, zero-widths — which WinAnsi lacks.
+// Spaces must normalize BEFORE word-splitting or the neighbours fuse into one
+// word with a '?' in the middle (Fortune?500).
+const UNICODE_SPACES = /[\u2000-\u200A\u202F\u205F\u3000]/
+const ZERO_WIDTHS = /[\u200B-\u200D\u2060\uFEFF]/
+
 function sanitize(text: string, charset: Set<number>): string {
   let out = ''
   for (const ch of text) {
+    if (UNICODE_SPACES.test(ch)) {
+      out += ' '
+      continue
+    }
+    if (ZERO_WIDTHS.test(ch)) continue
     const mapped = CHAR_SUBSTITUTIONS[ch] ?? ch
     for (const m of mapped) {
       out += charset.has(m.codePointAt(0) as number) ? m : '?'
