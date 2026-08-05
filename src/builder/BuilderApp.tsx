@@ -224,20 +224,20 @@ export function BuilderApp() {
         </div>
 
         <div className="rb-builder__legend">
-          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-tech)' }}>
-            <span className="rb-builder__legend-dot" />
+          <span className="rb-builder__legend-item">
+            <span className="rb-builder__legend-dot rb-builder__legend-dot--tech" />
             tech:
           </span>
-          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-layer)' }}>
-            <span className="rb-builder__legend-dot" />
+          <span className="rb-builder__legend-item">
+            <span className="rb-builder__legend-dot rb-builder__legend-dot--layer" />
             layer:
           </span>
-          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-story)' }}>
-            <span className="rb-builder__legend-dot" />
+          <span className="rb-builder__legend-item">
+            <span className="rb-builder__legend-dot rb-builder__legend-dot--story" />
             story:
           </span>
-          <span className="rb-builder__legend-item" style={{ color: 'var(--rb-plain)' }}>
-            <span className="rb-builder__legend-dot" />
+          <span className="rb-builder__legend-item">
+            <span className="rb-builder__legend-dot rb-builder__legend-dot--plain" />
             other / always
           </span>
           <span className="rb-builder__legend-item">
