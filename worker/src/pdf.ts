@@ -166,7 +166,11 @@ const CHAR_SUBSTITUTIONS: Record<string, string> = {
   '↔': '<->',
   '⇒': '=>',
   '✓': 'yes',
-  '★': '*'
+  '★': '*',
+  '≈': '~',
+  '≠': '!=',
+  '≤': '<=',
+  '≥': '>='
 }
 
 // LLM-generated content (cover letters, tailored variants) uses typographic
