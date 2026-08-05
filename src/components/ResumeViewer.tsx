@@ -229,6 +229,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
             </div>
           )}
           <div className="resume-viewer__downloads">
+            <span className="resume-viewer__downloads-label">Download</span>
             <button className="resume-viewer__download-button" onClick={handleDownloadPdf}>
               .pdf
             </button>

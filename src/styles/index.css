@@ -339,7 +339,13 @@
 
 .resume-viewer__downloads {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.resume-viewer__downloads-label {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
 }
 
 .resume-viewer__toggle-btn {
