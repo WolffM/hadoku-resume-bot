@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { getAllBlocks, cacheKey, type ResumeBlock } from './blocks.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
+import { normalizeTypography } from './typography.js'
 import { TAILORED_RESUME_TOKENS } from './constants.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
@@ -139,7 +140,7 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
       { maxTokens: TAILORED_RESUME_TOKENS.TAILORING }
     )
 
-    resumeMarkdown = stripCodeFence(tailoredResponse.message)
+    resumeMarkdown = normalizeTypography(stripCodeFence(tailoredResponse.message))
   }
 
   const result: TailoredResumeResponse = {
