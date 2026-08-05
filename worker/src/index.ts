@@ -18,6 +18,7 @@ import { createEdgeAuth, requireMinTier } from '@wolffm/worker-utils'
 import { createWorkerLogger } from '@wolffm/logger/worker'
 import { checkRateLimit, recordRequest } from './rate-limit.js'
 import { getFullSystemPrompt, getResumeContent } from './resume.js'
+import { renderResumePdf } from './pdf.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
 import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
 import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
@@ -259,6 +260,50 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     } catch (error) {
       logger.error('resume retrieval failed', { error: (error as Error).message })
       return c.json({ error: 'Failed to retrieve resume', message: (error as Error).message }, 500)
+    }
+  })
+
+  // The résumé as a real file, rendered server-side from the same canonical
+  // markdown /resume serves — the UI download button points here instead of
+  // reconstructing the document through the browser's print dialog.
+  // Same visibility and variant semantics as /resume, including the fall-back
+  // to the full résumé on an unknown/expired slug.
+  app.get(`${basePath}/resume.pdf`, async c => {
+    try {
+      const slug = c.req.query('v')
+      let content: string | null = null
+      let coverLetter: string | null = null
+      let filename = 'resume.pdf'
+
+      if (slug) {
+        const variant = await getVariant(c.env.CONTENT_KV, slug)
+        if (variant) {
+          const rendered = await renderVariant(c.env.CONTENT_KV, variant)
+          if (rendered) {
+            content = rendered
+            coverLetter = variant.cover_letter_markdown ?? null
+            filename = coverLetter
+              ? `resume-${variant.slug}-packet.pdf`
+              : `resume-${variant.slug}.pdf`
+          }
+        }
+      }
+
+      if (!content) content = await getResumeContent(c.env)
+
+      const bytes = await renderResumePdf({ resume: content, coverLetter, ownerName })
+      // Copy into a fresh ArrayBuffer — hono's BodyInit typing rejects the
+      // ArrayBufferLike-backed view pdf-lib returns.
+      return c.body(new Uint8Array(bytes).buffer, 200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`
+      })
+    } catch (error) {
+      logger.error('resume pdf rendering failed', { error: (error as Error).message })
+      return c.json(
+        { error: 'Failed to render resume PDF', message: (error as Error).message },
+        500
+      )
     }
   })
 

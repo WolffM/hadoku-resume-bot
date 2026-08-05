@@ -24,7 +24,7 @@ These are Cloudflare Worker bindings configured in hadoku_site's wrangler config
 
 ## Worker API endpoints
 
-All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/system-prompt`, `/tailored-resume`, `/cover-letter`
+All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/resume.pdf` (server-rendered PDF download), `/system-prompt`, `/tailored-resume`, `/cover-letter`
 
 ## Versioning
 

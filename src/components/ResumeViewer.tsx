@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { logger } from '@wolffm/logger/client'
-import { fetchResume, type ResumePacket } from '../services/api'
+import { fetchResume, fetchResumePdf, type ResumePacket } from '../services/api'
 
 interface ResumeViewerProps {
   onAskAbout: (text: string) => void
@@ -100,7 +100,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     }
   }
 
-  const downloadBlob = (data: string, mimeType: string, filename: string) => {
+  const downloadBlob = (data: BlobPart, mimeType: string, filename: string) => {
     const url = URL.createObjectURL(new Blob([data], { type: mimeType }))
     const a = document.createElement('a')
     a.href = url
@@ -147,10 +147,24 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
       `${baseFilename}.json`
     )
 
-  // Print stylesheet isolates the resume panel; the browser's print dialog
-  // handles the actual PDF rendering. The print-only block below renders the
-  // full packet (résumé + cover letter) regardless of the on-screen toggle.
-  const handleDownloadPdf = () => window.print()
+  // The PDF is rendered server-side from the same canonical markdown and
+  // downloaded as a file — no print dialog. The API includes the cover letter
+  // when the variant carries one, mirroring the packet .md download.
+  const handleDownloadPdf = () => {
+    fetchResumePdf(variantSlug ?? undefined)
+      .then(blob =>
+        downloadBlob(
+          blob,
+          'application/pdf',
+          hasCover ? `${baseFilename}-packet.pdf` : `${baseFilename}.pdf`
+        )
+      )
+      .catch(err =>
+        logger.error('[ResumeViewer] Error downloading resume PDF', {
+          error: (err as Error)?.message ?? String(err)
+        })
+      )
+  }
 
   if (loading) {
     return (
