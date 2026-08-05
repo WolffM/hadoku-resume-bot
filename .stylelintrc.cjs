@@ -8,8 +8,8 @@ module.exports = {
     'csstools/value-no-unknown-custom-properties': [
       true,
       {
-        importFrom: [require.resolve('@wolffm/themes/style.css')],
-      },
-    ],
-  },
+        importFrom: [require.resolve('@wolffm/themes/style.css')]
+      }
+    ]
+  }
 }

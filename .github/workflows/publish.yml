@@ -3,12 +3,12 @@ name: Publish Package
 on:
   push:
     branches:
-      - main  # Trigger on every push to main
-  workflow_dispatch:  # Allow manual trigger
+      - main # Trigger on every push to main
+  workflow_dispatch: # Allow manual trigger
 
 permissions:
   contents: read
-  packages: write  # Need write to publish, read is implied
+  packages: write # Need write to publish, read is implied
 
 jobs:
   publish:
@@ -63,12 +63,12 @@ jobs:
           package_name=$(node -p "require('./package.json').name")
           current_version=$(node -p "require('./package.json').version")
           echo "Current version: $current_version"
-          
+
           # Loop until we find a version that doesn't exist in the registry
           check_version="$current_version"
           max_attempts=50
           attempt=0
-          
+
           while pnpm view "${package_name}@${check_version}" version 2>/dev/null; do
             echo "⚠️  Version $check_version already published, bumping version..."
             
@@ -92,7 +92,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           if [ "$check_version" != "$current_version" ]; then
             # Update package.json with new version
             node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); pkg.version = process.argv[1]; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');" "$check_version"

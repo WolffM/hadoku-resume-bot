@@ -56,7 +56,6 @@ jobs:
         run: |
           pnpm --config.store-dir=${{ runner.tool_cache }}/pnpm-store update --latest "@wolffm/*"
 
-
       # Always-latest is the policy, so "not at latest" is a failure, not a note.
       # This runs AFTER the update above and re-reads the manifests, so it also
       # catches an update that silently did nothing (a lost dispatch, a registry
