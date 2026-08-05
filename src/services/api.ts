@@ -98,3 +98,20 @@ export async function fetchResume(variant?: string): Promise<ResumePacket> {
     jobTitle: data.job_title ?? null
   }
 }
+
+/**
+ * Fetch the server-rendered resume PDF (the packet, when the variant carries a
+ * cover letter). Same variant fall-back semantics as fetchResume.
+ */
+export async function fetchResumePdf(variant?: string): Promise<Blob> {
+  const url = variant
+    ? `${API_BASE_URL}/resume.pdf?v=${encodeURIComponent(variant)}`
+    : `${API_BASE_URL}/resume.pdf`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error(`Failed to download resume PDF (${response.status})`)
+  }
+
+  return response.blob()
+}
