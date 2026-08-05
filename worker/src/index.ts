@@ -19,6 +19,7 @@ import { createWorkerLogger } from '@wolffm/logger/worker'
 import { checkRateLimit, recordRequest } from './rate-limit.js'
 import { getFullSystemPrompt, getResumeContent } from './resume.js'
 import { renderResumePdf } from './pdf.js'
+import { normalizeTypography } from './typography.js'
 import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
 import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
 import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
@@ -244,11 +245,16 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
         if (variant) {
           const content = await renderVariant(c.env.CONTENT_KV, variant)
           if (content)
+            // Normalized on the way OUT so variants minted before the
+            // typography cleanup (whose slugs recruiters already hold) come
+            // out clean without re-minting.
             return c.json({
-              content,
+              content: normalizeTypography(content),
               variant: variant.slug,
               label: variant.label,
-              cover_letter: variant.cover_letter_markdown ?? null,
+              cover_letter: variant.cover_letter_markdown
+                ? normalizeTypography(variant.cover_letter_markdown)
+                : null,
               company: variant.company ?? null,
               job_title: variant.job_title ?? null
             })
@@ -256,7 +262,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       }
 
       const content = await getResumeContent(c.env)
-      return c.json({ content })
+      return c.json({ content: normalizeTypography(content) })
     } catch (error) {
       logger.error('resume retrieval failed', { error: (error as Error).message })
       return c.json({ error: 'Failed to retrieve resume', message: (error as Error).message }, 500)
@@ -291,7 +297,11 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
 
       if (!content) content = await getResumeContent(c.env)
 
-      const bytes = await renderResumePdf({ resume: content, coverLetter, ownerName })
+      const bytes = await renderResumePdf({
+        resume: normalizeTypography(content),
+        coverLetter: coverLetter ? normalizeTypography(coverLetter) : null,
+        ownerName
+      })
       // Copy into a fresh ArrayBuffer — hono's BodyInit typing rejects the
       // ArrayBufferLike-backed view pdf-lib returns.
       return c.body(new Uint8Array(bytes).buffer, 200, {

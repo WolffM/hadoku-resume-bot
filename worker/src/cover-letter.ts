@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { cacheKey } from './blocks.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
+import { normalizeTypography } from './typography.js'
 import { COVER_LETTER_TOKENS } from './constants.js'
 import { stripCodeFence } from './tailored-resume.js'
 
@@ -59,7 +60,7 @@ Return only the cover letter in markdown, no preamble or explanation.`
   })
 
   const result: CoverLetterResponse = {
-    cover_letter_markdown: stripCodeFence(response.message),
+    cover_letter_markdown: normalizeTypography(stripCodeFence(response.message)),
     cached: false
   }
 
