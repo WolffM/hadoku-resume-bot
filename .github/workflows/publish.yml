@@ -64,9 +64,34 @@ jobs:
           current_version=$(node -p "require('./package.json').version")
           echo "Current version: $current_version"
 
-          # Loop until we find a version that doesn't exist in the registry
-          check_version="$current_version"
-          max_attempts=50
+          # START FROM THE REGISTRY, NOT FROM package.json.
+          #
+          # The bump below is written into the runner's workspace and published,
+          # but never committed back to main. So package.json here is frozen
+          # while the registry marches on, and this loop used to re-walk the
+          # whole gap one patch at a time, from scratch, on every single run.
+          #
+          # tenhands hit the wall first, on 2026-08-05: its package.json said
+          # 1.14.5, the registry was past 1.18.20, and walking that gap is 99
+          # steps. It exhausted a 100-attempt cap and published nothing. This
+          # workflow has the identical shape with a cap of 50, so it fails at
+          # half the drift — it was simply further from the edge.
+          latest_published=$(pnpm view "${package_name}" version 2>/dev/null || echo "")
+          if [ -n "$latest_published" ]; then
+            echo "Latest published in registry: $latest_published"
+            # Whichever is higher wins, so a version already bumped past the
+            # registry is not dragged backwards.
+            check_version=$(printf '%s\n%s\n' "$current_version" "$latest_published" \
+                              | sort -V | tail -1)
+          else
+            echo "No published version found; starting from package.json"
+            check_version="$current_version"
+          fi
+          echo "Starting version check at: $check_version"
+          check_version_start="$check_version"
+
+          # Now genuinely a retry rather than a catch-up, so 10 is generous.
+          max_attempts=10
           attempt=0
 
           while pnpm view "${package_name}@${check_version}" version 2>/dev/null; do
@@ -78,7 +103,9 @@ jobs:
             patch=$(echo $check_version | cut -d. -f3)
             
             # Rollover at .20 to keep patch numbers manageable (matching pre-commit hook)
-            if [ $patch -eq 20 ]; then
+            # -ge, not -eq: an exact match leaves anything past .20
+            # incrementing forever instead of rolling over.
+            if [ $patch -ge 20 ]; then
               check_version="$major.$((minor + 1)).0"
               echo "🚀 Rolling over to minor version: $check_version"
             else
@@ -88,7 +115,12 @@ jobs:
             
             attempt=$((attempt + 1))
             if [ $attempt -ge $max_attempts ]; then
-              echo "❌ Error: Reached maximum version bump attempts ($max_attempts)"
+              echo "❌ Error: Reached maximum version bump attempts ($max_attempts)."
+              echo "   Started at $check_version_start (package.json:" \
+                   "$current_version, registry: ${latest_published:-<unreadable>})."
+              echo "   From the registry's latest this should take one step, so"
+              echo "   this many collisions means the lookup failed and it fell"
+              echo "   back to the stale committed version."
               exit 1
             fi
           done
