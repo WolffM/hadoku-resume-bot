@@ -21,11 +21,11 @@ green. All ten between 21:45 and 22:28 UTC on 2026-08-04, one per inbound
   already-up-to-date main each time — the rejection was never a race, so the
   retries could not help.
 - 2026-08-04 01:42, `dd3e730a` — `feat(ci): give this repo a pull-request
-  check, which it never had (#29)` — is when main gained required status
+check, which it never had (#29)` — is when main gained required status
   checks. The bot pushed with the default `GITHUB_TOKEN`, which cannot bypass
   them. Sample failed run: 30956523215.
 - 2026-08-04 22:32, `cf1c8131` — `fix(ci): let the auto-update bot push to a
-  protected main` — set `token: ${{ secrets.HADOKU_SITE_TOKEN }}` on checkout
+protected main` — set `token: ${{ secrets.HADOKU_SITE_TOKEN }}` on checkout
   in `update-wolffm.yml` (PAT + `enforce_admins=false` ⇒ bypass). The very next
   run (30956831878, 22:33) committed and pushed a real update, so the recovery
   is not a no-op.
