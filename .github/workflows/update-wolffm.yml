@@ -20,6 +20,11 @@ jobs:
     runs-on: [self-hosted, hadoku-builder]
     timeout-minutes: 10
     steps:
+      # Before checkout, so the outcome report has a start time even when the
+      # run dies in checkout itself.
+      - name: Stamp the start time
+        run: echo "RUN_STARTED_AT=$(date -u +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -130,9 +135,20 @@ jobs:
           git commit -m "chore: auto-update @wolffm/* to latest"
 
           for i in 1 2 3; do
-            if git push; then
+            push_out=$(git push 2>&1) && rc=0 || rc=$?
+            echo "$push_out"
+            if [ "$rc" -eq 0 ]; then
               echo "✅ Pushed"
               exit 0
+            fi
+            # A branch-protection rejection (GH006 / "protected branch hook
+            # declined") is deterministic — rebasing and retrying cannot fix it,
+            # and on 2026-08-04 doing so buried the real cause under ten
+            # identical "race" retries (hadoku-task and this repo broke the
+            # same way, same hour). Name the fix and die on the first line.
+            if echo "$push_out" | grep -qiE "GH006|protected branch hook declined"; then
+              echo "::error::Push rejected by branch protection, not a race. The pushing credential cannot satisfy main's required checks — checkout must use a token that bypasses them (token: HADOKU_SITE_TOKEN, see the checkout step). See hadoku-task docs/incident-2026-08-04-ci-failures.md."
+              exit 1
             fi
             echo "Push failed (attempt $i), rebasing..."
             git fetch origin main
@@ -140,3 +156,47 @@ jobs:
           done
           echo "❌ Push failed after retries"
           exit 1
+
+      - name: Report the outcome so a silent red streak screams
+        # On 2026-08-04 this workflow failed ten times in a row (the same
+        # publish storm that broke hadoku-task) and told nobody until the next
+        # daily CI digest. POST /health/api/jobs is the fleet's one alerting
+        # path — monitoring-api hangs the Discord alert on the outcome itself
+        # (job-alerts.ts), throttled to one reminder per 24h, with a recovery
+        # notice when it goes green again. Same pattern as tenhands/taskauto.yml
+        # and hadoku-task/update-wolffm.yml. A runner that dies mid-run still
+        # can't report itself; that rarer class stays covered by the digest.
+        if: always()
+        env:
+          OUTCOME: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_ID: ${{ github.run_id }}
+          HADOKU_SERVICE_KEY: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
+        run: |
+          case "$OUTCOME" in
+            success) status=succeeded ;;
+            failure) status=failed ;;
+            # A cancel (concurrency superseded it) is not breakage, and must not
+            # clear a live failure streak either — stay silent.
+            *) echo "outcome=$OUTCOME — not reported"; exit 0 ;;
+          esac
+
+          if [ -z "$HADOKU_SERVICE_KEY" ]; then
+            echo "::warning::KEY_SERVICE_RESUME_BOT is unset — outcome not reported"
+            exit 0
+          fi
+
+          duration_ms=$(( ($(date -u +%s) - ${RUN_STARTED_AT:-$(date -u +%s)}) * 1000 ))
+
+          jq -n --arg st "$status" --arg run "gha_$RUN_ID" \
+                --arg err "auto-update run failed — $RUN_URL" \
+                --argjson d "$duration_ms" \
+            '{job_name: "hadoku-resume-bot:update-wolffm", status: $st, run_id: $run, duration_ms: $d}
+             + (if $st == "failed" then {error: $err} else {} end)' > /tmp/update-wolffm-outcome.json
+
+          # Never fail the job over a reporting blip. `-f` so a non-2xx shows.
+          curl -sS -f -X POST https://hadoku.me/health/api/jobs \
+            -H "X-User-Key: $HADOKU_SERVICE_KEY" \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/update-wolffm-outcome.json \
+            || echo "::warning::could not report outcome to monitoring-api"
