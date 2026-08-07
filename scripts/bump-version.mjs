@@ -26,7 +26,8 @@ if (!LEVELS.includes(level)) {
 }
 
 const pkgPath = new URL('../package.json', import.meta.url)
-const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
+const pkgSrc = readFileSync(pkgPath, 'utf8')
+const pkg = JSON.parse(pkgSrc)
 const current = baseVersion ?? pkg.version
 
 const parsed = /^(\d+)\.(\d+)\.(\d+)$/.exec(current)
@@ -55,6 +56,13 @@ if (level === 'none') process.exit(0)
 const newVersion = next()
 if (newVersion === pkg.version) process.exit(0)
 
-pkg.version = newVersion
-writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
+// Patch the version string in place — re-stringifying the parsed object
+// reindents the whole file, which turns a bump of a tab-formatted or CRLF
+// package.json into a whole-file diff that format:check then rejects.
+const patched = pkgSrc.replace(/("version"\s*:\s*")[^"]*(")/, (mm, a, b) => a + newVersion + b)
+if (patched === pkgSrc) {
+  console.error(`bump-version: no version field to patch in ${pkgPath}`)
+  process.exit(2)
+}
+writeFileSync(pkgPath, patched)
 console.log(`${current} -> ${newVersion}`)
