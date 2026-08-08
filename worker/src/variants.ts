@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import type { LLMChain } from './llm.js'
-import { getAllBlocks } from './blocks.js'
+import { getAllBlocks, type ResumeBlock } from './blocks.js'
+import { assembleResume } from './skeleton.js'
 import { generateTailoredResume } from './tailored-resume.js'
 import { generateCoverLetter } from './cover-letter.js'
 
@@ -67,10 +68,10 @@ export async function renderVariant(
   if (variant.block_ids?.length) {
     const blocks = await getAllBlocks(kv)
     const byId = new Map(blocks.map(b => [b.id, b]))
-    const parts = variant.block_ids
-      .map(id => byId.get(id)?.content)
-      .filter((content): content is string => content !== undefined)
-    if (parts.length > 0) return parts.join('\n\n')
+    const chosen = variant.block_ids
+      .map(id => byId.get(id))
+      .filter((b): b is ResumeBlock => b !== undefined)
+    if (chosen.length > 0) return assembleResume(chosen)
   }
 
   return null
