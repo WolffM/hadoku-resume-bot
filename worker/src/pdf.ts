@@ -23,6 +23,7 @@ import {
   StandardFonts,
   rgb
 } from 'pdf-lib'
+import { PAGE_BREAK_MARKER } from './skeleton.js'
 
 export interface ResumePdfInput {
   /** Résumé markdown (the canonical or variant-rendered content). */
@@ -45,6 +46,7 @@ type Block =
   | { kind: 'paragraph'; lines: InlineRun[][] }
   | { kind: 'bullet'; runs: InlineRun[] }
   | { kind: 'rule' }
+  | { kind: 'page-break' }
 
 // --- Markdown parsing (constrained subset) ---------------------------------
 
@@ -95,6 +97,9 @@ export function parseBlocks(markdown: string): Block[] {
     const line = rawLine.trimEnd()
     if (line === '') {
       flush()
+    } else if (line.trim() === PAGE_BREAK_MARKER) {
+      flush()
+      blocks.push({ kind: 'page-break' })
     } else if (/^#{1,3} /.test(line)) {
       flush()
       blocks.push({ kind: 'heading', runs: parseInline(line.replace(/^#{1,3} /, '')) })
@@ -379,6 +384,11 @@ class Typesetter {
           this.y -= 6
           this.rule()
           this.y -= 8
+          break
+        case 'page-break':
+          // Force the next content onto a fresh page. Skip when already at the
+          // top so a leading or doubled marker can't emit a blank page.
+          if (!this.atTopOfPage()) this.newPage()
           break
       }
       isFirstBlock = false

@@ -1,5 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { getAllBlocks, cacheKey, type ResumeBlock } from './blocks.js'
+import { assembleResume, countPageBreaks, PAGE_BREAK_MARKER } from './skeleton.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { normalizeTypography } from './typography.js'
 import { TAILORED_RESUME_TOKENS } from './constants.js'
@@ -119,11 +120,17 @@ Rules:
     .map(id => blockById.get(id))
     .filter((b): b is ResumeBlock => b !== undefined)
 
-  let resumeMarkdown = selectedBlocks.map(b => b.content).join('\n\n')
+  // Assemble along the fixed skeleton: the selector's ordering is ignored, the
+  // skeleton buckets blocks into sections and inserts page-break markers so a
+  // tailored résumé has the same three-page structure as the canonical one.
+  let resumeMarkdown = assembleResume(selectedBlocks)
+  const expectedBreaks = countPageBreaks(resumeMarkdown)
 
   // Pass 2: optional tailoring
   if (tailor) {
     const tailoringPrompt = `You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.
+
+The resume contains \`${PAGE_BREAK_MARKER}\` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.
 
 Job: ${job_title} at ${company}
 Description:
@@ -140,7 +147,13 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
       { maxTokens: TAILORED_RESUME_TOKENS.TAILORING }
     )
 
-    resumeMarkdown = normalizeTypography(stripCodeFence(tailoredResponse.message))
+    const tailored = normalizeTypography(stripCodeFence(tailoredResponse.message))
+    // Only trust the rewrite if it preserved the page structure. If the LLM
+    // dropped markers, keep the deterministic skeleton assembly rather than
+    // ship a variant whose pages fall wherever length lands.
+    if (countPageBreaks(tailored) === expectedBreaks) {
+      resumeMarkdown = tailored
+    }
   }
 
   const result: TailoredResumeResponse = {

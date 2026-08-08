@@ -8,6 +8,27 @@ interface ResumeViewerProps {
   onAskAbout: (text: string) => void
 }
 
+// Contract with the worker's assembler (worker/src/skeleton.ts): résumé markdown
+// carries this sentinel between page groups. react-markdown drops the raw HTML
+// comment, so we split on it and render each page as its own block with the
+// print-only pagebreak element between them.
+const PAGE_BREAK_MARKER = '<!-- page-break -->'
+
+/** Render résumé markdown, honouring embedded page-break markers. */
+function MarkdownPages({ content }: { content: string }): React.ReactElement {
+  const pages = content.split(PAGE_BREAK_MARKER)
+  return (
+    <>
+      {pages.map((page, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && <div className="resume-viewer__pagebreak" />}
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{page}</ReactMarkdown>
+        </React.Fragment>
+      ))}
+    </>
+  )
+}
+
 // Remember the last variant slug so a recruiter who first opens a tailored
 // ?v={slug} link and later hits bare /resume still gets their packet. localStorage
 // is fine here per the owner (the shared-computer caveat is a non-issue).
@@ -244,12 +265,12 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
 
         {/* On screen: the toggle-selected document. */}
         <div className="resume-viewer__screen">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeContent}</ReactMarkdown>
+          <MarkdownPages content={activeContent} />
         </div>
 
         {/* On print / PDF: the full packet — résumé, then cover letter. */}
         <div className="resume-viewer__print">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{resumeContent}</ReactMarkdown>
+          <MarkdownPages content={resumeContent} />
           {hasCover && (
             <>
               <div className="resume-viewer__pagebreak" />
