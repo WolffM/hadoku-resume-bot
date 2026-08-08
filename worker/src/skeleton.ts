@@ -46,6 +46,29 @@ export const PAGE_BREAK_MARKER = '<!-- page-break -->'
 const SECTION_IDS = new Set<string>(SECTION_ORDER)
 const SECTION_TAG_PREFIX = 'section:'
 
+/**
+ * Blocks tagged `canonical` form the default résumé — the curated subset shown
+ * at /resume and in the plain PDF. The full block set stays a palette the
+ * tailoring pipeline selects from per job; only canonical blocks appear by
+ * default, which is what keeps the default résumé to its intended page count.
+ */
+export const CANONICAL_TAG = 'canonical'
+
+export function filterCanonical(blocks: ResumeBlock[]): ResumeBlock[] {
+  return blocks.filter(b => b.tags.includes(CANONICAL_TAG))
+}
+
+/** Remove page-break marker lines — for contexts where pages are meaningless
+ *  (e.g. the résumé text embedded in the chatbot system prompt). */
+export function stripPageBreaks(markdown: string): string {
+  return markdown
+    .split('\n')
+    .filter(line => line.trim() !== PAGE_BREAK_MARKER)
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 function sectionOf(block: ResumeBlock): SectionId {
   const tag = block.tags.find(t => t.startsWith(SECTION_TAG_PREFIX))
   if (tag) {
