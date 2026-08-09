@@ -91,6 +91,7 @@ Rules:
 - Always include the education block if present
 - Select experience and project blocks most relevant to this specific role
 - Prefer the most role-relevant variant when multiple variants of the same experience exist (e.g. prefer ml-tagged over generic for an ML role)
+- Project blocks carry a "tier:N" tag (tier:1 = most impressive overall, tier:3 = least). Relevance to THIS role comes first — a strongly role-relevant tier:3 project beats an irrelevant tier:1 one — but when two projects are similarly relevant, prefer the lower-numbered (more impressive) tier.
 - Respond with ONLY a valid JSON array of block IDs, nothing else. Example: ["header", "exp_microsoft_se2", "skills_ml"]`
 
   const selectionResponse = await sendChatCompletion(
