@@ -74,7 +74,7 @@
   },
   "dependencies": {
     "@wolffm/prefs-client": "^1.0.6",
-    "@wolffm/worker-utils": "^1.5.3",
+    "@wolffm/worker-utils": "^1.5.4",
     "hono": "^4.11.4",
     "openai": "^6.21.0",
     "pdf-lib": "^1.17.1",
