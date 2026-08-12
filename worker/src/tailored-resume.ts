@@ -1,6 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { getAllBlocks, cacheKey, type ResumeBlock } from './blocks.js'
-import { assembleResume, countPageBreaks, PAGE_BREAK_MARKER } from './skeleton.js'
+import { assembleResume, countPageBreaks, ALWAYS_TAG, PAGE_BREAK_MARKER } from './skeleton.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { normalizeTypography } from './typography.js'
 import { TAILORED_RESUME_TOKENS } from './constants.js'
@@ -114,6 +114,15 @@ Rules:
   selectedIds = selectedIds.filter(id => validIds.has(id))
   if (selectedIds.length === 0) {
     throw new Error('Block selection returned no valid block IDs after validation')
+  }
+
+  // Blocks tagged `always` are guaranteed inclusion regardless of the
+  // selector's answer — dropping one loses a section heading (e.g. the
+  // "# Technical Skills" H1 rides in skills-languages). Position is
+  // irrelevant: assembleResume ignores caller order.
+  const selectedSet = new Set(selectedIds)
+  for (const b of blocks) {
+    if (b.tags.includes(ALWAYS_TAG) && !selectedSet.has(b.id)) selectedIds.push(b.id)
   }
 
   const blockById = new Map(blocks.map(b => [b.id, b]))

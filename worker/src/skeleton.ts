@@ -54,6 +54,14 @@ const SECTION_TAG_PREFIX = 'section:'
  */
 export const CANONICAL_TAG = 'canonical'
 
+/**
+ * Blocks tagged `always` are structural — the header, and heading-carrying
+ * blocks like the skills-section opener — and must appear in every tailored
+ * variant no matter what the selector returns. Selection treats this as a
+ * hard guarantee, not a prompt-level suggestion.
+ */
+export const ALWAYS_TAG = 'always'
+
 export function filterCanonical(blocks: ResumeBlock[]): ResumeBlock[] {
   return blocks.filter(b => b.tags.includes(CANONICAL_TAG))
 }
