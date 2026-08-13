@@ -10,6 +10,10 @@ export default defineConfig({
   root,
   plugins: [react()],
   build: {
+    // Same reason as the root config: public/ is dev-harness only, and this
+    // build writes into the same dist/ (emptyOutDir: false), so without the
+    // guard it re-copies the favicon the root build deliberately skipped.
+    copyPublicDir: false,
     outDir: 'dist',
     emptyOutDir: false,
     lib: {
