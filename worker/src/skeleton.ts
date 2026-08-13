@@ -47,6 +47,51 @@ const SECTION_IDS = new Set<string>(SECTION_ORDER)
 const SECTION_TAG_PREFIX = 'section:'
 
 /**
+ * Section headings are emitted by the assembler, not carried in block content —
+ * a selection can therefore never render a headless section, and no block can
+ * duplicate a section heading. Blocks whose content still opens with the
+ * section's own heading (pre-migration data) have it stripped at assembly, so
+ * code and content can roll out in either order. The header section has no
+ * heading: its block is the name/contact line itself.
+ */
+const SECTION_HEADINGS: Partial<Record<SectionId, string>> = {
+  summary: '# Profile',
+  'experience-primary': '# Experience',
+  projects: '# Projects',
+  skills: '# Technical Skills',
+  'experience-secondary': '# Additional Experience',
+  education: '# Education'
+}
+
+/**
+ * Page-2 project grouping. Blocks tagged `cat:<id>` render under that
+ * category's `###` heading, in this order; blocks without a cat tag (the
+ * hadoku.me anchor) render first, before any category heading. A category
+ * heading is emitted only when the selection put at least one block in it.
+ */
+const CATEGORY_TAG_PREFIX = 'cat:'
+const CATEGORY_ORDER: ReadonlyArray<{ id: string; heading: string }> = [
+  { id: 'ai-agents', heading: '### AI & Agents' },
+  { id: 'data-automation', heading: '### Data & Automation' },
+  { id: 'apps-games-tools', heading: '### Apps, Games & Tools' }
+]
+
+function categoryOf(block: ResumeBlock): string | null {
+  const tag = block.tags.find(t => t.startsWith(CATEGORY_TAG_PREFIX))
+  return tag ? tag.slice(CATEGORY_TAG_PREFIX.length) : null
+}
+
+/** Strip a leading line that duplicates the section heading (plus trailing
+ *  blank lines), tolerating pre-migration blocks that still carry it. */
+function stripLeadingHeading(content: string, heading: string): string {
+  const lines = content.split('\n')
+  if (lines[0]?.trim() !== heading) return content
+  let start = 1
+  while (start < lines.length && lines[start].trim() === '') start++
+  return lines.slice(start).join('\n')
+}
+
+/**
  * Blocks tagged `canonical` form the default résumé — the curated subset shown
  * at /resume and in the plain PDF. The full block set stays a palette the
  * tailoring pipeline selects from per job; only canonical blocks appear by
@@ -129,7 +174,31 @@ export function assembleResume(blocks: ResumeBlock[]): string {
       .sort((a, b) => b.block.priority - a.block.priority || a.i - b.i)
       .map(x => x.block)
     if (parts.length > 0 && PAGE_BREAK_BEFORE.has(section)) parts.push(PAGE_BREAK_MARKER)
-    for (const block of ordered) parts.push(block.content)
+
+    const heading = SECTION_HEADINGS[section]
+    if (heading) parts.push(heading)
+    const emit = (block: ResumeBlock) =>
+      parts.push(heading ? stripLeadingHeading(block.content, heading) : block.content)
+
+    if (section === 'projects') {
+      const uncategorized = ordered.filter(b => categoryOf(b) === null)
+      for (const block of uncategorized) emit(block)
+      for (const { id, heading: catHeading } of CATEGORY_ORDER) {
+        const members = ordered.filter(b => categoryOf(b) === id)
+        if (members.length === 0) continue
+        parts.push(catHeading)
+        for (const block of members) emit(block)
+      }
+      // Categories outside CATEGORY_ORDER still render (after the known ones)
+      // rather than silently disappearing.
+      const known = new Set(CATEGORY_ORDER.map(c => c.id))
+      for (const block of ordered) {
+        const cat = categoryOf(block)
+        if (cat !== null && !known.has(cat)) emit(block)
+      }
+    } else {
+      for (const block of ordered) emit(block)
+    }
   }
   return parts.join('\n\n')
 }
