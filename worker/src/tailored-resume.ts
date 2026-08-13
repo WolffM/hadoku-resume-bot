@@ -92,6 +92,8 @@ Rules:
 - Select experience and project blocks most relevant to this specific role
 - Prefer the most role-relevant variant when multiple variants of the same experience exist (e.g. prefer ml-tagged over generic for an ML role)
 - Project blocks carry a "tier:N" tag (tier:1 = most impressive overall, tier:3 = least). Relevance to THIS role comes first — a strongly role-relevant tier:3 project beats an irrelevant tier:1 one — but when two projects are similarly relevant, prefer the lower-numbered (more impressive) tier.
+- Select at most ONE block from each "variant:<group>" tag group (e.g. only one summary, and either the Microsoft rollup or its level-history blocks — never both).
+- Never select a rollup block AND its constituent detail blocks together; their bullets would duplicate.
 - Respond with ONLY a valid JSON array of block IDs, nothing else. Example: ["header", "exp_microsoft_se2", "skills_ml"]`
 
   const selectionResponse = await sendChatCompletion(
@@ -116,10 +118,25 @@ Rules:
     throw new Error('Block selection returned no valid block IDs after validation')
   }
 
+  // Variant groups are mutually exclusive (one summary, rollup XOR its detail
+  // blocks). The prompt asks for this, but enforce it here too: keep the first
+  // selected member of each group — the selector returns most-relevant-first.
+  const variantOf = new Map(
+    blocks.map(b => [b.id, b.tags.find(t => t.startsWith('variant:'))] as const)
+  )
+  const seenVariants = new Set<string>()
+  selectedIds = selectedIds.filter(id => {
+    const variant = variantOf.get(id)
+    if (!variant) return true
+    if (seenVariants.has(variant)) return false
+    seenVariants.add(variant)
+    return true
+  })
+
   // Blocks tagged `always` are guaranteed inclusion regardless of the
-  // selector's answer — dropping one loses a section heading (e.g. the
-  // "# Technical Skills" H1 rides in skills-languages). Position is
-  // irrelevant: assembleResume ignores caller order.
+  // selector's answer — dropping one loses structural content (the header,
+  // the projects anchor). Position is irrelevant: assembleResume ignores
+  // caller order.
   const selectedSet = new Set(selectedIds)
   for (const b of blocks) {
     if (b.tags.includes(ALWAYS_TAG) && !selectedSet.has(b.id)) selectedIds.push(b.id)
