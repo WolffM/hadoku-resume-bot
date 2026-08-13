@@ -16,6 +16,10 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 // dist/worker.d.ts never existed and `@wolffm/resume-bot/api` shipped untyped.
 export default defineConfig({
   build: {
+    // Same reason as the root config: public/ is dev-harness only, and this
+    // build writes into the same dist/ (emptyOutDir: false), so without the
+    // guard it re-copies the favicon the root build deliberately skipped.
+    copyPublicDir: false,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
