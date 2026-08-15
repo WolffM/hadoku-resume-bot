@@ -143,7 +143,7 @@ jobs:
         if: steps.package_changed.outputs.changed == 'true'
         run: pnpm publish --no-git-checks
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.HADOKU_SITE_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Notify parent app to update dependencies
       - name: Notify parent about package update
