@@ -37,10 +37,13 @@ export const RATE_LIMIT_CONFIG = {
 } as const
 
 export const TAILORED_RESUME_TOKENS = {
-  // Selection returns only a JSON array of block ids (~60 ids worst case), so a
-  // small allowance suffices — and every output token reserved here counts
-  // against the same per-request token cap as the prompt (see SELECTION_BUDGET).
-  SELECTION: 1024,
+  // Selection's visible output is only a JSON array of block ids, but
+  // gpt-oss-120b is a reasoning model: it spends output tokens thinking before
+  // emitting content, and an allowance sized to the JSON alone starves it —
+  // the API 200s with EMPTY content ("No response from LLM"). 2048 leaves
+  // reasoning room; SELECTION_BUDGET's ladder absorbs the cost by shrinking
+  // the prompt a rung further.
+  SELECTION: 2048,
   TAILORING: 4096
 } as const
 
