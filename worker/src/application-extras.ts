@@ -13,6 +13,12 @@ export interface ApplicationExtrasRequest {
   description: string
   /** The tailored résumé for this job — grounds the extras in what was actually sent. */
   resume_markdown: string
+  /** The JOB's location (city/region as posted) — without it the kit answers
+   *  location questions from the candidate's own location and reads tone-deaf
+   *  on hybrid/onsite roles elsewhere. Optional for caller compatibility. */
+  job_location?: string
+  /** The job's workplace type as posted: remote | hybrid | onsite | unknown. */
+  workplace_type?: string
 }
 
 export interface ScreeningAnswer {
@@ -73,7 +79,7 @@ export async function generateApplicationExtras(
   kv: KVNamespace,
   req: ApplicationExtrasRequest
 ): Promise<ApplicationExtrasResponse> {
-  const { job_title, company, description, resume_markdown } = req
+  const { job_title, company, description, resume_markdown, job_location, workplace_type } = req
 
   const contact = await getContactProfile(kv)
   if (!contact) {
@@ -82,12 +88,16 @@ export async function generateApplicationExtras(
   const standard_fields = renderStandardFields(contact)
 
   // Cache keyed by job + the contact profile, so editing the profile busts it.
+  // Location fields are part of the key: a caller that starts sending them must
+  // not be served a location-blind kit generated before they existed.
   const key = await cacheKey(
     'resume:extras',
     job_title,
     company,
     description,
-    JSON.stringify(contact)
+    JSON.stringify(contact),
+    job_location ?? '',
+    workplace_type ?? ''
   )
   const hit = await kv.get(key)
   if (hit) {
@@ -105,6 +115,10 @@ Candidate facts (use verbatim where relevant — never invent or contradict thes
 - Target compensation: ${contact.salary_line}
 
 Job: ${job_title} at ${company}
+Job location: ${job_location || 'not stated in the posting'} (workplace type: ${workplace_type || 'not stated'})
+
+Location rule: every location-related statement in the kit — cover letter, screening answers, availability — must be consistent with THIS job's location/workplace type above and the candidate's relocation/remote stance. If the job is hybrid or onsite outside the candidate's area, address it honestly using the relocation fact (e.g. openness to relocation or the stated remote preference); never imply the candidate is local to the job's city unless their location fact says so, and never answer as if the job were remote when it isn't.
+
 Job description:
 ${cap(description, JD_CHARS)}
 
