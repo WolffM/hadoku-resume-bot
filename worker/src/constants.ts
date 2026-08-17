@@ -37,8 +37,32 @@ export const RATE_LIMIT_CONFIG = {
 } as const
 
 export const TAILORED_RESUME_TOKENS = {
-  SELECTION: 2048,
+  // Selection returns only a JSON array of block ids (~60 ids worst case), so a
+  // small allowance suffices — and every output token reserved here counts
+  // against the same per-request token cap as the prompt (see SELECTION_BUDGET).
+  SELECTION: 1024,
   TAILORING: 4096
+} as const
+
+// Pass-1 selection must fit the tightest provider limit in the chain: Groq's
+// free-tier 8k TPM counts prompt + max_tokens per request, and Cerebras's
+// free tier caps context at 8k. The prompt is shrunk to fit BEFORE sending —
+// snippets first, then the JD slice — because a 413 here is deterministic:
+// the same palette + JD fails every retry. Estimation uses chars/3.4, which
+// overcounts English prose slightly (safe direction) for tag-dense text.
+export const SELECTION_BUDGET = {
+  MAX_REQUEST_TOKENS: 7600,
+  CHARS_PER_TOKEN: 3.4,
+  // (snippet chars per block, JD chars) ladder, tried in order until the
+  // estimate fits. Tags + title carry most of the routing signal (the
+  // block-audit found snippets secondary), so degrading snippets first is
+  // the right trade.
+  LADDER: [
+    [200, 2500],
+    [120, 2000],
+    [80, 1500],
+    [0, 1000]
+  ]
 } as const
 
 export const COVER_LETTER_TOKENS = 2048
