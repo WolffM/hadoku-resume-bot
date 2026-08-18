@@ -1,6 +1,10 @@
 # @wolffm/resume-bot
 
-AI-powered conversational interface for interactive resume exploration.
+AI-powered conversational interface for interactive resume exploration — chat with an AI about my background, skills, and experience while browsing the resume itself.
+
+**See it live:** [hadoku.me/resume](https://hadoku.me/resume)
+
+This repo is the npm package that powers that widget. The rest of this README is for contributors working on the package itself.
 
 ## Overview
 
@@ -20,11 +24,11 @@ pnpm install
 pnpm dev
 
 # Build for production
-# pnpm build
+pnpm build
 
-# # Lint and format
-# pnpm lint:fix
-# pnpm format
+# Lint and format
+pnpm lint:fix
+pnpm format
 ```
 
 The dev server uses `index.html` which imports and mounts the component directly. You can pass different configurations via URL parameters:
