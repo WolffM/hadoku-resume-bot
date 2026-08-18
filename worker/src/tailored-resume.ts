@@ -174,33 +174,56 @@ Rules:
   let resumeMarkdown = assembleResume(selectedBlocks)
   const expectedBreaks = countPageBreaks(resumeMarkdown)
 
-  // Pass 2: optional tailoring
+  // Pass 2: optional tailoring. Two hard rules learned in production:
+  //
+  // 1. The prompt must fit the same provider budget as pass 1 — a full JD on
+  //    top of the assembled résumé blew Groq's 8k request cap on every posting
+  //    over ~10k chars, deterministically. The JD slice gets whatever budget
+  //    remains after the instructions + résumé (its opening carries the
+  //    responsibilities/qualifications the rewrite actually needs).
+  // 2. Tailoring is POLISH, never load-bearing: any pass-2 failure — over
+  //    budget, provider error, dropped page markers — falls back to the
+  //    deterministic skeleton assembly instead of failing the request.
   if (tailor) {
-    const tailoringPrompt = `You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.
+    const buildTailoringPrompt = (jd: string) =>
+      `You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.
 
 The resume contains \`${PAGE_BREAK_MARKER}\` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.
 
 Job: ${job_title} at ${company}
 Description:
-${description}
+${jd}
 
 Resume to tailor:
 ${resumeMarkdown}
 
 Return only the full rewritten resume markdown, no preamble or explanation.`
 
-    const tailoredResponse = await sendChatCompletion(
-      client,
-      [{ role: 'user', content: tailoringPrompt }],
-      { maxTokens: TAILORED_RESUME_TOKENS.TAILORING }
-    )
+    const promptOverhead = estimateTokens(buildTailoringPrompt(''))
+    const jdBudgetTokens =
+      MAX_REQUEST_TOKENS - TAILORED_RESUME_TOKENS.TAILORING - promptOverhead
+    const jdChars = Math.floor(jdBudgetTokens * CHARS_PER_TOKEN)
 
-    const tailored = normalizeTypography(stripCodeFence(tailoredResponse.message))
-    // Only trust the rewrite if it preserved the page structure. If the LLM
-    // dropped markers, keep the deterministic skeleton assembly rather than
-    // ship a variant whose pages fall wherever length lands.
-    if (countPageBreaks(tailored) === expectedBreaks) {
-      resumeMarkdown = tailored
+    // A résumé so long the JD gets no meaningful budget means tailoring would
+    // be flying blind — keep the deterministic assembly instead.
+    if (jdChars >= 500) {
+      try {
+        const tailoredResponse = await sendChatCompletion(
+          client,
+          [{ role: 'user', content: buildTailoringPrompt(truncate(description, jdChars)) }],
+          { maxTokens: TAILORED_RESUME_TOKENS.TAILORING }
+        )
+
+        const tailored = normalizeTypography(stripCodeFence(tailoredResponse.message))
+        // Only trust the rewrite if it preserved the page structure. If the LLM
+        // dropped markers, keep the deterministic skeleton assembly rather than
+        // ship a variant whose pages fall wherever length lands.
+        if (countPageBreaks(tailored) === expectedBreaks) {
+          resumeMarkdown = tailored
+        }
+      } catch {
+        // Deterministic assembly already in resumeMarkdown — ship it untailored.
+      }
     }
   }
 
