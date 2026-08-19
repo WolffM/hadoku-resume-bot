@@ -2,6 +2,7 @@ import type { KVNamespace } from '@cloudflare/workers-types'
 import { cacheKey } from './blocks.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { stripCodeFence } from './tailored-resume.js'
+import { normalizeTypography } from './typography.js'
 import { APPLICATION_EXTRAS_TOKENS } from './constants.js'
 import { getContactProfile, renderStandardFields, type ContactProfile } from './contact.js'
 
@@ -162,26 +163,31 @@ Keep every answer truthful to the résumé and the candidate facts. Do not fabri
   // Normalise: the model occasionally omits a key or returns a string where an
   // array belongs. Fall back to sane values (and the deterministic salary line)
   // rather than 500ing on a shape wobble.
+  // Every human-visible string gets the typography scrub — a curly apostrophe
+  // in a cover letter is a dead AI giveaway (the résumé path already scrubs).
+  const clean = normalizeTypography
   const extras: ApplicationExtras = {
     cover_letter_markdown:
       typeof parsed.cover_letter_markdown === 'string'
-        ? stripCodeFence(parsed.cover_letter_markdown)
+        ? clean(stripCodeFence(parsed.cover_letter_markdown))
         : '',
-    intro_email: typeof parsed.intro_email === 'string' ? parsed.intro_email : '',
-    why_hook: typeof parsed.why_hook === 'string' ? parsed.why_hook : '',
+    intro_email: typeof parsed.intro_email === 'string' ? clean(parsed.intro_email) : '',
+    why_hook: typeof parsed.why_hook === 'string' ? clean(parsed.why_hook) : '',
     screening_answers: Array.isArray(parsed.screening_answers)
-      ? parsed.screening_answers.filter(
-          (x): x is ScreeningAnswer => !!x && typeof x.q === 'string' && typeof x.a === 'string'
-        )
+      ? parsed.screening_answers
+          .filter(
+            (x): x is ScreeningAnswer => !!x && typeof x.q === 'string' && typeof x.a === 'string'
+          )
+          .map(x => ({ q: clean(x.q), a: clean(x.a) }))
       : [],
     salary_line:
       typeof parsed.salary_line === 'string' && parsed.salary_line.trim()
-        ? parsed.salary_line
+        ? clean(parsed.salary_line)
         : contact.salary_line,
     linkedin_note:
-      typeof parsed.linkedin_note === 'string' ? parsed.linkedin_note.slice(0, 300) : '',
+      typeof parsed.linkedin_note === 'string' ? clean(parsed.linkedin_note).slice(0, 300) : '',
     talking_points: Array.isArray(parsed.talking_points)
-      ? parsed.talking_points.filter((x): x is string => typeof x === 'string')
+      ? parsed.talking_points.filter((x): x is string => typeof x === 'string').map(clean)
       : []
   }
 
