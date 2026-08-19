@@ -16,5 +16,9 @@ export function normalizeTypography(text: string): string {
       .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' ')
       .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
       .replace(/[\u2010\u2011]/g, '-')
+      // Curly quotes are the classic AI tell — nobody types U+2019 by hand.
+      .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
+      .replace(/\u2026/g, '...')
   )
 }
