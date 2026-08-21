@@ -99,7 +99,8 @@ Rules:
 - Always include the education block if present
 - Select experience and project blocks most relevant to this specific role
 - Prefer the most role-relevant variant when multiple variants of the same experience exist (e.g. prefer ml-tagged over generic for an ML role)
-- Project blocks carry a "tier:N" tag (tier:1 = most impressive overall, tier:3 = least). Relevance to THIS role comes first — a strongly role-relevant tier:3 project beats an irrelevant tier:1 one — but when two projects are similarly relevant, prefer the lower-numbered (more impressive) tier.
+- Project blocks carry a "tier:N" tag reflecting the owner's own ranking (tier:1 = flagship, tier:3 = least). tier:1 projects are default-include: drop one only when it is clearly irrelevant to this specific role AND its slot is needed for a more role-relevant project. When space is tight, cut tier:3 before tier:2 before tier:1. A strongly role-relevant tier:2/3 project may replace the LEAST-relevant tier:1 project, never several of them.
+- Aim for 6-7 project blocks (plus the platform-anchor project block). Fewer wastes the projects page; more overflows it.
 - Select at most ONE block from each "variant:<group>" tag group (e.g. only one summary, and either the Microsoft rollup or its level-history blocks — never both).
 - Never select a rollup block AND its constituent detail blocks together; their bullets would duplicate.
 - Respond with ONLY a valid JSON array of block IDs, nothing else. Example: ["header", "exp_microsoft_se2", "skills_ml"]`
