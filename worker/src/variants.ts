@@ -1,7 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import type { LLMChain } from './llm.js'
 import { getAllBlocks, type ResumeBlock } from './blocks.js'
-import { assembleResume } from './skeleton.js'
+import { assembleResume, projectsAnchorText, restoreProjectsAnchor } from './skeleton.js'
 import { generateTailoredResume } from './tailored-resume.js'
 import { generateCoverLetter } from './cover-letter.js'
 
@@ -63,7 +63,14 @@ export async function renderVariant(
   kv: KVNamespace,
   variant: ResumeVariant
 ): Promise<string | null> {
-  if (variant.markdown) return variant.markdown
+  if (variant.markdown) {
+    // The projects anchor carries verified platform figures and is exempt from
+    // tailoring — splice the current canonical text over whatever the mint-time
+    // rewrite stored, so links recruiters already hold stay accurate without
+    // re-minting (same read-boundary rationale as normalizeTypography).
+    const blocks = await getAllBlocks(kv)
+    return restoreProjectsAnchor(variant.markdown, projectsAnchorText(blocks))
+  }
 
   if (variant.block_ids?.length) {
     const blocks = await getAllBlocks(kv)

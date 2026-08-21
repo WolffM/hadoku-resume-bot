@@ -1,6 +1,13 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { getAllBlocks, cacheKey, type ResumeBlock } from './blocks.js'
-import { assembleResume, countPageBreaks, ALWAYS_TAG, PAGE_BREAK_MARKER } from './skeleton.js'
+import {
+  assembleResume,
+  countPageBreaks,
+  projectsAnchorText,
+  restoreProjectsAnchor,
+  ALWAYS_TAG,
+  PAGE_BREAK_MARKER
+} from './skeleton.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { normalizeTypography } from './typography.js'
 import { TAILORED_RESUME_TOKENS, SELECTION_BUDGET } from './constants.js'
@@ -190,6 +197,8 @@ Rules:
 
 The resume contains \`${PAGE_BREAK_MARKER}\` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.
 
+The paragraph immediately after the "# Projects" heading is a platform overview with independently verified figures — reproduce it character-for-character, do not rewrite it. Keep all number formatting exactly as written: "3,800" never "3 800", "74%" never "74 %", "84k" never "84 k".
+
 Job: ${job_title} at ${company}
 Description:
 ${jd}
@@ -216,9 +225,11 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
         const tailored = normalizeTypography(stripCodeFence(tailoredResponse.message))
         // Only trust the rewrite if it preserved the page structure. If the LLM
         // dropped markers, keep the deterministic skeleton assembly rather than
-        // ship a variant whose pages fall wherever length lands.
+        // ship a variant whose pages fall wherever length lands. Either way the
+        // projects anchor is restored verbatim — its verified figures are exempt
+        // from rewriting no matter what the model did with the instruction.
         if (countPageBreaks(tailored) === expectedBreaks) {
-          resumeMarkdown = tailored
+          resumeMarkdown = restoreProjectsAnchor(tailored, projectsAnchorText(selectedBlocks))
         }
       } catch {
         // Deterministic assembly already in resumeMarkdown — ship it untailored.

@@ -13,6 +13,13 @@ export function normalizeTypography(text: string): string {
     text
       // "10<thin space>+" is the LLM typesetting "10+": tighten, don't widen.
       .replace(/(\d)[\u202F\u2009]\+/g, '$1+')
+      // French-style number spacing is the same tell: "3 800" (any space kind)
+      // means "3,800", "74 %" means "74%", "84 k" means "84k". The blanket
+      // space collapse below would otherwise launder thin spaces into plain
+      // ones and make the drift look hand-typed.
+      .replace(/(\d)[\u202F\u2009\u00A0 ](\d{3})\b/g, '$1,$2')
+      .replace(/(\d)[\u202F\u2009\u00A0 ]%/g, '$1%')
+      .replace(/(\d)[\u202F\u2009\u00A0 ](?=[kKMB]\b)/g, '$1')
       .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' ')
       .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
       .replace(/[\u2010\u2011]/g, '-')
