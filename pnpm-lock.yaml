@@ -15,8 +15,8 @@ importers:
         specifier: ^1.0.8
         version: 1.0.8(react@19.2.0)(zod@4.1.12)
       '@wolffm/worker-utils':
-        specifier: ^1.5.4
-        version: 1.5.4(zod@4.1.12)
+        specifier: ^1.5.7
+        version: 1.5.7(zod@4.1.12)
       hono:
         specifier: ^4.11.4
         version: 4.12.8
@@ -114,8 +114,8 @@ importers:
 
 packages:
 
-  '@asteasolutions/zod-to-openapi@8.5.0':
-    resolution: {integrity: sha512-SABbKiObg5dLRiTFnqiW1WWwGcg1BJfmHtT2asIBnBHg6Smy/Ms2KHc650+JI4Hw7lSkdiNebEGXpwoxfben8Q==}
+  '@asteasolutions/zod-to-openapi@9.1.0':
+    resolution: {integrity: sha512-pLMeRgRYS7/vZIgAAkOe2P6+XGTifR1MT9pqDoxZ11EmcJJ+DPmdPqLN8ZZF4U8R9KHCCQCS9c2wtuE8wSrfkw==}
     peerDependencies:
       zod: ^4.0.0
 
@@ -458,8 +458,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@hono/zod-openapi@1.5.3':
-    resolution: {integrity: sha512-hG+2wh72WK4z59Cn6UQUb5Ohx9HINzCbZ6oEwqvtAkOe9b2Oc5N9/jPjUzhF49lgSo73s2EoHyJx+gGEmpkv5Q==}
+  '@hono/zod-openapi@1.6.0':
+    resolution: {integrity: sha512-42HXUBIaGmQh+hZGLw3Hy5piOreIXgnBnUSs55mtn2gnW/xWtU9nQwEUtRRCk5to8Vm2XbfO0J83eUCwCf5eTg==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       hono: '>=4.10.0'
@@ -885,8 +885,8 @@ packages:
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
-  '@wolffm/worker-utils@1.5.4':
-    resolution: {integrity: sha512-dwiLFxMprynrjU3V0bL4b/AC5lBnquN+3fo/Onk+WNKnqxkjynaQ51jyinChvtGiFwGiFkRSXIUSIIrWzTbL0g==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.5.4/636f2f7fe63c3fae40ea5099d2317cb30b65da7f}
+  '@wolffm/worker-utils@1.5.7':
+    resolution: {integrity: sha512-8U+aqgNuLJaW8taxXYRjL8lsGTPrIi4uQbLhInRnm9f7BeGLS3Y70Ufay/zSheGKLwxwWxXg3M944k7R76gHjw==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.5.7/7e6fd9bb8e5244eadd46c5f7e0977acf1c976c80}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -1277,6 +1277,7 @@ packages:
   eslint@9.39.1:
     resolution: {integrity: sha512-BhHmn2yNOFA9H9JmmIVKJmd288g9hrVRDkdoIgRCRuSySRUHH7r/DI6aAXW9T1WwUuY3DFgrcaqB+deURBLR5g==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -2672,7 +2673,7 @@ packages:
 
 snapshots:
 
-  '@asteasolutions/zod-to-openapi@8.5.0(zod@4.1.12)':
+  '@asteasolutions/zod-to-openapi@9.1.0(zod@4.1.12)':
     dependencies:
       openapi3-ts: 4.6.1
       zod: 4.1.12
@@ -2964,9 +2965,9 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@hono/zod-openapi@1.5.3(hono@4.12.8)(zod@4.1.12)':
+  '@hono/zod-openapi@1.6.0(hono@4.12.8)(zod@4.1.12)':
     dependencies:
-      '@asteasolutions/zod-to-openapi': 8.5.0(zod@4.1.12)
+      '@asteasolutions/zod-to-openapi': 9.1.0(zod@4.1.12)
       '@hono/zod-validator': 0.9.0(hono@4.12.8)(zod@4.1.12)
       hono: 4.12.8
       openapi3-ts: 4.6.1
@@ -3411,9 +3412,9 @@ snapshots:
       react: 19.2.0
       zod: 4.1.12
 
-  '@wolffm/worker-utils@1.5.4(zod@4.1.12)':
+  '@wolffm/worker-utils@1.5.7(zod@4.1.12)':
     dependencies:
-      '@hono/zod-openapi': 1.5.3(hono@4.12.8)(zod@4.1.12)
+      '@hono/zod-openapi': 1.6.0(hono@4.12.8)(zod@4.1.12)
       '@wolffm/logger': 1.3.1
       hono: 4.12.8
     transitivePeerDependencies:
