@@ -53,6 +53,8 @@ ${description}
 My Resume:
 ${resumeContent}
 
+Never use em dashes anywhere; use commas, colons, or hyphens instead.
+
 Return only the cover letter in markdown, no preamble or explanation.`
 
   const response = await sendChatCompletion(client, [{ role: 'user', content: prompt }], {

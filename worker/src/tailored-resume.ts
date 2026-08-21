@@ -198,7 +198,7 @@ Rules:
 
 The resume contains \`${PAGE_BREAK_MARKER}\` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.
 
-The paragraph immediately after the "# Projects" heading is a platform overview with independently verified figures — reproduce it character-for-character, do not rewrite it. Keep all number formatting exactly as written: "3,800" never "3 800", "74%" never "74 %", "84k" never "84 k".
+The paragraph immediately after the "# Projects" heading is a platform overview with independently verified figures — reproduce it character-for-character, do not rewrite it. Keep all number formatting exactly as written: "3,800" never "3 800", "74%" never "74 %", "84k" never "84 k". Never use em dashes anywhere; use commas, colons, or hyphens instead.
 
 Job: ${job_title} at ${company}
 Description:
