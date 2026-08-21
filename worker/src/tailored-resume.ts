@@ -200,8 +200,7 @@ ${resumeMarkdown}
 Return only the full rewritten resume markdown, no preamble or explanation.`
 
     const promptOverhead = estimateTokens(buildTailoringPrompt(''))
-    const jdBudgetTokens =
-      MAX_REQUEST_TOKENS - TAILORED_RESUME_TOKENS.TAILORING - promptOverhead
+    const jdBudgetTokens = MAX_REQUEST_TOKENS - TAILORED_RESUME_TOKENS.TAILORING - promptOverhead
     const jdChars = Math.floor(jdBudgetTokens * CHARS_PER_TOKEN)
 
     // A résumé so long the JD gets no meaningful budget means tailoring would

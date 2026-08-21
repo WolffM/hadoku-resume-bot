@@ -6,6 +6,18 @@ import { fetchResume, fetchResumePdf, type ResumePacket } from '../services/api'
 
 interface ResumeViewerProps {
   onAskAbout: (text: string) => void
+  ownerName?: string
+}
+
+/** Download filename stem: "Matthaeus Wolff" → "matthaeus-wolff-resume". Must
+ *  stay in sync with the worker's /resume.pdf Content-Disposition filename. */
+export function resumeFilenameBase(ownerName?: string): string {
+  const slug = (ownerName ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return slug ? `${slug}-resume` : 'resume'
 }
 
 // Contract with the worker's assembler (worker/src/skeleton.ts): résumé markdown
@@ -29,7 +41,7 @@ function MarkdownPages({ content }: { content: string }): React.ReactElement {
   )
 }
 
-export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
+export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProps) {
   const [packet, setPacket] = useState<ResumePacket | null>(null)
   const [view, setView] = useState<'resume' | 'cover'>('resume')
   const [loading, setLoading] = useState(true)
@@ -107,7 +119,9 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
   const activeContent = view === 'cover' && hasCover ? coverLetter : resumeContent
 
   const variantSlug = packet?.variant ?? new URLSearchParams(window.location.search).get('v')
-  const baseFilename = variantSlug ? `resume-${variantSlug}` : 'resume'
+  // Deliberately no variant slug or packet suffix: a recruiter sees one clean
+  // "<owner>-resume.pdf" no matter which tailored variant they were linked.
+  const baseFilename = resumeFilenameBase(ownerName)
 
   // The full packet as one markdown doc — résumé, then a page break, then the
   // cover letter under a heading.
@@ -116,9 +130,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
     : resumeContent
 
   const handleDownloadMd = () =>
-    hasCover
-      ? downloadBlob(packetMarkdown, 'text/markdown', `${baseFilename}-packet.md`)
-      : downloadBlob(resumeContent, 'text/markdown', `${baseFilename}.md`)
+    downloadBlob(hasCover ? packetMarkdown : resumeContent, 'text/markdown', `${baseFilename}.md`)
 
   const handleDownloadJson = () =>
     downloadBlob(
@@ -144,13 +156,7 @@ export default function ResumeViewer({ onAskAbout }: ResumeViewerProps) {
   // when the variant carries one, mirroring the packet .md download.
   const handleDownloadPdf = () => {
     fetchResumePdf(variantSlug ?? undefined)
-      .then(blob =>
-        downloadBlob(
-          blob,
-          'application/pdf',
-          hasCover ? `${baseFilename}-packet.pdf` : `${baseFilename}.pdf`
-        )
-      )
+      .then(blob => downloadBlob(blob, 'application/pdf', `${baseFilename}.pdf`))
       .catch(err =>
         logger.error('[ResumeViewer] Error downloading resume PDF', {
           error: (err as Error)?.message ?? String(err)
