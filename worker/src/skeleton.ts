@@ -203,6 +203,48 @@ export function assembleResume(blocks: ResumeBlock[]): string {
   return parts.join('\n\n')
 }
 
+/**
+ * The projects anchor — the uncategorized always+canonical paragraph that opens
+ * page 2 — carries verified platform figures (docs/resume-structure.md). Its
+ * text is load-bearing in a way bullets are not, so it is exempt from LLM
+ * rewriting: renderers splice the canonical text back in verbatim.
+ */
+export function projectsAnchorText(blocks: ResumeBlock[]): string {
+  return blocks
+    .filter(
+      b => sectionOf(b) === 'projects' && categoryOf(b) === null && b.tags.includes(CANONICAL_TAG)
+    )
+    .sort((a, b) => b.priority - a.priority)
+    .map(b => stripLeadingHeading(b.content, '# Projects'))
+    .join('\n\n')
+}
+
+/**
+ * Replace the paragraph(s) between the '# Projects' heading and the first
+ * category/section heading (or page-break marker) with `anchor`, verbatim.
+ * If the heading is immediately followed by structure (the rewrite dropped the
+ * anchor entirely), the anchor is inserted rather than replacing anything.
+ * No '# Projects' heading → returned unchanged.
+ */
+export function restoreProjectsAnchor(markdown: string, anchor: string): string {
+  if (!anchor) return markdown
+  const lines = markdown.split('\n')
+  const h = lines.findIndex(line => line.trim() === '# Projects')
+  if (h === -1) return markdown
+  let start = h + 1
+  while (start < lines.length && lines[start].trim() === '') start++
+  let end = start
+  while (end < lines.length) {
+    const t = lines[end].trim()
+    if (t.startsWith('#') || t === PAGE_BREAK_MARKER) break
+    end++
+  }
+  while (end > start && lines[end - 1].trim() === '') end--
+  return [...lines.slice(0, h + 1), '', anchor, '', ...lines.slice(end)]
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+}
+
 /** Count of page-break markers in an assembled document — used to detect that a
  *  tailoring rewrite preserved the skeleton's page structure. */
 export function countPageBreaks(markdown: string): number {

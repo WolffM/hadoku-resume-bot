@@ -38,6 +38,24 @@ Anchor-paragraph rules:
 2. **Additional Experience** — Charles River Development
 3. **Education**
 
+## Tailored-variant rules
+
+- **The anchor paragraph is exempt from LLM rewriting.** Its figures are
+  verified; a rewrite restyling them ("3 800+", "84 k") is drift, not polish.
+  Enforced in code: `restoreProjectsAnchor` splices the canonical anchor text
+  back in verbatim, both at mint time (`tailored-resume.ts`) and at read time
+  (`renderVariant` in `variants.ts`) — so even already-minted recruiter links
+  render the current verified paragraph.
+- **`proj-tenhands` is tagged `always`** — the flagship project appears in
+  every variant no matter what the selector returns. Only the owner adds or
+  removes `always` tags on project blocks.
+- Number style is plain American: `3,800` / `74%` / `84k`. The tailoring
+  prompt instructs this and `normalizeTypography` tightens spaced variants.
+- Category placement: `proj-vibecheck` lives under `cat:ai-agents` (it is an
+  AI-adjacent tool, not a game). It is palette-only (tier:2) — the 7 canonical
+  projects are all tier:1 and page 2 cannot fit an 8th block (verified: adding
+  one renders a 4th page).
+
 ## Where each piece is enforced
 
 - Section order + hard page breaks: `worker/src/skeleton.ts`
