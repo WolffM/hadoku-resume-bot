@@ -46,9 +46,12 @@ Anchor-paragraph rules:
   back in verbatim, both at mint time (`tailored-resume.ts`) and at read time
   (`renderVariant` in `variants.ts`) — so even already-minted recruiter links
   render the current verified paragraph.
-- **`proj-tenhands` is tagged `always`** — the flagship project appears in
-  every variant no matter what the selector returns. Only the owner adds or
-  removes `always` tags on project blocks.
+- **Selection is dynamic, never hardcoded.** The owner explicitly does not
+  want project blocks pinned with `always` (that tag is for structural blocks
+  only: header, section openers, the anchor). Instead the selector treats
+  tier:1 projects as default-include — dropped only when clearly irrelevant to
+  the specific role and the slot is needed — cutting tier:3 before tier:2
+  before tier:1, aiming for 6-7 project blocks.
 - Number style is plain American: `3,800` / `74%` / `84k`. The tailoring
   prompt instructs this and `normalizeTypography` tightens spaced variants.
 - Category placement: `proj-vibecheck` lives under `cat:ai-agents` (it is an
