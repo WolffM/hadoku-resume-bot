@@ -27,8 +27,13 @@ Anchor-paragraph rules:
 - Exactly one paragraph. No second paragraph, no list.
 - **No "Public demos:" link list.** Each child-app block carries its own
   `[GitHub]` / `[Live]` links — the apps explain and link themselves.
-- Every number in it (app counts, repo counts, commit counts) must be verified
-  against the actual repos at edit time, not estimated.
+- Every number in it (app counts, repo counts) must be verified against the
+  actual repos at edit time, not estimated.
+- **No effort metrics anywhere** (owner rule, 2026-08-21): LOC counts, test
+  counts, and commit counts are banned in every block. They read as effort
+  claimed as achievement, and big solo-project LOC pattern-matches to
+  AI-generated volume. Numbers that describe the SYSTEM are welcome (12+
+  scraper verticals, 84k-item corpus, ~13ms lookups, 8,252 trade pairs).
 - The auth system and the deploy pipeline are the two strongest platform
   claims — describe them concretely, not as "a basic CI chain".
 
