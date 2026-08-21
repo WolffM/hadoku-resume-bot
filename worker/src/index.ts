@@ -66,6 +66,14 @@ export interface ResumeHandlerOptions {
 
 export function createResumeHandler(basePath: string, options: ResumeHandlerOptions = {}) {
   const { ownerName = 'the candidate' } = options
+  // Download filename stem: "Matthaeus Wolff" → "matthaeus-wolff-resume". Must
+  // stay in sync with the UI's client-side download filenames (ResumeViewer).
+  const ownerSlug = (options.ownerName ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  const filenameBase = ownerSlug ? `${ownerSlug}-resume` : 'resume'
   const app = new Hono<{ Bindings: ResumeEnv }>()
   // Structured logging via the ecosystem worker logger (sinks to console.*, which
   // Cloudflare Workers Logs captures). We log genuine server faults (the 500
@@ -279,7 +287,9 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const slug = c.req.query('v')
       let content: string | null = null
       let coverLetter: string | null = null
-      let filename = 'resume.pdf'
+      // Deliberately the same filename for every variant/packet: a recruiter
+      // sees one clean "<owner>-resume.pdf" whichever tailored link they got.
+      const filename = `${filenameBase}.pdf`
 
       if (slug) {
         const variant = await getVariant(c.env.CONTENT_KV, slug)
@@ -288,9 +298,6 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
           if (rendered) {
             content = rendered
             coverLetter = variant.cover_letter_markdown ?? null
-            filename = coverLetter
-              ? `resume-${variant.slug}-packet.pdf`
-              : `resume-${variant.slug}.pdf`
           }
         }
       }
