@@ -162,6 +162,34 @@ Rules:
     return true
   })
 
+  // Project floor. The prompt asks for 6-7 project blocks with tier:1 as
+  // default-include, but the selection model routinely under-picks when the JD
+  // pulls its attention elsewhere (observed: 3 projects for an infra role).
+  // Same principle as the variant-group rule above: enforce here too. The
+  // model's per-job picks all stay; the strongest unselected projects (owner
+  // tier first, then priority) top up the shortfall, so page 2 never runs
+  // half-empty and flagship projects aren't silently dropped. Nothing is
+  // pinned: a genuinely relevant selection of 6+ is left exactly as returned.
+  const PROJECT_FLOOR = 6
+  const isProject = (b: ResumeBlock) => b.tags.includes('section:projects') || b.type === 'project'
+  const tierOf = (b: ResumeBlock): number => {
+    const tag = b.tags.find(t => t.startsWith('tier:'))
+    const n = tag ? Number(tag.slice('tier:'.length)) : NaN
+    return Number.isFinite(n) ? n : 3
+  }
+  const selectedNow = new Set(selectedIds)
+  // The anchor (always-tagged) is structural, not one of the 6-7 app blocks.
+  const pickedProjects = blocks.filter(
+    b => selectedNow.has(b.id) && isProject(b) && !b.tags.includes(ALWAYS_TAG)
+  )
+  if (pickedProjects.length < PROJECT_FLOOR) {
+    const topUp = blocks
+      .filter(b => !selectedNow.has(b.id) && isProject(b) && !b.tags.includes(ALWAYS_TAG))
+      .sort((a, b) => tierOf(a) - tierOf(b) || b.priority - a.priority)
+      .slice(0, PROJECT_FLOOR - pickedProjects.length)
+    for (const b of topUp) selectedIds.push(b.id)
+  }
+
   // Blocks tagged `always` are guaranteed inclusion regardless of the
   // selector's answer — dropping one loses structural content (the header,
   // the projects anchor). Position is irrelevant: assembleResume ignores
