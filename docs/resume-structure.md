@@ -54,6 +54,11 @@ Anchor-paragraph rules:
   before tier:1, aiming for 6-7 project blocks.
 - Number style is plain American: `3,800` / `74%` / `84k`. The tailoring
   prompt instructs this and `normalizeTypography` tightens spaced variants.
+- **Em dashes are banned across the board** (owner rule, 2026-08-21). No
+  block, variant, cover letter, or generated field may contain one. Sources
+  are scrubbed, every generation prompt forbids them, and
+  `normalizeTypography` converts any that slip through (`—` to `-`, bare
+  `—` to `-`) at the read boundary. En dashes in date ranges are fine.
 - Category placement: `proj-vibecheck` lives under `cat:ai-agents` (it is an
   AI-adjacent tool, not a game). It is palette-only (tier:2) — the 7 canonical
   projects are all tier:1 and page 2 cannot fit an 8th block (verified: adding

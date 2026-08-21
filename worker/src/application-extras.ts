@@ -126,6 +126,8 @@ ${cap(description, JD_CHARS)}
 The candidate's tailored résumé for this role:
 ${cap(resume_markdown, RESUME_CHARS)}
 
+Never use em dashes anywhere in any field; use commas, colons, or hyphens instead.
+
 Return ONLY a JSON object with exactly these keys, no preamble, no markdown fence:
 {
   "cover_letter_markdown": "A tailored cover letter in markdown, exactly 3 paragraphs — (1) why this company/role specifically, referencing something genuine about their work; (2) what the candidate brings, connecting the most relevant résumé experience to what the role needs; (3) a brief, confident close. Conversational but professional; no placeholders.",

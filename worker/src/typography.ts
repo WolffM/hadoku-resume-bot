@@ -5,8 +5,8 @@
  * WinAnsi fonts. Normalize at the READ boundary (the /resume and /resume.pdf
  * routes) so already-minted variants come out clean without re-minting them
  * (their slugs are in links recruiters already hold), and at generation so
- * fresh output is stored clean. Typography that renders fine everywhere,
- * like curly quotes, en/em dashes and bullets, is left alone.
+ * fresh output is stored clean. En dashes (date ranges) and bullets are left
+ * alone; em dashes are banned outright (owner rule, 2026-08-21).
  */
 export function normalizeTypography(text: string): string {
   return (
@@ -23,6 +23,10 @@ export function normalizeTypography(text: string): string {
       .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, ' ')
       .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
       .replace(/[\u2010\u2011]/g, '-')
+      // Em dashes are banned across the board: the LLM's favourite punctuation
+      // and an instant AI tell. Spaced becomes " - ", bare becomes "-".
+      .replace(/ — /g, ' - ')
+      .replace(/—/g, '-')
       // Curly quotes are the classic AI tell — nobody types U+2019 by hand.
       .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
       .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
