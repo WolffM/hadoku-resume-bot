@@ -77,7 +77,11 @@ Anchor-paragraph rules:
 - Content: `hadoku_site/scripts/resume/blocks.json` (private, untracked) →
   `python3 scripts/admin/resume_ingest.py` → CONTENT_KV. Blocks tagged
   `canonical` form the default résumé.
-- **Page budgets are NOT enforced by code.** They are a content-length
+- Page-1 density IS enforced by code: `PAGE1_CHAR_BUDGET` (2,500 chars) in
+  `tailored-resume.ts` trims lowest-priority Microsoft detail blocks after
+  selection. Measured, not guessed: 2,460 chars renders 3 pages, 2,750 spills
+  to 4. Re-measure if the PDF typography changes.
+- **Remaining page budgets are NOT enforced by code.** They are a content-length
   discipline: after any content change, render `/resume/api/resume.pdf` and
   check (a) pageCount === 3, (b) the proportions above still hold by eye.
 
