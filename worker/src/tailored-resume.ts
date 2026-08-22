@@ -97,6 +97,7 @@ ${blockSummaries}
 Rules:
 - Always include the header block if present
 - Always include the education block if present
+- Always include the additional-experience (non-Microsoft employment) block if present: employment history should be complete, not tailored away
 - Select experience and project blocks most relevant to this specific role
 - Prefer the most role-relevant variant when multiple variants of the same experience exist (e.g. prefer ml-tagged over generic for an ML role)
 - Project blocks carry a "tier:N" tag reflecting the owner's own ranking (tier:1 = flagship, tier:3 = least). tier:1 projects are default-include: drop one only when it is clearly irrelevant to this specific role AND its slot is needed for a more role-relevant project. When space is tight, cut tier:3 before tier:2 before tier:1. A strongly role-relevant tier:2/3 project may replace the LEAST-relevant tier:1 project, never several of them.
@@ -188,6 +189,39 @@ Rules:
       .sort((a, b) => tierOf(a) - tierOf(b) || b.priority - a.priority)
       .slice(0, PROJECT_FLOOR - pickedProjects.length)
     for (const b of topUp) selectedIds.push(b.id)
+  }
+
+  // Page-1 budget. Page 1 is header + summary + Microsoft, and the résumé must
+  // stay 3 pages (docs/resume-structure.md). The condensed `ms-headline` rollup
+  // carries a variant: tag, but the ~20 DETAILED Microsoft blocks carry none, so
+  // the dedup above cannot stop the selector taking five of them: observed 4,133
+  // chars of experience where the rollup is 1,631, pushing the résumé to 4 pages.
+  // Trim lowest-priority detail blocks until page 1 fits, keeping at least one
+  // (a bulletless employer header would be worse than a slightly long page).
+  // Budget measured by rendering, not guessed: the canonical résumé's 2,460-char
+  // page 1 renders in 3 pages, 2,750 chars spills to a 4th. 2,500 is the largest
+  // verified-good size, so it admits a canonical-density page 1 and trims past it.
+  const PAGE1_CHAR_BUDGET = 2500
+  const onPage1 = (b: ResumeBlock) => {
+    const tag = b.tags.find(t => t.startsWith('section:'))
+    const section = tag ? tag.slice('section:'.length) : null
+    if (section)
+      return section === 'header' || section === 'summary' || section === 'experience-primary'
+    return b.type === 'header' || b.type === 'summary' || b.type === 'experience'
+  }
+  const page1Len = (ids: Set<string>) =>
+    blocks.filter(b => ids.has(b.id) && onPage1(b)).reduce((n, b) => n + b.content.length, 0)
+  let page1Set = new Set(selectedIds)
+  if (page1Len(page1Set) > PAGE1_CHAR_BUDGET) {
+    const trimmable = blocks
+      .filter(b => page1Set.has(b.id) && onPage1(b) && !b.tags.includes(ALWAYS_TAG))
+      .sort((a, b) => a.priority - b.priority || b.content.length - a.content.length)
+    for (const b of trimmable) {
+      if (trimmable.filter(t => page1Set.has(t.id)).length <= 1) break
+      if (page1Len(page1Set) <= PAGE1_CHAR_BUDGET) break
+      page1Set.delete(b.id)
+    }
+    selectedIds = selectedIds.filter(id => page1Set.has(id))
   }
 
   // Blocks tagged `always` are guaranteed inclusion regardless of the
