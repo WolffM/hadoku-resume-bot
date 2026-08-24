@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { logger } from '@wolffm/logger/client'
-import { fetchResume, fetchResumePdf, type ResumePacket } from '../services/api'
+import { fetchResume, resumePdfUrl, type ResumePacket } from '../services/api'
+import { ResumeDocument } from './ResumeDocument'
 
 interface ResumeViewerProps {
   onAskAbout: (text: string) => void
@@ -18,27 +17,6 @@ export function resumeFilenameBase(ownerName?: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
   return slug ? `${slug}-resume` : 'resume'
-}
-
-// Contract with the worker's assembler (worker/src/skeleton.ts): résumé markdown
-// carries this sentinel between page groups. react-markdown drops the raw HTML
-// comment, so we split on it and render each page as its own block with the
-// print-only pagebreak element between them.
-const PAGE_BREAK_MARKER = '<!-- page-break -->'
-
-/** Render résumé markdown, honouring embedded page-break markers. */
-function MarkdownPages({ content }: { content: string }): React.ReactElement {
-  const pages = content.split(PAGE_BREAK_MARKER)
-  return (
-    <>
-      {pages.map((page, i) => (
-        <React.Fragment key={i}>
-          {i > 0 && <div className="resume-viewer__pagebreak" />}
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{page}</ReactMarkdown>
-        </React.Fragment>
-      ))}
-    </>
-  )
 }
 
 export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProps) {
@@ -104,13 +82,26 @@ export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProp
     }
   }
 
+  // Two hardenings over the obvious version. The anchor is put IN the document,
+  // because a detached one is the case where browsers are least consistent about
+  // honouring `download` — and the fallback, navigating to the blob: URL, is
+  // blocked by hadoku.me's CSP (`frame-src 'self'`), which is what a report of
+  // silent download failures there looked like. And the object URL is revoked a
+  // tick later rather than synchronously: at click time the browser has not
+  // finished reading the blob, so revoking immediately is a live race.
   const downloadBlob = (data: BlobPart, mimeType: string, filename: string) => {
     const url = URL.createObjectURL(new Blob([data], { type: mimeType }))
     const a = document.createElement('a')
     a.href = url
     a.download = filename
+    a.rel = 'noopener'
+    a.style.display = 'none'
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    setTimeout(() => {
+      a.remove()
+      URL.revokeObjectURL(url)
+    }, 0)
   }
 
   const resumeContent = packet?.content ?? ''
@@ -153,16 +144,12 @@ export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProp
 
   // The PDF is rendered server-side from the same canonical markdown and
   // downloaded as a file — no print dialog. The API includes the cover letter
-  // when the variant carries one, mirroring the packet .md download.
-  const handleDownloadPdf = () => {
-    fetchResumePdf(variantSlug ?? undefined)
-      .then(blob => downloadBlob(blob, 'application/pdf', `${baseFilename}.pdf`))
-      .catch(err =>
-        logger.error('[ResumeViewer] Error downloading resume PDF', {
-          error: (err as Error)?.message ?? String(err)
-        })
-      )
-  }
+  // when the variant carries one, mirroring the packet .md download. It is a
+  // plain link, not a fetch-into-a-Blob: the response already carries
+  // `Content-Disposition: attachment` with the owner's filename, and an
+  // attachment is saved rather than handed to whatever the browser has
+  // registered for application/pdf.
+  const pdfHref = resumePdfUrl(variantSlug ?? undefined)
 
   if (loading) {
     return (
@@ -228,9 +215,9 @@ export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProp
           )}
           <div className="resume-viewer__downloads">
             <span className="resume-viewer__downloads-label">Download</span>
-            <button className="resume-viewer__download-button" onClick={handleDownloadPdf}>
+            <a className="resume-viewer__download-button" href={pdfHref} download>
               .pdf
-            </button>
+            </a>
             <button className="resume-viewer__download-button" onClick={handleDownloadMd}>
               .md
             </button>
@@ -240,20 +227,27 @@ export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProp
           </div>
         </div>
 
-        {/* On screen: the toggle-selected document. */}
-        <div className="resume-viewer__screen">
-          <MarkdownPages content={activeContent} />
-        </div>
+        {/* Only this scrolls, so the toolbar stays put and keeps its own
+            padding out of the document's leading whitespace. */}
+        <div className="resume-viewer__scroll">
+          {/* On screen: the toggle-selected document. */}
+          <div className="resume-viewer__screen">
+            <ResumeDocument
+              content={activeContent}
+              variant={view === 'cover' && hasCover ? 'letter' : 'resume'}
+            />
+          </div>
 
-        {/* On print / PDF: the full packet — résumé, then cover letter. */}
-        <div className="resume-viewer__print">
-          <MarkdownPages content={resumeContent} />
-          {hasCover && (
-            <>
-              <div className="resume-viewer__pagebreak" />
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{coverLetter}</ReactMarkdown>
-            </>
-          )}
+          {/* On print / PDF: the full packet — résumé, then cover letter. */}
+          <div className="resume-viewer__print">
+            <ResumeDocument content={resumeContent} />
+            {hasCover && (
+              <>
+                <div className="resume-viewer__pagebreak" />
+                <ResumeDocument content={coverLetter} variant="letter" />
+              </>
+            )}
+          </div>
         </div>
       </div>
       {contextMenu && (

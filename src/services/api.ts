@@ -100,18 +100,17 @@ export async function fetchResume(variant?: string): Promise<ResumePacket> {
 }
 
 /**
- * Fetch the server-rendered resume PDF (the packet, when the variant carries a
+ * URL of the server-rendered resume PDF (the packet, when the variant carries a
  * cover letter). Same variant fall-back semantics as fetchResume.
+ *
+ * Returned as a URL rather than a fetched Blob on purpose: the endpoint already
+ * sends `Content-Disposition: attachment` with the owner's filename, so linking
+ * straight at it downloads the file with no object URL in the middle — and an
+ * attachment cannot be hijacked by a browser's "open PDFs in Firefox" handler
+ * the way a `blob:` URL can.
  */
-export async function fetchResumePdf(variant?: string): Promise<Blob> {
-  const url = variant
+export function resumePdfUrl(variant?: string): string {
+  return variant
     ? `${API_BASE_URL}/resume.pdf?v=${encodeURIComponent(variant)}`
     : `${API_BASE_URL}/resume.pdf`
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(`Failed to download resume PDF (${response.status})`)
-  }
-
-  return response.blob()
 }

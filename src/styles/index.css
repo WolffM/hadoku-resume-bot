@@ -37,6 +37,11 @@
   min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text);
+  /* hadoku_site sets this on <body>, so in production it was inherited and the
+   * widget never needed it. The `vite dev` harness has no such body rule, which
+   * is why the résumé rendered in the browser's default serif locally — the one
+   * place this component is ever looked at while being designed. */
+  font-family: var(--font-family);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
@@ -64,10 +69,17 @@
   overflow: hidden;
 }
 
+/* The pane no longer scrolls as a whole — .resume-viewer__scroll does, so the
+ * toolbar can sit above the document instead of riding along with it. The pane
+ * surface is the desk the résumé sheets sit on, which is why it is bg-alt and
+ * the sheets are bg-card. */
 .resume-bot__resume-section {
   flex: 1;
-  overflow-y: auto;
-  background-color: var(--color-bg-card);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-bg-alt);
   border-radius: var(--hdk-radius);
   box-shadow: var(--hdk-shadow-sm);
 }
@@ -316,18 +328,32 @@
 
 /* Resume Viewer */
 .resume-viewer {
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   color: var(--color-text);
-  min-height: 100%;
   user-select: text;
 }
 
+/* Fixed bar: outside the scroller, so the buttons stay reachable at any scroll
+ * position and their padding no longer reads as dead space above the name. */
 .resume-viewer__toolbar {
+  flex: none;
   display: flex;
   gap: 0.5rem;
   align-items: center;
   justify-content: flex-end;
-  margin-bottom: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.resume-viewer__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.5rem 1rem 2.5rem;
 }
 
 /* Résumé / cover-letter toggle sits at the far left; downloads stay right. */
@@ -372,7 +398,12 @@
   display: none;
 }
 
+/* .pdf is an <a> (the endpoint sends its own Content-Disposition) while .md and
+ * .json are <button>s — this has to sit right on both. */
 .resume-viewer__download-button {
+  display: inline-block;
+  line-height: 1.4;
+  text-decoration: none;
   padding: 0.25rem 0.75rem;
   background-color: var(--color-bg);
   color: var(--color-text-secondary);
@@ -388,47 +419,6 @@
 .resume-viewer__download-button:hover {
   background-color: var(--color-primary);
   color: var(--color-bg);
-}
-
-/* Print = the PDF path: show only the resume content, unclipped */
-@media print {
-  .app-header,
-  .resume-bot__chat-section,
-  .resume-viewer__toolbar,
-  .context-menu {
-    display: none !important;
-  }
-
-  .resume-bot,
-  .resume-bot-container {
-    height: auto;
-    min-height: 0;
-    padding: 0;
-  }
-
-  .resume-bot__content,
-  .resume-bot__resume-section {
-    overflow: visible;
-    display: block;
-    box-shadow: none;
-  }
-
-  .resume-viewer {
-    padding: 0;
-  }
-
-  /* Print the full packet (résumé + cover letter), not the toggled view. */
-  .resume-viewer__screen {
-    display: none !important;
-  }
-
-  .resume-viewer__print {
-    display: block;
-  }
-
-  .resume-viewer__pagebreak {
-    break-before: page;
-  }
 }
 
 /* Context Menu */
@@ -460,6 +450,7 @@
 
 .resume-viewer--loading,
 .resume-viewer--error {
+  display: block;
   text-align: center;
   padding: 4rem 2rem;
 }
@@ -486,87 +477,336 @@
   opacity: 0.9;
 }
 
-/* Markdown Styling */
-.resume-viewer h1 {
-  font-size: var(--hdk-text-lg);
+/* ── Résumé document ──────────────────────────────────────────────────────────
+ *
+ * The résumé is markdown, but it is a DOCUMENT, not a README: the same
+ * constructs carry different meaning per section, and the assembler guarantees
+ * which sections exist (worker/src/skeleton.ts). ResumeDocument.tsx splits on
+ * the `# Heading` boundaries and wraps each section in
+ * `.resume-doc__section--<slug>`, so everything below can address a job title
+ * and a project category separately even though both are `###` in the source.
+ *
+ * Accent colours only ever appear as FILLS here — rules, bullets, borders, chip
+ * backgrounds, and the one sanctioned `--color-<f>-bg` / `--color-on-<f>-bg`
+ * tint pair. Text is `--color-text` or `--color-text-secondary`; an accent used
+ * as bare text on a card surface fails contrast in most of the 18 themes, which
+ * is what @wolffm/themes' check-usage gate exists to catch.
+ */
+
+/* One sheet per page group. Capping the measure is the single biggest
+ * readability win: the pane is ~1100px wide on a desktop, and prose set that
+ * wide is genuinely hard to track from line end back to the next line start. */
+.resume-doc__sheet {
+  max-width: 52rem;
+  margin: 0 auto 1.25rem;
+  padding: 2.5rem 3rem 2.75rem;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--hdk-radius-lg);
+  box-shadow: var(--hdk-shadow-sm);
+}
+
+.resume-doc__sheet:last-child {
+  margin-bottom: 0;
+}
+
+/* Masthead */
+.resume-doc__name {
+  margin: 0 0 0.35rem;
+  font-size: 2rem;
   font-weight: var(--font-weight-bold);
-  color: var(--color-text);
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
-
-.resume-viewer h2 {
-  font-size: var(--hdk-text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
-}
-
-.resume-viewer h3 {
-  font-size: var(--hdk-text-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.resume-viewer p {
-  margin-bottom: 1rem;
-  line-height: var(--line-height-relaxed);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--color-text);
 }
 
-.resume-viewer ul,
-.resume-viewer ol {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
-  line-height: var(--line-height-relaxed);
-}
-
-.resume-viewer ul {
-  list-style-type: disc;
-}
-
-.resume-viewer ol {
-  list-style-type: decimal;
-}
-
-.resume-viewer li {
-  margin-bottom: 0.5rem;
-  color: var(--color-text);
-}
-
-.resume-viewer a {
-  color: var(--color-text);
-  text-decoration: underline;
-  transition: opacity 0.2s ease;
-}
-
-.resume-viewer a:hover {
-  opacity: 0.8;
-  text-decoration: underline;
-}
-
-.resume-viewer strong {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-}
-
-.resume-viewer em {
-  font-style: italic;
+.resume-doc p.resume-doc__contact {
+  margin: 0;
+  font-size: var(--hdk-text-sm);
+  line-height: 1.6;
   color: var(--color-text-secondary);
 }
 
-.resume-viewer code {
-  padding: 0.125rem 0.25rem;
-  background-color: var(--color-bg-card);
+/* Scoped to the résumé: a cover letter has no headings at all, so every one of
+ * its paragraphs lands in the same pre-heading section and must not pick up the
+ * name block's rule. */
+.resume-doc--resume .resume-doc__section--masthead {
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+/* Section headings. Size alone was doing nothing here — `#` and `##` both
+ * resolved to --hdk-text-lg — so the hierarchy is carried by case, tracking,
+ * weight and a rule instead. */
+.resume-doc__section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 2.25rem 0 1rem;
+  font-size: var(--hdk-text-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.resume-doc__section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+/* The sheet's own padding is the top margin when a section opens a page. */
+.resume-doc__section:first-child .resume-doc__section-title {
+  margin-top: 0;
+}
+
+.resume-doc__section--masthead + .resume-doc__section .resume-doc__section-title {
+  margin-top: 1.5rem;
+}
+
+/* Body copy. --line-height-relaxed is 1.5, which is tight for a 16px measure
+ * this long; the extra leading is what makes a dense résumé scannable.
+ *
+ * This selector is (0,1,1), so every paragraph VARIANT below has to be written
+ * `p.resume-doc__<variant>` to outrank it — a bare class is (0,1,0) and loses
+ * its size and colour here while appearing to work, because the properties it
+ * does not share (backgrounds, borders) still land. */
+.resume-doc p {
+  margin: 0 0 0.9rem;
+  font-size: var(--hdk-text-base);
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.resume-doc p:last-child {
+  margin-bottom: 0;
+}
+
+/* `###` — a job title under Experience, a category label under Projects. */
+/* Deliberately not --hdk-text-md: that token is 15px, one pixel SMALLER than
+ * the 16px body copy it is meant to head, which is most of why the old page had
+ * no visible hierarchy. The scale jumps straight from 15px to 24px, so this
+ * step is spelled out. */
+.resume-doc h3 {
+  margin: 1.75rem 0 0.2rem;
+  font-size: 1.0625rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.resume-doc h3:first-child {
+  margin-top: 0;
+}
+
+/* The date range under a job title. */
+.resume-doc p.resume-doc__meta {
+  margin: 0 0 0.75rem;
+  font-size: var(--hdk-text-xs);
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+/* Beats the generic `.resume-doc em` italic below on specificity rather than
+ * source order — the date is set as a label here, not as emphasis. */
+.resume-doc p.resume-doc__meta em {
+  font-style: normal;
+}
+
+/* Lists — custom markers, because ::marker cannot carry an accent without
+ * tripping the accent-as-text rule (a fill needs a background to sit on). */
+.resume-doc ul,
+.resume-doc ol {
+  margin: 0 0 1rem;
+  padding-left: 1.35rem;
+}
+
+.resume-doc ul {
+  list-style: none;
+}
+
+.resume-doc ol {
+  list-style: decimal;
+}
+
+.resume-doc li {
+  margin-bottom: 0.55rem;
+  font-size: var(--hdk-text-base);
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.resume-doc ul > li {
+  position: relative;
+}
+
+.resume-doc ul > li::before {
+  content: '';
+  position: absolute;
+  left: -0.95rem;
+  top: 0.68em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+}
+
+.resume-doc li:last-child {
+  margin-bottom: 0;
+}
+
+.resume-doc a {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.resume-doc a:hover {
+  text-decoration-color: var(--color-text);
+  text-decoration-thickness: 2px;
+}
+
+.resume-doc strong {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.resume-doc em {
+  font-style: italic;
+}
+
+.resume-doc code {
+  padding: 0.1rem 0.3rem;
+  background-color: var(--color-bg-alt);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
-  font-family: monospace;
+  border-radius: var(--hdk-radius-sm);
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-size: 0.875em;
+}
+
+/* ── Projects ──────────────────────────────────────────────────────────────── */
+
+/* The standing paragraph about the platform everything below runs on. It frames
+ * the section, so it is called out rather than left to read as entry zero. */
+.resume-doc p.resume-doc__lede {
+  margin: 0 0 1.5rem;
+  padding: 0.85rem 1.1rem;
+  background-color: var(--color-primary-bg);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--hdk-radius) var(--hdk-radius) 0;
   font-size: var(--hdk-text-sm);
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+/* Category labels get the one sanctioned accent-text pair: the tint surface
+ * plus the token designed to be legible on it. */
+.resume-doc__section--projects h3 {
+  display: inline-block;
+  margin: 1.6rem 0 0.85rem;
+  padding: 0.2rem 0.6rem;
+  background-color: var(--color-primary-bg);
+  border-radius: var(--hdk-radius-sm);
+  font-size: var(--hdk-text-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-on-primary-bg);
+}
+
+/* Each project is a rule-led entry: name on its own line, description beneath,
+ * links as chips. In the source this is one undifferentiated paragraph. */
+.resume-doc__section--projects .resume-doc__entry {
+  margin: 0 0 0.5rem;
+  padding: 0.15rem 0 0.65rem 0.95rem;
+  border-left: 2px solid var(--color-border);
+  font-size: var(--hdk-text-sm);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  transition: border-color 0.2s ease;
+}
+
+.resume-doc__section--projects .resume-doc__entry:hover {
+  border-left-color: var(--color-primary);
+}
+
+.resume-doc__section--projects .resume-doc__entry > strong:first-child {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-size: var(--hdk-text-base);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.resume-doc__links {
+  display: block;
+  margin-top: 0.45rem;
+}
+
+.resume-doc__section--projects .resume-doc__entry a {
+  display: inline-block;
+  margin: 0 0.35rem 0 0;
+  padding: 0.1rem 0.6rem;
+  background-color: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: var(--hdk-text-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.resume-doc__section--projects .resume-doc__entry a:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ── Technical Skills ──────────────────────────────────────────────────────── */
+
+/* `**Languages:** Python, C++, …` — the label goes above its list instead of
+ * running into it, which is what made these rows a wall of commas. */
+.resume-doc__section--technical-skills .resume-doc__entry {
+  margin: 0 0 0.9rem;
+  padding-left: 0.85rem;
+  border-left: 2px solid var(--color-border);
+  font-size: var(--hdk-text-sm);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.resume-doc__section--technical-skills .resume-doc__entry > strong:first-child {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-size: var(--hdk-text-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+/* ── Cover letter ──────────────────────────────────────────────────────────── */
+
+.resume-doc--letter .resume-doc__sheet {
+  max-width: 44rem;
+}
+
+.resume-doc--letter p {
+  margin-bottom: 1.1rem;
 }
 
 /* Responsive Design */
@@ -583,5 +823,91 @@
   .resume-bot__resume-section {
     flex: 1;
     min-height: 500px;
+  }
+}
+
+@media (max-width: 720px) {
+  .resume-bot {
+    padding: 1rem;
+  }
+
+  .resume-viewer__scroll {
+    padding: 1rem 0.5rem 2rem;
+  }
+
+  .resume-doc__sheet {
+    padding: 1.5rem 1.25rem 1.75rem;
+  }
+
+  .resume-doc__name {
+    font-size: 1.5rem;
+  }
+
+  .resume-viewer__toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+}
+
+/* Print rules live last on purpose: several of them (the sheet reset below)
+ * are single-class selectors that have to override the single-class screen
+ * rules above, and at equal specificity that is decided by source order. */
+/* Print = the PDF path: show only the resume content, unclipped */
+@media print {
+  .app-header,
+  .resume-bot__chat-section,
+  .resume-viewer__toolbar,
+  .context-menu {
+    display: none !important;
+  }
+
+  .resume-bot,
+  .resume-bot-container {
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .resume-bot__content,
+  .resume-bot__resume-section {
+    overflow: visible;
+    display: block;
+    box-shadow: none;
+    background-color: transparent;
+  }
+
+  .resume-viewer {
+    display: block;
+    padding: 0;
+  }
+
+  /* On paper the sheet chrome is the paper — drop the card, keep the measure
+   * off so the print margin decides the width. */
+  .resume-viewer__scroll {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .resume-doc__sheet {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Print the full packet (résumé + cover letter), not the toggled view. */
+  .resume-viewer__screen {
+    display: none !important;
+  }
+
+  .resume-viewer__print {
+    display: block;
+  }
+
+  .resume-viewer__pagebreak {
+    break-before: page;
   }
 }
