@@ -3,7 +3,13 @@
    page (@wolffm/themes) and are referenced WITHOUT fallbacks — a fallback
    makes a broken token render as if it worked, which is how five uses of
    `--hdk-font-mono`, a token @wolffm/themes has never defined, went unnoticed
-   here. `pnpm run lint:css` now fails on both. */
+   here. `pnpm run lint:css` now fails on both.
+
+   There is also no [data-theme] branch in this file. Light/dark is the
+   token's job: every colour below resolves through @wolffm/themes, which
+   already carries a per-theme value. A rule keyed on the theme name has to
+   be updated by hand every time the package gains a theme, and silently
+   renders the wrong thing until someone notices. */
 
 /* The host layout (hadoku_site Base.astro) sets `body { overflow: hidden }` for
    full-height micro-frontend apps, so a document-flow page like the builder can
@@ -15,29 +21,12 @@
 }
 
 .rb-builder {
-  /* Tag-facet palette. Light-theme (darker) values by default for legible text
-     on light surfaces; the dark override below swaps in the brighter pastels.
-     --rb-on-facet is the text colour on a FILLED chip and flips with the theme
-     so it always contrasts the fill. */
-  --rb-tech: #1a7f37;
-  --rb-layer: #0969da;
-  --rb-story: #8250df;
-  --rb-plain: #656d76;
-  --rb-on-facet: #ffffff;
-
   box-sizing: border-box;
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 var(--hdk-space-lg) var(--hdk-space-3xl);
   color: var(--color-text);
   font-size: var(--hdk-text-sm);
-}
-[data-theme='dark'] .rb-builder {
-  --rb-tech: #3fb950;
-  --rb-layer: #58a6ff;
-  --rb-story: #bc8cff;
-  --rb-plain: #8b949e;
-  --rb-on-facet: #0d1117;
 }
 .rb-builder *,
 .rb-builder *::before,
@@ -148,8 +137,23 @@
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 999px;
-  border: 1px solid currentcolor;
+  border: 1px solid var(--color-neutral);
+  background: var(--color-neutral);
   flex: none;
+}
+/* The dot carries the facet hue so the label beside it can stay body text —
+   a fill colour is not legible as text on a page surface. */
+.rb-builder__legend-dot--tech {
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+.rb-builder__legend-dot--layer {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+.rb-builder__legend-dot--story {
+  border-color: var(--color-warning);
+  background: var(--color-warning);
 }
 
 /* Shared field styling for inputs / selects / textareas. */
@@ -194,15 +198,20 @@
   padding: var(--hdk-space-sm) 0 var(--hdk-space-md);
 }
 
+/* Facet chips. Each facet borrows one @wolffm/themes family purely as a
+   distinct hue — the meaning is carried by the tag text, not the colour. At
+   rest a chip is the sanctioned tint pair (`-bg` + `on-<f>-bg`); active it is
+   the filled pair (`<f>` + `on-<f>`). Both are contrast-validated by the
+   package, in every theme, which a hand-picked hex pair never was. */
 .rb-tag {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  border: 1px solid var(--rb-plain);
-  color: var(--rb-plain);
-  background: transparent;
+  border: 1px solid var(--color-neutral);
+  background: var(--color-neutral-bg);
+  color: var(--color-on-neutral-bg);
   font-size: var(--hdk-text-xs);
   line-height: 1.5;
   cursor: pointer;
@@ -215,35 +224,40 @@
   background: color-mix(in srgb, currentcolor 15%, transparent);
 }
 .rb-tag--tech {
-  border-color: var(--rb-tech);
-  color: var(--rb-tech);
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+  color: var(--color-on-success-bg);
 }
 .rb-tag--layer {
-  border-color: var(--rb-layer);
-  color: var(--rb-layer);
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+  color: var(--color-on-primary-bg);
 }
 .rb-tag--story {
-  border-color: var(--rb-story);
-  color: var(--rb-story);
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-on-warning-bg);
 }
-/* Active chip: fill with the facet colour, text flips to --rb-on-facet. The
-   fill is set explicitly per facet (not via currentColor, which would resolve
-   to the just-set text colour and make a plain chip invisible). */
+/* Active chip: the family's filled pair. Set explicitly per facet rather than
+   via currentColor, which would resolve to the text colour just set. */
 .rb-tag--active {
-  background: var(--rb-plain);
-  color: var(--rb-on-facet);
+  background: var(--color-neutral);
+  color: var(--color-on-neutral);
 }
 .rb-tag--tech.rb-tag--active {
-  background: var(--rb-tech);
+  background: var(--color-success);
+  color: var(--color-on-success);
 }
 .rb-tag--layer.rb-tag--active {
-  background: var(--rb-layer);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 .rb-tag--story.rb-tag--active {
-  background: var(--rb-story);
+  background: var(--color-warning);
+  color: var(--color-on-warning);
 }
 .rb-tag--active .rb-tag__n {
-  color: var(--rb-on-facet);
+  color: inherit;
 }
 .rb-tag__n {
   opacity: 0.75;
@@ -269,7 +283,7 @@
   box-shadow: var(--hdk-shadow-sm);
 }
 .rb-block--has-feedback {
-  border-left-color: var(--rb-tech);
+  border-left-color: var(--color-success);
 }
 .rb-block--dirty {
   border-left-color: var(--color-warning);
@@ -282,7 +296,7 @@
 }
 .rb-block__id {
   font-family: ui-monospace, monospace;
-  color: var(--rb-layer);
+  color: var(--color-text);
   font-weight: 600;
   word-break: break-all;
 }
@@ -360,7 +374,7 @@
   resize: vertical;
 }
 .rb-block__fb-status {
-  color: var(--rb-tech);
+  color: var(--color-text-secondary);
   font-size: var(--hdk-text-xs);
   white-space: nowrap;
   padding-top: 0.5rem;
