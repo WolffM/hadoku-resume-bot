@@ -17,7 +17,17 @@ export default [
       '**/coverage/**',
       '**/*.test.ts',
       '**/*.test.tsx',
-      '**/vite.config.ts'
+      '**/vite.config.ts',
+      // Git worktrees live here (see the working agreement: every task starts
+      // in `.claude/worktrees/<name>`). They are FULL checkouts of this repo on
+      // another branch. Nothing below matches them TODAY, but only because every
+      // `files:` pattern happens to be anchored at the repo root (`src/**`, `worker/**`) —
+      // a side effect, not a decision. Broaden one to `**/*.ts` and eslint walks
+      // each worktree and type-checks a sibling branch against THIS tsconfig,
+      // which does not include it: a wall of `parserOptions.project` parse errors
+      // naming neither tree. Six repos in the fleet have hit that. This is here so
+      // it cannot come back silently.
+      '**/.claude/worktrees/**'
     ]
   },
 
