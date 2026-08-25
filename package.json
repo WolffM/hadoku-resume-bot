@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "3.5.0",
+  "version": "3.5.17",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
@@ -37,7 +37,7 @@
     "lint:css": "stylelint \"src/**/*.css\" && node node_modules/@wolffm/themes/scripts/check-usage.mjs ./src",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "prepare": "husky"
+    "prepare": "node scripts/install-hooks.mjs"
   },
   "peerDependencies": {
     "@wolffm/logger": ">=1.3.2",
@@ -62,7 +62,6 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
-    "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

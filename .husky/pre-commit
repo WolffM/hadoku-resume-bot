@@ -1,4 +1,27 @@
 #!/bin/sh
+# Invoked directly by git (core.hooksPath=.husky), not through husky's generated
+# .husky/_ shim — see scripts/install-hooks.mjs for why that shim made worktrees
+# skip this hook silently. The two things the shim used to do are here instead:
+# the HUSKY=0 escape hatch, and making sure the toolchain is reachable.
+[ "${HUSKY-}" = "0" ] && exit 0
+
+# A fresh worktree has no node_modules, and every gate below needs one. pnpm's
+# node_modules is a symlink farm rooted in the checkout's own .pnpm store, so a
+# worktree can borrow the main checkout's: same repo, and in the normal case the
+# same dependency set. When the branch DOES change dependencies the gate fails
+# loudly on the missing package and `pnpm install` here fixes it — which is the
+# outcome we want, rather than skipping the checks.
+if [ ! -e node_modules ]; then
+  main_checkout=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+  if [ "$main_checkout" != "$PWD" ] && [ -d "$main_checkout/node_modules" ]; then
+    echo "🔗 No node_modules in this worktree — linking $main_checkout/node_modules"
+    ln -s "$main_checkout/node_modules" node_modules
+  else
+    echo "❌ No node_modules — run 'pnpm install' before committing."
+    exit 1
+  fi
+fi
+
 echo "🔍 Running pre-commit checks..."
 
 # Get list of staged files
@@ -35,7 +58,7 @@ echo "📦 Checking if version bump is needed..."
 # BUMP=major|minor|patch|none overrides the default. Unset means `auto`: bump the
 # patch, rolling over to the next minor at .20. `auto` cannot reach a major, so a
 # breaking release needs either BUMP=major or a `feat!:`/`BREAKING CHANGE:` commit
-# message, which .husky/prepare-commit-msg upgrades automatically.
+# message, which .husky/post-commit levels up after the fact.
 bump_level=$(printf '%s' "${BUMP:-auto}" | tr '[:upper:]' '[:lower:]')
 case "$bump_level" in
   major|minor|patch|auto|none) ;;
