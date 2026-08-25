@@ -92,6 +92,15 @@
   box-shadow: var(--hdk-shadow-sm);
 }
 
+/* The chat bubble and its scrim exist at every width but are the mobile
+ * layout's alone: both are display:none here and switched on inside the
+ * max-width: 720px block, so the wide two-column layout renders exactly as it
+ * did before any of this existed. */
+.resume-bot__chat-fab,
+.resume-bot__chat-scrim {
+  display: none;
+}
+
 /* Chat Interface */
 .chat-interface {
   display: flex;
@@ -857,6 +866,76 @@
     padding: 1rem;
   }
 
+  /* Phone layout: the chat stops being a pane in the flow and becomes an
+   * off-canvas panel behind a bubble, so the résumé gets the whole screen. */
+  .resume-bot__resume-section {
+    min-height: 0;
+  }
+
+  .resume-bot__chat-section {
+    position: fixed;
+    z-index: 1100;
+    top: 0.75rem;
+    right: 0.75rem;
+    /* Stops above the bubble, which stays on top as the close control. */
+    bottom: 5rem;
+    /* Anchored to the right rather than stretched edge to edge: on a phone the
+     * cap is never reached and the panel is effectively full-bleed, while at the
+     * top of the range it reads as the side panel it is — and leaves enough of
+     * the résumé showing to be worth tapping to dismiss. */
+    width: min(calc(100% - 1.5rem), 26rem);
+    height: auto;
+    box-shadow: var(--hdk-shadow-md);
+    transform: translateX(calc(100% + 1.5rem));
+    /* Not merely translated away: a hidden panel must not be focusable, and the
+     * chat input focuses itself whenever a request settles. The delayed
+     * visibility switch lets the slide-out finish before it applies. */
+    visibility: hidden;
+    transition:
+      transform 0.25s ease,
+      visibility 0s linear 0.25s;
+  }
+
+  .resume-bot__chat-section--open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+
+  .resume-bot__chat-scrim--open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    padding: 0;
+    border: none;
+    background-color: rgb(0 0 0 / 35%);
+  }
+
+  .resume-bot__chat-fab {
+    display: flex;
+    position: fixed;
+    z-index: 1200;
+    right: 1rem;
+    bottom: 1rem;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+    box-shadow: var(--hdk-shadow-md);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .resume-bot__chat-fab:active {
+    transform: scale(0.94);
+  }
+
   .resume-viewer__scroll {
     padding: 1rem 0.5rem 2rem;
   }
@@ -882,6 +961,8 @@
 @media print {
   .app-header,
   .resume-bot__chat-section,
+  .resume-bot__chat-fab,
+  .resume-bot__chat-scrim,
   .resume-viewer__toolbar,
   .context-menu {
     display: none !important;
