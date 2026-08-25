@@ -27,9 +27,9 @@ export default defineConfig({
       // src/layouts/Base.astro). Each of these is a SINGLETON: React and the
       // theme context match on module identity, and prefs-client and the logger
       // each hold their own cache. Inlining one gives the page a second copy
-      // that the first never talks to — which is how aggregator and printtool
-      // threw "No <HadokuThemeRoot> above this component" on 2026-08-05 with
-      // the provider plainly mounted.
+      // that the first never talks to — which is how aggregator and craft
+      // (named printtool until 2026-08-25) threw "No <HadokuThemeRoot> above
+      // this component" on 2026-08-05 with the provider plainly mounted.
       // Enforced by hadoku_site's check:mf-externals.
       external: [
         'react',

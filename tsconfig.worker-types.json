@@ -1,5 +1,5 @@
 {
-  "//": "Declaration-only build for the ./api (worker) entry. The worker's JS is bundled by worker/vite.config.ts into the flat dist/worker.js. Declarations go to dist/worker/ (a directory) rather than a flat dist/worker.d.ts because tsc emits one .d.ts per source file and cannot merge them without a bundler; the exports `types` condition points at dist/worker/index.d.ts while `default` stays dist/worker.js — those two paths do not have to share a directory. Mirrors the same file in @wolffm/hadoku-printtool.",
+  "//": "Declaration-only build for the ./api (worker) entry. The worker's JS is bundled by worker/vite.config.ts into the flat dist/worker.js. Declarations go to dist/worker/ (a directory) rather than a flat dist/worker.d.ts because tsc emits one .d.ts per source file and cannot merge them without a bundler; the exports `types` condition points at dist/worker/index.d.ts while `default` stays dist/worker.js — those two paths do not have to share a directory. Mirrors the same file in @wolffm/hadoku-craft.",
   "extends": "./worker/tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
