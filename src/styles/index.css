@@ -343,7 +343,7 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding: 0.625rem 1rem;
   background-color: var(--color-bg-card);
   border-bottom: 1px solid var(--color-border);
@@ -356,11 +356,12 @@
   padding: 1.5rem 1rem 2.5rem;
 }
 
-/* Résumé / cover-letter toggle sits at the far left; downloads stay right. */
+/* Toggle and downloads both sit at the left of the header row; only the
+ * scheduling call to action is pushed to the far right. */
 .resume-viewer__toggle {
   display: flex;
   gap: 0.25rem;
-  margin-right: auto;
+  margin-right: 0.5rem;
 }
 
 .resume-viewer__downloads {
@@ -419,6 +420,31 @@
 .resume-viewer__download-button:hover {
   background-color: var(--color-primary);
   color: var(--color-bg);
+}
+
+/* The one call to action in the toolbar, so it carries the accent rather than
+ * the quiet outline the download buttons share, and holds the opposite end of
+ * the row from them. */
+.resume-viewer__schedule-button {
+  margin-left: auto;
+  display: inline-block;
+  line-height: 1.4;
+  text-decoration: none;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-primary);
+  color: var(--color-bg);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--hdk-radius);
+  font-size: var(--hdk-text-sm);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.resume-viewer__schedule-button:hover {
+  background-color: var(--color-bg);
+  color: var(--color-primary);
 }
 
 /* Context Menu */

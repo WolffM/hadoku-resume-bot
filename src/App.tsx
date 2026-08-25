@@ -66,7 +66,11 @@ function AppInner(props: ResumeBotAppProps & { containerRef: RefObject<HTMLDivEl
                 </div>
               }
             >
-              <ResumeViewer onAskAbout={handleAskAbout} ownerName={props.ownerName} />
+              <ResumeViewer
+                onAskAbout={handleAskAbout}
+                ownerName={props.ownerName}
+                contactUrl={props.contactUrl}
+              />
             </Suspense>
           </div>
           <div className="resume-bot__chat-section">
