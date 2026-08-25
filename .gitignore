@@ -1,5 +1,6 @@
-# Dependencies
-node_modules/
+# Dependencies. No trailing slash on purpose: a worktree borrows the main
+# checkout's install as a symlink, which `node_modules/` would not match.
+node_modules
 
 # Build outputs
 dist/
