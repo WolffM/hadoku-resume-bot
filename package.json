@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "3.5.18",
+  "version": "3.5.19",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
@@ -54,7 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
     "@vitejs/plugin-react": "^5.1.0",
-    "@wolffm/logger": "^1.3.2",
+    "@wolffm/logger": "^1.3.3",
     "@wolffm/task-ui-components": "^4.7.3",
     "@wolffm/themes": "^5.7.8",
     "eslint": "^9.39.1",
@@ -72,7 +72,7 @@
     "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
-    "@wolffm/prefs-client": "^1.0.8",
+    "@wolffm/prefs-client": "^1.0.9",
     "@wolffm/worker-utils": "^1.5.8",
     "hono": "^4.11.4",
     "openai": "^6.21.0",
