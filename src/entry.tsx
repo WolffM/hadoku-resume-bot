@@ -16,6 +16,10 @@ export interface ResumeBotAppProps {
   // Endpoints are appended directly: ${apiBaseUrl}/chat, ${apiBaseUrl}/resume.
   apiBaseUrl: string
   ownerName?: string // Name shown in chat welcome message (default: 'the candidate')
+  // Where the toolbar's "Schedule a Meeting" button points. Defaults to the
+  // host site's own /contact/ page, which is where the widget's deployment
+  // (hadoku.me/resume) keeps its scheduling form.
+  contactUrl?: string
 }
 
 // Extend HTMLElement to include __root property

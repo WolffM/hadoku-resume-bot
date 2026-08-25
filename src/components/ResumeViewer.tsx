@@ -6,7 +6,14 @@ import { ResumeDocument } from './ResumeDocument'
 interface ResumeViewerProps {
   onAskAbout: (text: string) => void
   ownerName?: string
+  /** Target of the toolbar's "Schedule a Meeting" button. */
+  contactUrl?: string
 }
+
+/** Site-relative by default: the widget is a micro-frontend of the site that
+ *  owns the scheduling page, so /contact/ resolves against whatever host it is
+ *  mounted on rather than pinning the package to one domain. */
+const DEFAULT_CONTACT_URL = '/contact/'
 
 /** Download filename stem: "Matthaeus Wolff" → "matthaeus-wolff-resume". Must
  *  stay in sync with the worker's /resume.pdf Content-Disposition filename. */
@@ -19,7 +26,11 @@ export function resumeFilenameBase(ownerName?: string): string {
   return slug ? `${slug}-resume` : 'resume'
 }
 
-export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProps) {
+export default function ResumeViewer({
+  onAskAbout,
+  ownerName,
+  contactUrl = DEFAULT_CONTACT_URL
+}: ResumeViewerProps) {
   const [packet, setPacket] = useState<ResumePacket | null>(null)
   const [view, setView] = useState<'resume' | 'cover'>('resume')
   const [loading, setLoading] = useState(true)
@@ -225,6 +236,9 @@ export default function ResumeViewer({ onAskAbout, ownerName }: ResumeViewerProp
               .json
             </button>
           </div>
+          <a className="resume-viewer__schedule-button" href={contactUrl}>
+            Schedule a Meeting
+          </a>
         </div>
 
         {/* Only this scrolls, so the toolbar stays put and keeps its own
