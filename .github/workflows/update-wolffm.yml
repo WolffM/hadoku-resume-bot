@@ -55,24 +55,9 @@ jobs:
           # pattern hadoku_site/update-packages.yml already uses.
           token: ${{ secrets.HADOKU_SITE_TOKEN }}
 
-      - uses: actions/setup-node@v6
+      - uses: WolffM/hadoku-actions/setup-pnpm@v1
         with:
-          node-version: '22'
-
-      # pnpm via corepack, pinned by the `packageManager` field in package.json.
-      # Replaces pnpm/action-setup, whose self-installer intermittently died on
-      # this self-hosted runner with `ENOENT ... uv_cwd` (cwd removed mid-install).
-      # No pnpm cache needed: the store is already warm on the persistent runner.
-      - name: Enable pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.5.0 --activate
-          pnpm --version
-
-      - name: Configure .npmrc for GitHub Packages
-        run: |
-          echo "@wolffm:registry=https://npm.pkg.github.com" > .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.HADOKU_NPM_READ_TOKEN }}" >> .npmrc
+          npm-token: ${{ secrets.HADOKU_NPM_READ_TOKEN }}
 
       - name: Update @wolffm/* to latest (majors included)
         env:
