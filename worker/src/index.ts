@@ -48,7 +48,8 @@ interface ResumeEnv {
   GROQ_API_KEY: string
   /** Cerebras API key — the primary free-tier provider. Optional: absent → Groq-only. */
   CEREBRAS_API_KEY?: string
-  RESUME_SYSTEM_PROMPT: string
+  /** Legacy fallback for the system prompt; CONTENT_KV `resume:prompt` wins. */
+  RESUME_SYSTEM_PROMPT?: string
   /**
    * Shared secret proving a request arrived via edge-router. The edge strips any
    * client-supplied X-Edge-Auth/X-Hadoku-Tier and stamps its own, so a valid
