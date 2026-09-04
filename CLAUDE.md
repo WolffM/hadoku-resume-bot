@@ -18,9 +18,17 @@ Both ship in `dist/` via `pnpm build` (runs two vite builds + tsc).
 
 ## Worker API bindings (Cloudflare)
 
-`GROQ_API_KEY`, `RESUME_SYSTEM_PROMPT`, `RATE_LIMIT_KV`, `CONTENT_KV`
+`GROQ_API_KEY`, `RATE_LIMIT_KV`, `CONTENT_KV`
 
 These are Cloudflare Worker bindings configured in hadoku_site's wrangler config, not .env vars.
+
+`RESUME_SYSTEM_PROMPT` is NOT in that list any more. Since 3.8.0 the system
+prompt is read from `CONTENT_KV` under `resume:prompt` — it is content, not a
+credential, and `/system-prompt` already serves it verbatim to friend tier. The
+secret is still honoured as a fallback, but hadoku_site deleted it from the
+worker on 2026-09-03, so nothing sets it. Being the one piece of resume content
+NOT in KV is what kept a forbidden `.env` file and a raw `wrangler secret put`
+alive downstream.
 
 ## Worker API endpoints
 
