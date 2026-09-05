@@ -170,4 +170,3 @@ jobs:
           job-name: hadoku-resume-bot:update-wolffm
           service-key: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
           started-at: ${{ env.RUN_STARTED_AT }}
-          error-message: auto-update run failed — $RUN_URL
