@@ -462,8 +462,8 @@ packages:
       hono: '>=4.10.0'
       zod: ^4.0.0
 
-  '@hono/zod-validator@0.9.0':
-    resolution: {integrity: sha512-n0ZSXmCiHVIp4Y5wlOOyZCeTd/rsawA/qW1cipB8QOYKZ9N8Tk0nZUZCXho9cu374AN4JpDNKioNKBJ/W+LBug==}
+  '@hono/zod-validator@0.9.1':
+    resolution: {integrity: sha512-iiv6w0qrIc0arfvCtUqBWsvl4fXjzaTcQcCJTTtCnkawF9HHGE+KjEl0ox3gQJ6rKZEgE3mLExlQCF72M+mNuw==}
     peerDependencies:
       hono: '>=4.11.2'
       zod: ^3.25.0 || ^4.0.0
@@ -2960,12 +2960,12 @@ snapshots:
   '@hono/zod-openapi@1.6.1(hono@4.12.8)(zod@4.1.12)':
     dependencies:
       '@asteasolutions/zod-to-openapi': 9.1.0(zod@4.1.12)
-      '@hono/zod-validator': 0.9.0(hono@4.12.8)(zod@4.1.12)
+      '@hono/zod-validator': 0.9.1(hono@4.12.8)(zod@4.1.12)
       hono: 4.12.8
       openapi3-ts: 4.6.1
       zod: 4.1.12
 
-  '@hono/zod-validator@0.9.0(hono@4.12.8)(zod@4.1.12)':
+  '@hono/zod-validator@0.9.1(hono@4.12.8)(zod@4.1.12)':
     dependencies:
       hono: 4.12.8
       zod: 4.1.12
