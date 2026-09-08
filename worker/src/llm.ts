@@ -1,5 +1,35 @@
 import OpenAI from 'openai'
-import { LLM_CONFIG, LLM_PROVIDERS } from './constants.js'
+import { LLM_CONFIG, LLM_PROVIDERS, MIN_ATTEMPT_MS } from './constants.js'
+
+/**
+ * Options for one completion. `deadline` is the important one: it is an epoch
+ * ms after which no further attempt may START, and it is what keeps a request
+ * that fans out across providers and retries inside the edge's 120s patience.
+ */
+export interface CompletionOptions {
+  maxTokens?: number
+  temperature?: number
+  /** Epoch ms. Attempts stop once there is not a real attempt's worth left. */
+  deadline?: number
+}
+
+/**
+ * Thrown when the budget is spent. Distinct from a provider error on purpose:
+ * falling over to the NEXT provider is the right move for a provider failure
+ * and exactly the wrong one here, because the clock is shared. sendChatCompletion
+ * rethrows this instead of continuing down the chain.
+ */
+export class DeadlineExceededError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DeadlineExceededError'
+  }
+}
+
+/** Milliseconds left, or Infinity when the caller set no deadline. */
+function remainingMs(deadline?: number): number {
+  return deadline === undefined ? Number.POSITIVE_INFINITY : deadline - Date.now()
+}
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -123,17 +153,32 @@ function retryAfterMs(err: unknown): number | null {
 async function callProvider(
   provider: LLMProvider,
   messages: ChatMessage[],
-  options: { maxTokens?: number; temperature?: number } | undefined,
+  options: CompletionOptions | undefined,
   retryOnRateLimit: boolean
 ): Promise<ChatResponse> {
   for (let attempt = 0; ; attempt++) {
+    // Never START an attempt that cannot finish. Without this the per-attempt
+    // timeout is the only bound, and three sequential completions each allowed
+    // their own full timeout is how the variants mint reached 100s.
+    const left = remainingMs(options?.deadline)
+    if (left < MIN_ATTEMPT_MS) {
+      throw new DeadlineExceededError(
+        `budget spent before ${provider.name} attempt ${attempt + 1} (${Math.round(left)}ms left)`
+      )
+    }
     try {
-      const response = await provider.client.chat.completions.create({
-        model: provider.model,
-        messages,
-        temperature: options?.temperature ?? LLM_CONFIG.TEMPERATURE,
-        max_tokens: options?.maxTokens ?? LLM_CONFIG.MAX_TOKENS
-      })
+      const response = await provider.client.chat.completions.create(
+        {
+          model: provider.model,
+          messages,
+          temperature: options?.temperature ?? LLM_CONFIG.TEMPERATURE,
+          max_tokens: options?.maxTokens ?? LLM_CONFIG.MAX_TOKENS
+        },
+        // Whichever is tighter: the per-attempt ceiling, or all the time this
+        // request has left. The client-level default already caps the former;
+        // this narrows it as the shared budget drains.
+        { timeout: Math.min(REQUEST_TIMEOUT_MS, left) }
+      )
       const choice = response.choices[0]
       if (!choice || !choice.message?.content) {
         throw new Error('No response from LLM')
@@ -149,8 +194,13 @@ async function callProvider(
           : undefined
       }
     } catch (err) {
+      if (err instanceof DeadlineExceededError) throw err
       const waitMs = retryOnRateLimit ? retryAfterMs(err) : null
       if (waitMs === null || attempt >= MAX_RATE_LIMIT_RETRIES) throw err
+      // Sleeping is only worth it if the sleep AND the attempt after it both
+      // fit. Otherwise we would burn the caller's remaining budget on a wait
+      // whose retry we already know we will refuse to start.
+      if (remainingMs(options?.deadline) < waitMs + MIN_ATTEMPT_MS) throw err
       await new Promise(resolve => setTimeout(resolve, waitMs))
     }
   }
@@ -165,10 +215,10 @@ async function callProvider(
 export async function sendChatCompletion(
   chain: LLMChain,
   messages: ChatMessage[],
-  options?: { maxTokens?: number; temperature?: number }
+  options?: CompletionOptions
 ): Promise<ChatResponse> {
   if (chain.length === 0) {
-    throw new Error('No LLM providers configured (set NEBIUS_API_KEY and/or GROQ_API_KEY)')
+    throw new Error('No LLM providers configured (set CEREBRAS_API_KEY and/or GROQ_API_KEY)')
   }
   let lastErr: unknown
   for (let i = 0; i < chain.length; i++) {
@@ -177,6 +227,10 @@ export async function sendChatCompletion(
       return await callProvider(chain[i], messages, options, isLast)
     } catch (err) {
       lastErr = err
+      // A spent budget is not a provider problem, so the next provider cannot
+      // help: the clock is shared and it is already out. Falling over here
+      // would spend the caller's last milliseconds re-failing.
+      if (err instanceof DeadlineExceededError) throw err
       if (isLast) throw err
       // Otherwise fall over to the next free provider.
     }

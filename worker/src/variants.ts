@@ -4,6 +4,7 @@ import { getAllBlocks, type ResumeBlock } from './blocks.js'
 import { assembleResume, projectsAnchorText, restoreProjectsAnchor } from './skeleton.js'
 import { generateTailoredResume } from './tailored-resume.js'
 import { generateCoverLetter } from './cover-letter.js'
+import { OPERATION_BUDGET_MS } from './constants.js'
 
 const VARIANT_PREFIX = 'resume:variant:'
 
@@ -108,25 +109,57 @@ export async function mintVariant(
     }
     variant.block_ids = req.block_ids
   } else if (req.job_title && req.company && req.description) {
-    const tailored = await generateTailoredResume(client, kv, {
-      job_title: req.job_title,
-      company: req.company,
-      description: req.description,
-      profile_type: req.profile_type,
-      tailor: req.tailor
-    })
+    // ONE budget for the whole mint, not one per call. This is the only path
+    // that runs three sequential completions (selection, rewrite, cover letter)
+    // and it is the slowest thing this worker does: 100,042ms measured on
+    // 2026-08-22, against an edge that gives up at 120s. Giving each call its
+    // own fresh budget is what let three of them stack past the timeout.
+    const deadline = Date.now() + OPERATION_BUDGET_MS
+
+    const tailored = await generateTailoredResume(
+      client,
+      kv,
+      {
+        job_title: req.job_title,
+        company: req.company,
+        description: req.description,
+        profile_type: req.profile_type,
+        tailor: req.tailor
+      },
+      deadline
+    )
     variant.markdown = tailored.resume_markdown
     variant.block_ids = tailored.blocks_used
 
     // Deliver a matching cover letter as part of the packet unless opted out or
     // one was supplied pre-rendered (handled below).
+    //
+    // Best-effort, and that is a FIX, not a shortcut. This used to throw
+    // straight out of mintVariant, so a cover letter that failed took the
+    // finished résumé down with it and the whole mint 400'd — observed
+    // 2026-08-21 at 58,150ms, where the caller waited nearly a minute to
+    // receive nothing despite the résumé having already succeeded. A packet
+    // with a résumé and no letter is strictly better than no packet, and the
+    // absence of cover_letter_markdown in the response is the signal that it
+    // happened.
     if (req.cover_letter !== false && !req.cover_letter_markdown) {
-      const letter = await generateCoverLetter(client, kv, tailored.resume_markdown, {
-        job_title: req.job_title,
-        company: req.company,
-        description: req.description
-      })
-      variant.cover_letter_markdown = letter.cover_letter_markdown
+      try {
+        const letter = await generateCoverLetter(
+          client,
+          kv,
+          tailored.resume_markdown,
+          {
+            job_title: req.job_title,
+            company: req.company,
+            description: req.description
+          },
+          deadline
+        )
+        variant.cover_letter_markdown = letter.cover_letter_markdown
+      } catch {
+        // Ship the résumé alone. Nothing to clean up: the letter is a field on
+        // the variant, so leaving it unset IS the degraded state.
+      }
     }
   } else {
     throw new Error(

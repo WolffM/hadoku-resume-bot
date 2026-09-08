@@ -75,3 +75,33 @@ export const COVER_LETTER_TOKENS = 2048
 // points. The cover letter pushes output up, so give it headroom; the input is
 // capped in application-extras.ts.
 export const APPLICATION_EXTRAS_TOKENS = 3500
+
+// ---------------------------------------------------------------------------
+// Wall-clock budget for one REQUEST, as opposed to one LLM call.
+//
+// edge-router mounts the LLM routes with `timeout: 120000`. Past that the proxy
+// gives up and the caller gets a proxy error instead of our answer, so anything
+// we are still doing at 120s is work nobody will ever receive.
+//
+// Measured before this existed (30d of edge request logs, 2026-09-07):
+//
+//   POST /resume/api/variants          100,042ms   200
+//   POST /resume/api/variants           98,010ms   200
+//   POST /resume/api/variants           90,277ms   200
+//   POST /resume/api/variants           58,150ms   400  <- lost the résumé too
+//   POST /jobs/{id}/resume              93,135ms   200
+//   POST /jobs/{id}/resume              42,081ms   502
+//
+// The variants mint is the worst because it is the only path that runs THREE
+// sequential completions (block selection, the rewrite, then the cover letter)
+// where /tailored-resume runs two. 100s is 83% of the edge's patience.
+//
+// 100s leaves 20s of headroom for the KV read/write and JSON either side, so a
+// request that blows the budget still returns OUR error rather than the edge's.
+export const OPERATION_BUDGET_MS = 100_000
+
+// The smallest remaining window in which starting another provider attempt is
+// worth it. Measured: a 2.2k-token completion returns in ~1.4s, so 3s is a
+// real attempt rather than a coin flip. Below this we stop instead of starting
+// something we know cannot finish.
+export const MIN_ATTEMPT_MS = 3_000
