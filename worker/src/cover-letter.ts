@@ -2,7 +2,7 @@ import type { KVNamespace } from '@cloudflare/workers-types'
 import { cacheKey } from './blocks.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { normalizeTypography } from './typography.js'
-import { COVER_LETTER_TOKENS } from './constants.js'
+import { COVER_LETTER_TOKENS, OPERATION_BUDGET_MS } from './constants.js'
 import { stripCodeFence } from './tailored-resume.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
@@ -23,7 +23,9 @@ export async function generateCoverLetter(
   client: LLMChain,
   kv: KVNamespace,
   resumeContent: string,
-  req: CoverLetterRequest
+  req: CoverLetterRequest,
+  /** Epoch ms this generation must finish by. See generateTailoredResume. */
+  deadline: number = Date.now() + OPERATION_BUDGET_MS
 ): Promise<CoverLetterResponse> {
   const { job_title, company, description, tone = 'conversational' } = req
 
@@ -58,7 +60,8 @@ Never use em dashes anywhere; use commas, colons, or hyphens instead.
 Return only the cover letter in markdown, no preamble or explanation.`
 
   const response = await sendChatCompletion(client, [{ role: 'user', content: prompt }], {
-    maxTokens: COVER_LETTER_TOKENS
+    maxTokens: COVER_LETTER_TOKENS,
+    deadline
   })
 
   const result: CoverLetterResponse = {

@@ -10,7 +10,12 @@ import {
 } from './skeleton.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { normalizeTypography } from './typography.js'
-import { TAILORED_RESUME_TOKENS, SELECTION_BUDGET } from './constants.js'
+import {
+  TAILORED_RESUME_TOKENS,
+  SELECTION_BUDGET,
+  OPERATION_BUDGET_MS,
+  MIN_ATTEMPT_MS
+} from './constants.js'
 
 const CACHE_TTL_SECONDS = 86400 // 24h
 
@@ -44,7 +49,14 @@ export interface TailoredResumeResponse {
 export async function generateTailoredResume(
   client: LLMChain,
   kv: KVNamespace,
-  req: TailoredResumeRequest
+  req: TailoredResumeRequest,
+  /**
+   * Epoch ms this whole generation must finish by. Defaults to a fresh budget,
+   * which is right for a standalone /tailored-resume call. The variants mint
+   * passes ITS deadline instead, because there the résumé shares one edge
+   * timeout with a cover letter generated afterwards.
+   */
+  deadline: number = Date.now() + OPERATION_BUDGET_MS
 ): Promise<TailoredResumeResponse> {
   const { job_title, company, description, profile_type, tailor = true } = req
 
@@ -129,7 +141,7 @@ Rules:
   const selectionResponse = await sendChatCompletion(
     client,
     [{ role: 'user', content: selectionPrompt }],
-    { maxTokens: TAILORED_RESUME_TOKENS.SELECTION, temperature: 0.1 }
+    { maxTokens: TAILORED_RESUME_TOKENS.SELECTION, temperature: 0.1, deadline }
   )
 
   let selectedIds: string[]
@@ -275,14 +287,24 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
     const jdBudgetTokens = MAX_REQUEST_TOKENS - TAILORED_RESUME_TOKENS.TAILORING - promptOverhead
     const jdChars = Math.floor(jdBudgetTokens * CHARS_PER_TOKEN)
 
-    // A résumé so long the JD gets no meaningful budget means tailoring would
-    // be flying blind — keep the deterministic assembly instead.
-    if (jdChars >= 500) {
+    // Two budgets have to be satisfied before pass 2 is worth starting.
+    //
+    // TOKENS: a résumé so long the JD gets no meaningful slice means tailoring
+    // would be flying blind — keep the deterministic assembly instead.
+    //
+    // TIME: pass 1 may already have eaten the request's clock. Starting the
+    // rewrite anyway is how the variants mint used to reach 100s — it would run
+    // the rewrite, fail on a rate limit, and hand a cover letter a budget that
+    // was gone before it began. Skipping here costs only polish (this whole
+    // block is best-effort by design) and leaves the remaining time to the
+    // caller's next step, which for a packet mint is the cover letter.
+    const timeLeft = deadline - Date.now()
+    if (jdChars >= 500 && timeLeft >= MIN_ATTEMPT_MS) {
       try {
         const tailoredResponse = await sendChatCompletion(
           client,
           [{ role: 'user', content: buildTailoringPrompt(truncate(description, jdChars)) }],
-          { maxTokens: TAILORED_RESUME_TOKENS.TAILORING }
+          { maxTokens: TAILORED_RESUME_TOKENS.TAILORING, deadline }
         )
 
         const tailored = normalizeTypography(stripCodeFence(tailoredResponse.message))
