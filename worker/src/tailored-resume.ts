@@ -74,8 +74,8 @@ export async function generateTailoredResume(
 
   // Pass 1: block selection. Send only enough of each block to judge RELEVANCE
   // (id + type + tags + title + a snippet) — the FULL content is used at
-  // assembly below. The request MUST fit the tightest provider limit (Groq 8k
-  // TPM counts prompt + max_tokens; Cerebras free tier caps context at 8k), and
+  // assembly below. The request MUST fit Groq's 8k TPM, which counts prompt +
+  // max_tokens (a RATE limit, not the model's 131k context), and
   // a 413 here is deterministic — the same palette + JD fails every retry — so
   // the prompt is shrunk to fit before sending: snippets degrade first (tags +
   // title carry most of the routing signal), then the JD slice. This is what

@@ -58,7 +58,6 @@ export type LLMChain = LLMProvider[]
 /** Just the key bindings the chain reads — a subset of the worker env. */
 export interface LLMEnv {
   GROQ_API_KEY?: string
-  CEREBRAS_API_KEY?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -78,19 +77,20 @@ export interface LLMEnv {
 // ---------------------------------------------------------------------------
 
 /**
- * Per-attempt ceiling for a single provider call. gpt-oss-120b emits our largest
- * response (4096 tokens) in roughly 2s on Cerebras and under 10s on Groq, so
- * this is ~2x headroom over the slowest provider. Past that, falling over beats
- * waiting: we have a second provider and a hard 120s ceiling.
+ * Per-attempt ceiling for a single provider call. Groq returns our largest
+ * response (4096 tokens) in under 10s, and a measured 2.2k-token completion in
+ * ~1.4s, so this is roughly 2x headroom. Past that, giving up beats waiting:
+ * OPERATION_BUDGET_MS is the real bound and a stalled attempt only eats into
+ * the work that comes after it.
  */
 const REQUEST_TIMEOUT_MS = 20_000
 
 /**
  * Build the provider chain from whatever keys are configured, in LLM_PROVIDERS
- * order. Every provider serves openai/gpt-oss-120b behind an OpenAI-compatible
- * API, so a request can fall over from one to the next transparently. A provider
- * is included only when its key binding is present, so the chain degrades to
- * whatever is available (e.g. Groq-only if CEREBRAS_API_KEY isn't set yet).
+ * order. Every provider speaks an OpenAI-compatible API, so a request can fall
+ * over from one to the next transparently. A provider is included only when its
+ * key binding is present, so a missing key degrades the chain instead of
+ * breaking it. Today that list is Groq alone — see constants.ts for why.
  */
 export function createLLMClient(env: LLMEnv): LLMChain {
   const chain: LLMChain = []
@@ -218,7 +218,7 @@ export async function sendChatCompletion(
   options?: CompletionOptions
 ): Promise<ChatResponse> {
   if (chain.length === 0) {
-    throw new Error('No LLM providers configured (set CEREBRAS_API_KEY and/or GROQ_API_KEY)')
+    throw new Error('No LLM providers configured (set GROQ_API_KEY)')
   }
   let lastErr: unknown
   for (let i = 0; i < chain.length; i++) {

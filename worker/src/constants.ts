@@ -3,25 +3,30 @@ export const LLM_CONFIG = {
   MAX_TOKENS: 512
 } as const
 
-// The free-tier provider chain, in priority order. Every entry serves
-// openai/gpt-oss-120b behind an OpenAI-compatible API; a call falls over from
-// one to the next (see llm.ts). A provider joins the chain only when its key
-// binding is set, so this list can name providers that aren't configured yet.
+// The free-tier provider chain, in priority order. Every entry must serve an
+// OpenAI-compatible API; a call falls over from one to the next (see llm.ts).
+// A provider joins the chain only when its key binding is set, so this list can
+// name providers that aren't configured yet.
 //
-// Cerebras is primary (free tier: 30k TPM, no card, ~2000 tok/s); Groq is the
-// fallback (8k TPM free) using the key that was already wired. A request that
-// Cerebras rejects — e.g. its free-tier 8k-context cap on a large tailoring
-// prompt — falls over to Groq's full 131k context automatically (see llm.ts).
-// Keeping the whole chain on free tiers means the public /chat endpoint can
-// never run up a bill. Note the model ids differ per provider: Cerebras serves
-// it as `gpt-oss-120b`, Groq as `openai/gpt-oss-120b`.
+// GROQ IS THE ONLY ENTRY, deliberately, and this repo owns that account.
+//
+// Cerebras sat above it from the chain's introduction until 2026-09-09 and was
+// removed rather than left dormant. It never served a single request: the key
+// was not pushed to the worker until 2026-09-06, and once it was, every call
+// returned `402 payment_required` because the free tier is a one-off $5 credit
+// grant, not a recurring allowance, and it had been spent. The chain falls over
+// on ANY provider error, so a primary that failed 100% of the time was
+// completely invisible — the symptom was Groq's usage not dropping. Leaving the
+// entry in place would have kept paying a doomed round-trip before every real
+// call. Re-adding it is a paid decision, not a config line.
+//
+// The single entry keeps the chain machinery dormant rather than exercised:
+// with one provider, sendChatCompletion's fallback loop runs once and Groq is
+// always `isLast`, so it is the provider that honours Retry-After. That is
+// correct, and the machinery stays because adding a second provider must remain
+// a one-line change — this account has been starved by a neighbour once already
+// (watchparty's subtitle recaps, migrating off Groq as of 2026-09-09).
 export const LLM_PROVIDERS = [
-  {
-    name: 'cerebras',
-    envKey: 'CEREBRAS_API_KEY',
-    baseUrl: 'https://api.cerebras.ai/v1',
-    model: 'gpt-oss-120b'
-  },
   {
     name: 'groq',
     envKey: 'GROQ_API_KEY',
@@ -47,9 +52,11 @@ export const TAILORED_RESUME_TOKENS = {
   TAILORING: 4096
 } as const
 
-// Pass-1 selection must fit the tightest provider limit in the chain: Groq's
-// free-tier 8k TPM counts prompt + max_tokens per request, and Cerebras's
-// free tier caps context at 8k. The prompt is shrunk to fit BEFORE sending —
+// Pass-1 selection must fit Groq's free-tier 8k TPM, which counts prompt +
+// max_tokens per request. Note this is a RATE limit, not a context limit —
+// gpt-oss-120b's context is 131k and accepts a far larger prompt happily,
+// then the rate limiter rejects it with a 413. Sizing against the context is
+// the bug this guards. The prompt is shrunk to fit BEFORE sending —
 // snippets first, then the JD slice — because a 413 here is deterministic:
 // the same palette + JD fails every retry. Estimation uses chars/3.4, which
 // overcounts English prose slightly (safe direction) for tag-dense text.

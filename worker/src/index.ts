@@ -44,10 +44,8 @@ import {
 } from './builder.js'
 
 interface ResumeEnv {
-  /** Groq API key — the fallback provider in the free-tier chain. */
+  /** Groq API key — the only provider in the chain. See constants.ts. */
   GROQ_API_KEY: string
-  /** Cerebras API key — the primary free-tier provider. Optional: absent → Groq-only. */
-  CEREBRAS_API_KEY?: string
   /** Legacy fallback for the system prompt; CONTENT_KV `resume:prompt` wins. */
   RESUME_SYSTEM_PROMPT?: string
   /**
