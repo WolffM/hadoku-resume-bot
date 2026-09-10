@@ -76,7 +76,11 @@ function AppInner(props: ResumeBotAppProps & { containerRef: RefObject<HTMLDivEl
       data-dark-theme={isDarkTheme ? 'true' : 'false'}
     >
       <div className="resume-bot">
-        <AppHeader title="Resume" />
+        {/* DERIVED, never written here: `appName` is the platform's answer from
+            spec/categories.json (registry props -> mount), and __HADOKU_APP_NAME__ is
+            the standalone fallback vite fills in from @wolffm/catalogue. Do not put a
+            string back. */}
+        <AppHeader title={props.appName ?? __HADOKU_APP_NAME__} />
 
         <main className="resume-bot__content">
           <div className="resume-bot__resume-section">

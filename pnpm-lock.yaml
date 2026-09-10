@@ -60,6 +60,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^5.1.0
         version: 5.1.1(vite@7.2.2(yaml@2.9.0))
+      '@wolffm/catalogue':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@wolffm/logger':
         specifier: ^1.4.1
         version: 1.4.1
@@ -854,6 +857,10 @@ packages:
 
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
+
+  '@wolffm/catalogue@1.0.0':
+    resolution: {integrity: sha512-C7APPvTe7Lr5J8NJh6YktwhTDJFq99g2HZZBe39KKckHZLqDee4EkCJ0rAGe42CEj39tjW5xRyjkX6Sa7IHtUw==, tarball: https://npm.pkg.github.com/download/@wolffm/catalogue/1.0.0/17516b6f494556bc5b9a90ea08c61f51ad4d7ac3}
+    engines: {node: '>=18'}
 
   '@wolffm/logger@1.4.0':
     resolution: {integrity: sha512-JH84fEmaA/z0mC2UQcXupFoki9+u9cR6BIuD5aY6sV/KuYTLGdzX7BigzKCQ30jyRzi9WNRlIa/NEPcOh9uZYw==, tarball: https://npm.pkg.github.com/download/@wolffm/logger/1.4.0/975f8189fd42dcbc1d5bcf7be3d2c80bb5344043}
@@ -3383,6 +3390,8 @@ snapshots:
       typescript: 5.9.3
 
   '@vue/shared@3.5.30': {}
+
+  '@wolffm/catalogue@1.0.0': {}
 
   '@wolffm/logger@1.4.0': {}
 
