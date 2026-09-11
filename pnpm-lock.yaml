@@ -61,8 +61,8 @@ importers:
         specifier: ^5.1.0
         version: 5.1.1(vite@7.2.2(yaml@2.9.0))
       '@wolffm/catalogue':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@wolffm/logger':
         specifier: ^1.4.1
         version: 1.4.1
@@ -458,8 +458,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@hono/zod-openapi@1.6.2':
-    resolution: {integrity: sha512-ktnBqVgvIlopiiB9ab6hqoYefhcb0DUZU5QJ1F5UtDu8w6+cIORENz93sTZT6G0mQNes0/TbbadfrOpdehioPA==}
+  '@hono/zod-openapi@1.6.3':
+    resolution: {integrity: sha512-VYR82Y60plu8g3pN60OUXMVKpmxh3R04Qs++3DY9vtwZ9/sA/BRY0PcRIR+Z37/3itWtM7pYwT9bKiH9JhqV6Q==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       hono: '>=4.10.0'
@@ -858,8 +858,8 @@ packages:
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
 
-  '@wolffm/catalogue@1.0.0':
-    resolution: {integrity: sha512-C7APPvTe7Lr5J8NJh6YktwhTDJFq99g2HZZBe39KKckHZLqDee4EkCJ0rAGe42CEj39tjW5xRyjkX6Sa7IHtUw==, tarball: https://npm.pkg.github.com/download/@wolffm/catalogue/1.0.0/17516b6f494556bc5b9a90ea08c61f51ad4d7ac3}
+  '@wolffm/catalogue@1.0.1':
+    resolution: {integrity: sha512-KaTfuei9qiygQHBtI8TzBOT60HlTFFRmhKyRY/6aQsJWtdfQtlBqERmkFQR3BRXQ8d28IJPDQ7NpKcpaTqzrWA==, tarball: https://npm.pkg.github.com/download/@wolffm/catalogue/1.0.1/35c4ff454baafb497b91a3c9fac6b250a3e099bb}
     engines: {node: '>=18'}
 
   '@wolffm/logger@1.4.0':
@@ -2964,7 +2964,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@hono/zod-openapi@1.6.2(hono@4.12.8)(zod@4.1.12)':
+  '@hono/zod-openapi@1.6.3(hono@4.12.8)(zod@4.1.12)':
     dependencies:
       '@asteasolutions/zod-to-openapi': 9.1.0(zod@4.1.12)
       '@hono/zod-validator': 0.9.1(hono@4.12.8)(zod@4.1.12)
@@ -3391,7 +3391,7 @@ snapshots:
 
   '@vue/shared@3.5.30': {}
 
-  '@wolffm/catalogue@1.0.0': {}
+  '@wolffm/catalogue@1.0.1': {}
 
   '@wolffm/logger@1.4.0': {}
 
@@ -3415,7 +3415,7 @@ snapshots:
 
   '@wolffm/worker-utils@1.5.12(zod@4.1.12)':
     dependencies:
-      '@hono/zod-openapi': 1.6.2(hono@4.12.8)(zod@4.1.12)
+      '@hono/zod-openapi': 1.6.3(hono@4.12.8)(zod@4.1.12)
       '@wolffm/logger': 1.4.0
       hono: 4.12.8
     transitivePeerDependencies:
