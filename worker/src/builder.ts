@@ -88,7 +88,7 @@ async function getIndex(kv: KVNamespace): Promise<string[]> {
  * by block — so a plain edit would otherwise serve stale output for 24h.
  */
 async function bustDerivedCaches(kv: KVNamespace): Promise<void> {
-  for (const prefix of ['resume:tailored:', 'resume:coverletter:']) {
+  for (const prefix of ['resume:tailored:', 'resume:coverletter:', 'resume:extras:']) {
     let cursor: string | undefined
     do {
       const page = await kv.list({ prefix, cursor })
@@ -119,7 +119,14 @@ export async function deleteBlock(kv: KVNamespace, id: string): Promise<boolean>
   return true
 }
 
-/** Replace the render order. `ids` must be a permutation of the current index. */
+/**
+ * Replace the render order. `ids` must be a permutation of the current index.
+ *
+ * Busts the derived caches like the other two writers: order decides what the
+ * résumé actually reads like, so a reorder changes the generated output even
+ * though no block's content moved. It did not bust before, which only went
+ * unnoticed because the 24h TTL swept everything overnight anyway.
+ */
 export async function reorderBlocks(kv: KVNamespace, ids: string[]): Promise<void> {
   const current = await getIndex(kv)
   const currentSet = new Set(current)
@@ -128,6 +135,7 @@ export async function reorderBlocks(kv: KVNamespace, ids: string[]): Promise<voi
     throw new Error('reorder must be a permutation of the existing block ids')
   }
   await kv.put(INDEX_KEY, JSON.stringify(ids))
+  await bustDerivedCaches(kv)
 }
 
 export async function getFeedback(kv: KVNamespace): Promise<BlockFeedback> {

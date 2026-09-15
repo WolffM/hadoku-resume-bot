@@ -17,7 +17,23 @@ import {
   MIN_ATTEMPT_MS
 } from './constants.js'
 
-const CACHE_TTL_SECONDS = 86400 // 24h
+/**
+ * How long a generation survives.
+ *
+ * Thirty days, not twenty-four hours. The key is CONTENT-ADDRESSED — a hash of
+ * the job title, company and description — so a posting whose text changes gets
+ * a different key on its own, and a block edit calls `bustDerivedCaches`, which
+ * deletes these outright. Expiry was therefore protecting against nothing that
+ * was not already covered, while guaranteeing that every posting regenerated
+ * from scratch each night.
+ *
+ * That was not free. Groq's free tier allows 200,000 tokens per DAY and a
+ * résumé costs ~5.3k, so the nightly re-burn was spending the budget on output
+ * identical to yesterday's — and on 2026-09-14 it ran the account dry mid-drain
+ * (`429 ... Used 196691`), which surfaced as a 502 and parked those rows at
+ * needs_manual.
+ */
+const CACHE_TTL_SECONDS = 2592000 // 30 days
 
 /**
  * LLMs sometimes wrap their entire response in a ```` ```markdown … ``` ```` code
@@ -60,7 +76,20 @@ export async function generateTailoredResume(
 ): Promise<TailoredResumeResponse> {
   const { job_title, company, description, profile_type, tailor = true } = req
 
-  const key = await cacheKey('resume:tailored', job_title, company, description)
+  // `profile_type` and `tailor` CHANGE THE OUTPUT and so belong in the key.
+  // They were read from the request and left out of it, so two calls differing
+  // only by those collided and the second was served the first's résumé — a
+  // tailored one handed to a caller that asked for the canonical, or an ML
+  // profile's selection handed to a platform one. Nothing sends them today,
+  // which is the only reason it has not bitten.
+  const key = await cacheKey(
+    'resume:tailored',
+    job_title,
+    company,
+    description,
+    profile_type ?? '',
+    tailor ? 'tailored' : 'canonical'
+  )
   const hit = await kv.get(key)
   if (hit) {
     const result = JSON.parse(hit) as TailoredResumeResponse

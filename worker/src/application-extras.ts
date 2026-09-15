@@ -6,7 +6,8 @@ import { normalizeTypography } from './typography.js'
 import { APPLICATION_EXTRAS_TOKENS } from './constants.js'
 import { getContactProfile, renderStandardFields, type ContactProfile } from './contact.js'
 
-const CACHE_TTL_SECONDS = 86400 // 24h
+// See tailored-resume.ts for why this is 30 days and not 24 hours.
+const CACHE_TTL_SECONDS = 2592000 // 30 days
 
 export interface ApplicationExtrasRequest {
   job_title: string
