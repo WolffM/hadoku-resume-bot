@@ -59,6 +59,7 @@ export type LLMChain = LLMProvider[]
 export interface LLMEnv {
   GROQ_API_KEY?: string
   GEMINI_API_KEY?: string
+  GEMINI_API_KEY_2?: string
 }
 
 // ---------------------------------------------------------------------------

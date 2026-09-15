@@ -69,6 +69,19 @@ export const LLM_PROVIDERS = [
     envKey: 'GEMINI_API_KEY',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
     model: 'gemini-3.8-flash'
+  },
+  {
+    // A SECOND Gemini key, and the only reason it is worth a slot is that free
+    // quota is metered per PROJECT. Two keys from different Google accounts are
+    // two independent allowances; two keys from the SAME account share one and
+    // this entry buys nothing but a wasted round-trip when the first is spent.
+    //
+    // Same base URL and model as above on purpose — this is not a different
+    // provider, it is more of the same one. Named for what it is.
+    name: 'gemini-2',
+    envKey: 'GEMINI_API_KEY_2',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+    model: 'gemini-3.8-flash'
   }
 ] as const
 
