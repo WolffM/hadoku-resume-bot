@@ -8,7 +8,29 @@ export const LLM_CONFIG = {
 // A provider joins the chain only when its key binding is set, so this list can
 // name providers that aren't configured yet.
 //
-// GROQ IS THE ONLY ENTRY, deliberately, and this repo owns that account.
+// ORDER IS GROQ, THEN GEMINI, and the fallback is what makes the pair work.
+// sendChatCompletion falls over to the NEXT provider on a 429 rather than
+// waiting, so a Groq refusal costs one round-trip instead of a dead request.
+//
+// That matters because Groq cannot serve us cleanly at all. Its free tier caps
+// 8,000 tokens per MINUTE and one /tailored-resume spends ~15.2k across its two
+// passes, so a single generation NEVER fits inside one minute — it gets through
+// only by crossing the boundary. Bursts are what hurt, and draining an apply
+// queue is nothing but bursts: on 2026-09-14 that emptied the day's 200k budget
+// mid-run and parked the applications at needs_manual.
+//
+// The 200k/day is ORG-WIDE, not per key, which is why a neighbour can starve
+// this account — watchparty's subtitle recaps did exactly that on 2026-09-01.
+//
+// Groq stays FIRST because its output is the known quantity: every prompt here,
+// every token budget below, and the block-selection JSON contract were measured
+// against gpt-oss-120b. Gemini is the overflow, not the replacement. Swapping
+// the order is a deliberate quality decision, not a throughput tweak.
+//
+// A THIRD PROVIDER IS ONE ENTRY PLUS A KEY, but pick the model deliberately.
+// OpenRouter's `:free` ids rotate, and a wrong model name 400s on every call —
+// which the chain swallows as a fallthrough, so it is invisible. That is
+// exactly how Cerebras failed below.
 //
 // Cerebras sat above it from the chain's introduction until 2026-09-09 and was
 // removed rather than left dormant. It never served a single request: the key
@@ -32,6 +54,21 @@ export const LLM_PROVIDERS = [
     envKey: 'GROQ_API_KEY',
     baseUrl: 'https://api.groq.com/openai/v1',
     model: 'openai/gpt-oss-120b'
+  },
+  {
+    // Google's own OpenAI-compatible surface, so it needs no client changes —
+    // only the key, the base URL and the model name (per ai.google.dev's
+    // OpenAI-compatibility page). Its free tier is bounded by REQUESTS per
+    // minute rather than tokens, which is the right shape for us: our problem
+    // is two ~7.6k-token passes landing in the same minute, and a request-based
+    // ceiling does not care how large they are.
+    //
+    // Inert until GEMINI_API_KEY is bound — createLLMClient skips a provider
+    // whose key is absent, so merging this changes nothing on its own.
+    name: 'gemini',
+    envKey: 'GEMINI_API_KEY',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+    model: 'gemini-3.8-flash'
   }
 ] as const
 
