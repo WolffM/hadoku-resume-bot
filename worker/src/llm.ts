@@ -58,6 +58,7 @@ export type LLMChain = LLMProvider[]
 /** Just the key bindings the chain reads — a subset of the worker env. */
 export interface LLMEnv {
   GROQ_API_KEY?: string
+  GEMINI_API_KEY?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -218,7 +219,7 @@ export async function sendChatCompletion(
   options?: CompletionOptions
 ): Promise<ChatResponse> {
   if (chain.length === 0) {
-    throw new Error('No LLM providers configured (set GROQ_API_KEY)')
+    throw new Error('No LLM providers configured (set GROQ_API_KEY or GEMINI_API_KEY)')
   }
   let lastErr: unknown
   for (let i = 0; i < chain.length; i++) {
