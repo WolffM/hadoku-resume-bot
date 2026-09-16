@@ -105,6 +105,13 @@ export function createLLMClient(env: LLMEnv): LLMChain {
       client: new OpenAI({
         apiKey,
         baseURL: p.baseUrl,
+        // A provider that names an `authHeader` wants its key THERE and not in
+        // `Authorization` — setting the latter to null removes it rather than
+        // sending an empty one, so the endpoint sees exactly one credential.
+        // Verified against openai 6.32: a null defaultHeader is dropped.
+        ...('authHeader' in p && p.authHeader
+          ? { defaultHeaders: { Authorization: null, [p.authHeader]: apiKey } }
+          : {}),
         // Both of these MUST be set explicitly. The SDK defaults are a 10-minute
         // timeout and 2 internal retries, which is catastrophic here: a hung
         // provider would burn 30 minutes inside a request the edge gives 120s,
