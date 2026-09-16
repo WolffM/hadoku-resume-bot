@@ -99,6 +99,7 @@ export function createLLMClient(env: LLMEnv): LLMChain {
   for (const p of LLM_PROVIDERS) {
     const apiKey = env[p.envKey]
     if (!apiKey) continue
+    const authHeader: string | undefined = 'authHeader' in p ? p.authHeader : undefined
     chain.push({
       name: p.name,
       model: p.model,
@@ -116,12 +117,15 @@ export function createLLMClient(env: LLMEnv): LLMChain {
         // that is how it was verified, but the 400 persisted on workerd — so
         // the header was still reaching the wire. Deleting it from the outgoing
         // Headers is the only form that cannot be runtime-dependent.
-        ...('authHeader' in p && p.authHeader
+        // Captured BEFORE the closure: narrowing `p.authHeader` at the `?:` does
+        // not survive into a callback TypeScript must assume runs later, so the
+        // header name has to be a plain string by the time it is used.
+        ...(authHeader
           ? {
               fetch: (url: RequestInfo | URL, init?: RequestInit) => {
                 const headers = new Headers(init?.headers)
                 headers.delete('authorization')
-                headers.set(p.authHeader, apiKey)
+                headers.set(authHeader, apiKey)
                 return fetch(url, { ...init, headers })
               }
             }
