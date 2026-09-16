@@ -1,8 +1,9 @@
 name: CI
 
-# This repo had NO pull-request CI. `publish.yml` and `update-wolffm.yml` run on
-# push to main, `vibecheck.yml` is workflow_dispatch only — so nothing has ever
-# verified a pull request here.
+# This repo had NO pull-request CI, and until 2026-09-16 no push CI either:
+# `publish.yml` and `update-wolffm.yml` ran on push to main and `vibecheck.yml`
+# is workflow_dispatch only, so a direct push to main was verified by nothing
+# until the publish job's own build reached tsc.
 #
 # The commands are the ones already in package.json: `typecheck` (tsc --noEmit)
 # and `lint` + `lint:css` (eslint, stylelint). Nothing invented.
@@ -13,8 +14,19 @@ name: CI
 # verified) and FATAL on others (they wait forever). Scoping lives in the jobs'
 # scope steps below, which always report. See tenhands
 # docs/hadoku-task-automation/pr-gate-invariant.md.
+#
+# `push` to main matters as much as the PR trigger, and its absence is what let
+# a type error sit between "committed" and "published" on 2026-09-16: the only
+# thing that typechecks a direct push was publish.yml, at the END, after the
+# build — so the failure surfaced as an unpublished package rather than a red
+# check, and 3.10.4 silently did not exist for hours. Integration here is by
+# direct push to main, not by PR, so a PR-only gate gated nothing.
+# The scope steps already handle a non-PR event (they run unconditionally —
+# there is no base sha to diff against), so this needs no other change.
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:

@@ -14,6 +14,9 @@ jobs:
   publish:
     runs-on: ${{ fromJSON(vars.CI_RUNNER) }}
     steps:
+      - name: Mark the start, so the reported duration is real
+        run: echo "JOB_STARTED_AT=$(date -u +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -219,3 +222,19 @@ jobs:
           else
             echo "⚠️  Failed to notify hadoku_site (HTTP $status_code)"
           fi
+
+      # A FAILED PUBLISH USED TO BE SILENT, and that is how 3.10.4 did not exist
+      # for hours on 2026-09-16 while a handoff doc said it was published. The
+      # build had failed on a tsc error, nothing announced it, and from the
+      # committer's side a failed publish looks exactly like a successful one.
+      #
+      # `always()` so a RECOVERY reports too — without the success side the alert
+      # state stays broken and the next real failure arrives as a suppressed
+      # reminder rather than a new alert.
+      - name: Report the outcome so a silent failure can't hide
+        if: always()
+        uses: WolffM/hadoku-actions/report-job@v1
+        with:
+          job-name: resume-bot:publish
+          service-key: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
+          started-at: ${{ env.JOB_STARTED_AT }}
