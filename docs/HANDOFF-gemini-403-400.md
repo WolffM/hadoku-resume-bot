@@ -60,24 +60,44 @@ an ACL that neither jobplatform's nor hadoku_site's caller key has.
 Everything above is inference from a bare status code. That is the actual
 problem with this investigation.
 
-## 4. What was tried, and a correction
+## 4. The controlled comparison (this is the useful part)
 
-`c22462d` (3.10.3) switched Gemini to `authHeader: 'x-goog-api-key'`, suppressing
-the SDK's Bearer header. Rationale: Google moved AI Studio keys from `AIza…` to
-`AQ.Ab…`, and there are reports that `AQ.` keys sent as Bearer to this endpoint
-are rejected as "Multiple authentication credentials received".
+Same key, same request body, one variable — the auth header. Measured in
+production on 2026-09-15:
 
-**That change was built on a misdiagnosis.** It was added to explain the 403 —
-which was the wrong key. And a 400 is itself what Google returns when it sees two
-credentials, so the workaround may have become the fault.
+| header                        | result                                            |
+| ----------------------------- | ------------------------------------------------- |
+| `Authorization: Bearer <key>` | **403**, no body — never got past auth            |
+| `x-goog-api-key: <key>`       | **400**, no body — auth accepted, request refused |
 
-`23af8f1` (3.10.4) reverts Gemini to plain Bearer. **Bearer with the correct key
-is the one combination never tried**, because the key was wrong for the whole
-time Bearer was in use. As of writing, 3.10.4 is published and the site still
-locks 3.10.3 — it may have deployed by the time you read this; check first.
+**403 versus 400 is the whole signal.** Google moved AI Studio keys from `AIza…`
+to `AQ.Ab…`, and the newer form is not accepted as a Bearer token on this
+surface. So `x-goog-api-key` is correct, and the remaining 400 is a different
+fault further along.
 
-The `authHeader` mechanism stays in `llm.ts`. The AQ. reports are real; applying
-it here was premature.
+The most likely candidate for that 400 is the documented "Multiple
+authentication credentials received": the endpoint reads its own header AND
+still sees an `Authorization`, so the SDK's header has to be genuinely removed.
+`defaultHeaders: {Authorization: null}` drops it under openai 6.32 on Node —
+which is how it was verified — but the 400 persisted on workerd, so it was still
+reaching the wire there. **3.10.6 deletes it from the outgoing `Headers` in a
+fetch wrapper**, which cannot be runtime-dependent.
+
+If 3.10.6 still returns 400, the header is not the remaining cause and §5 is the
+way forward.
+
+### Wrong turns, recorded so they are not repeated
+
+1. **The original 403 was blamed on the header.** It was the wrong key — the
+   worker held watchparty's. Fixed by pull + re-push, not by code.
+2. **3.10.4 reverted to Bearer** on the theory that the header workaround had
+   become the fault. The comparison above shows Bearer is strictly worse.
+3. **Three conclusions were reached by reasoning from a bare status code and two
+   were wrong.** The experiment that settled it — hold the key constant, change
+   one header — was available from the first hour.
+4. **A runtime behaviour was verified on Node and shipped to workerd.** The null
+   defaultHeader genuinely works where it was tested and evidently not where it
+   runs.
 
 ## 5. The three curls
 
