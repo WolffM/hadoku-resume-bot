@@ -105,12 +105,26 @@ export function createLLMClient(env: LLMEnv): LLMChain {
       client: new OpenAI({
         apiKey,
         baseURL: p.baseUrl,
-        // A provider that names an `authHeader` wants its key THERE and not in
-        // `Authorization` — setting the latter to null removes it rather than
-        // sending an empty one, so the endpoint sees exactly one credential.
-        // Verified against openai 6.32: a null defaultHeader is dropped.
+        // A provider that names an `authHeader` wants its key THERE and NOWHERE
+        // ELSE. Google's OpenAI surface rejects a request carrying both its own
+        // header and an Authorization with "Multiple authentication credentials
+        // received" — a 400 that arrives with no body, so it reads as a generic
+        // bad request.
+        //
+        // Done in a fetch wrapper rather than `defaultHeaders: {Authorization:
+        // null}`. The null form drops the header under openai 6.32 on Node, and
+        // that is how it was verified, but the 400 persisted on workerd — so
+        // the header was still reaching the wire. Deleting it from the outgoing
+        // Headers is the only form that cannot be runtime-dependent.
         ...('authHeader' in p && p.authHeader
-          ? { defaultHeaders: { Authorization: null, [p.authHeader]: apiKey } }
+          ? {
+              fetch: (url: RequestInfo | URL, init?: RequestInit) => {
+                const headers = new Headers(init?.headers)
+                headers.delete('authorization')
+                headers.set(p.authHeader, apiKey)
+                return fetch(url, { ...init, headers })
+              }
+            }
           : {}),
         // Both of these MUST be set explicitly. The SDK defaults are a 10-minute
         // timeout and 2 internal retries, which is catastrophic here: a hung

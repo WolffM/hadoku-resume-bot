@@ -80,23 +80,25 @@ export const LLM_PROVIDERS: {
     name: 'gemini',
     envKey: 'GEMINI_API_KEY',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model: 'gemini-3.8-flash'
-    // NO `authHeader`: the key goes in `Authorization: Bearer`, the SDK default.
+    model: 'gemini-3.8-flash',
+    // The key rides in `x-goog-api-key`, NOT in `Authorization: Bearer`.
     //
-    // This entry briefly carried `authHeader: 'x-goog-api-key'` on 2026-09-15,
-    // added to explain a 403. The 403 had a different cause — the worker was
-    // holding watchparty's Gemini key, because the env_mapping pointing
-    // GEMINI_API_KEY at GOOGLE_GEMINI_AGENT_API_KEY_MATTHAEUS had never been
-    // pushed from a checkout that contained it. Once the right key was pushed
-    // the error moved 403 -> 400, and 400 is what Google returns when it sees
-    // two credentials, which is what suppressing Bearer in favour of its own
-    // header produced.
+    // Measured against this key on 2026-09-15, holding everything else equal:
     //
-    // So Bearer with the correct key is the combination that was never tried,
-    // and this is it. The `authHeader` MECHANISM stays in llm.ts because the
-    // underlying report is real — Google's AQ.-format keys are rejected on some
-    // paths — but applying it here was a workaround for a misdiagnosis, and
-    // keeping one of those is how the next reader inherits a puzzle.
+    //   Bearer            -> 403, no body   (credential refused outright)
+    //   x-goog-api-key    -> 400, no body   (credential accepted, request refused)
+    //
+    // Google moved AI Studio keys from `AIza…` to `AQ.Ab…`, and the newer form
+    // is not accepted as a Bearer token on this surface. 403 vs 400 is the tell:
+    // one never got past auth, the other did.
+    //
+    // The 400 that remains is the documented "Multiple authentication
+    // credentials received" — the endpoint reads its own header AND still sees
+    // an Authorization, so the SDK's header has to be genuinely removed rather
+    // than merely set to null. llm.ts does that in a fetch wrapper now; a null
+    // defaultHeader is dropped by openai 6.32 in Node but was evidently not
+    // reaching the wire that way on workerd.
+    authHeader: 'x-goog-api-key'
   },
   {
     // A SECOND Gemini key, and the only reason it is worth a slot is that free
@@ -109,7 +111,8 @@ export const LLM_PROVIDERS: {
     name: 'gemini-2',
     envKey: 'GEMINI_API_KEY_2',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model: 'gemini-3.8-flash'
+    model: 'gemini-3.8-flash',
+    authHeader: 'x-goog-api-key'
   }
 ] as const
 
