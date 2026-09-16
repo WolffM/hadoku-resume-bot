@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { LLM_CONFIG, LLM_PROVIDERS, MIN_ATTEMPT_MS } from './constants.js'
+import { LLM_CONFIG, LLM_PROVIDERS, MIN_ATTEMPT_MS, type ProviderEnvKey } from './constants.js'
 
 /**
  * Options for one completion. `deadline` is the important one: it is an epoch
@@ -38,6 +38,15 @@ export interface ChatMessage {
 
 export interface ChatResponse {
   message: string
+  /**
+   * Which provider actually answered.
+   *
+   * The chain falls over on any error, silently and by design, so a generation
+   * served by a weaker fallback looks identical to one served by the primary.
+   * Without this the first sign of a quality regression is a real job
+   * application that reads badly, and no way to attribute it.
+   */
+  provider: string
   usage?: {
     prompt_tokens: number
     completion_tokens: number
@@ -56,10 +65,14 @@ export interface LLMProvider {
 export type LLMChain = LLMProvider[]
 
 /** Just the key bindings the chain reads — a subset of the worker env. */
-export interface LLMEnv {
-  GROQ_API_KEY?: string
-  GEMINI_API_KEY?: string
-  GEMINI_API_KEY_2?: string
+/**
+ * The bindings the chain reads. Derived from `ProviderEnvKey` so it cannot fall
+ * behind the provider list; the account id is separate because it is not a
+ * credential and is substituted into a base URL rather than sent as one.
+ */
+export type LLMEnv = Partial<Record<ProviderEnvKey, string>> & {
+  /** Substituted into Cloudflare's base URL, which carries it in the path. */
+  CLOUDFLARE_ACCOUNT_ID?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -99,13 +112,19 @@ export function createLLMClient(env: LLMEnv): LLMChain {
   for (const p of LLM_PROVIDERS) {
     const apiKey = env[p.envKey]
     if (!apiKey) continue
+    // Cloudflare is the only provider whose account id lives in the PATH. An
+    // unsubstituted placeholder would produce a URL that 404s on every call,
+    // and the chain would swallow that as a fallthrough — so a provider whose
+    // base URL cannot be completed is skipped, like one with no key.
+    const baseUrl = p.baseUrl.replace('{CLOUDFLARE_ACCOUNT_ID}', env.CLOUDFLARE_ACCOUNT_ID ?? '')
+    if (baseUrl.includes('{')) continue
     const authHeader: string | undefined = 'authHeader' in p ? p.authHeader : undefined
     chain.push({
       name: p.name,
       model: p.model,
       client: new OpenAI({
         apiKey,
-        baseURL: p.baseUrl,
+        baseURL: baseUrl,
         // A provider that names an `authHeader` wants its key THERE and NOWHERE
         // ELSE. Google's OpenAI surface rejects a request carrying both its own
         // header and an Authorization with "Multiple authentication credentials
@@ -212,6 +231,11 @@ async function callProvider(
       }
       return {
         message: choice.message.content,
+        // WHICH provider answered. The chain falls over silently by design, so
+        // without this a packet written by a weaker fallback is indistinguishable
+        // from one written by the primary — and the first sign of a quality
+        // regression would be a real job application that reads badly.
+        provider: provider.name,
         usage: response.usage
           ? {
               prompt_tokens: response.usage.prompt_tokens,
