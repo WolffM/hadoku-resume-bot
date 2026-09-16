@@ -68,7 +68,21 @@ export const LLM_PROVIDERS = [
     name: 'gemini',
     envKey: 'GEMINI_API_KEY',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model: 'gemini-3.8-flash'
+    model: 'gemini-3.8-flash',
+    // GOOGLE'S NEW KEYS CANNOT USE BEARER, and this is the whole reason the
+    // field exists.
+    //
+    // AI Studio used to issue Standard keys (`AIza…`) and now issues Auth keys
+    // (`AQ.Ab…`). An Auth key sent as `Authorization: Bearer` to the
+    // OpenAI-compatible surface is rejected — reported variously as 400
+    // "Multiple authentication credentials received", 401, or the 403 we got on
+    // 2026-09-15 — because the endpoint reads the key from its own header and
+    // sees two credentials. The same key works on the native surface, and the
+    // google-genai SDKs never hit this because they set the header themselves.
+    //
+    // So the key rides in `x-goog-api-key` and the SDK's Authorization header is
+    // suppressed. Groq has no `authHeader` and keeps Bearer, unchanged.
+    authHeader: 'x-goog-api-key'
   },
   {
     // A SECOND Gemini key, and the only reason it is worth a slot is that free
@@ -81,7 +95,8 @@ export const LLM_PROVIDERS = [
     name: 'gemini-2',
     envKey: 'GEMINI_API_KEY_2',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model: 'gemini-3.8-flash'
+    model: 'gemini-3.8-flash',
+    authHeader: 'x-goog-api-key'
   }
 ] as const
 
