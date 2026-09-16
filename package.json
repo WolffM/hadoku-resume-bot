@@ -1,6 +1,6 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "3.10.3",
+  "version": "3.10.4",
   "description": "AI-powered conversational interface for interactive resume exploration",
   "type": "module",
   "packageManager": "pnpm@11.5.0",

@@ -68,21 +68,23 @@ export const LLM_PROVIDERS = [
     name: 'gemini',
     envKey: 'GEMINI_API_KEY',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model: 'gemini-3.8-flash',
-    // GOOGLE'S NEW KEYS CANNOT USE BEARER, and this is the whole reason the
-    // field exists.
+    model: 'gemini-3.8-flash'
+    // NO `authHeader`: the key goes in `Authorization: Bearer`, the SDK default.
     //
-    // AI Studio used to issue Standard keys (`AIza…`) and now issues Auth keys
-    // (`AQ.Ab…`). An Auth key sent as `Authorization: Bearer` to the
-    // OpenAI-compatible surface is rejected — reported variously as 400
-    // "Multiple authentication credentials received", 401, or the 403 we got on
-    // 2026-09-15 — because the endpoint reads the key from its own header and
-    // sees two credentials. The same key works on the native surface, and the
-    // google-genai SDKs never hit this because they set the header themselves.
+    // This entry briefly carried `authHeader: 'x-goog-api-key'` on 2026-09-15,
+    // added to explain a 403. The 403 had a different cause — the worker was
+    // holding watchparty's Gemini key, because the env_mapping pointing
+    // GEMINI_API_KEY at GOOGLE_GEMINI_AGENT_API_KEY_MATTHAEUS had never been
+    // pushed from a checkout that contained it. Once the right key was pushed
+    // the error moved 403 -> 400, and 400 is what Google returns when it sees
+    // two credentials, which is what suppressing Bearer in favour of its own
+    // header produced.
     //
-    // So the key rides in `x-goog-api-key` and the SDK's Authorization header is
-    // suppressed. Groq has no `authHeader` and keeps Bearer, unchanged.
-    authHeader: 'x-goog-api-key'
+    // So Bearer with the correct key is the combination that was never tried,
+    // and this is it. The `authHeader` MECHANISM stays in llm.ts because the
+    // underlying report is real — Google's AQ.-format keys are rejected on some
+    // paths — but applying it here was a workaround for a misdiagnosis, and
+    // keeping one of those is how the next reader inherits a puzzle.
   },
   {
     // A SECOND Gemini key, and the only reason it is worth a slot is that free
@@ -95,8 +97,7 @@ export const LLM_PROVIDERS = [
     name: 'gemini-2',
     envKey: 'GEMINI_API_KEY_2',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model: 'gemini-3.8-flash',
-    authHeader: 'x-goog-api-key'
+    model: 'gemini-3.8-flash'
   }
 ] as const
 
