@@ -27,7 +27,12 @@ export const LLM_CONFIG = {
 // against gpt-oss-120b. Gemini is the overflow, not the replacement. Swapping
 // the order is a deliberate quality decision, not a throughput tweak.
 //
-// A THIRD PROVIDER IS ONE ENTRY PLUS A KEY, but pick the model deliberately.
+// GITHUB MODELS IS NOT HERE, and it is not an oversight: it returns
+// `410 github_models_retirement_brownout` as of 2026-09-15. It was tested
+// before being added rather than after — the two providers that reached this
+// file untested (Cerebras, and very nearly this one) both cost real time.
+//
+// A FURTHER PROVIDER IS ONE ENTRY PLUS A KEY, but pick the model deliberately.
 // OpenRouter's `:free` ids rotate, and a wrong model name 400s on every call —
 // which the chain swallows as a fallthrough, so it is invisible. That is
 // exactly how Cerebras failed below.
@@ -54,9 +59,24 @@ export const LLM_CONFIG = {
 // narrowing), and llm.ts's `[p.authHeader]` computed key fails TS2464. That is
 // exactly what broke the 3.10.4 publish on 2026-09-16: the Bearer revert removed
 // the last `authHeader`, and a mechanism with no users stopped compiling.
+/**
+ * Every binding a provider entry may name.
+ *
+ * `LLMEnv` in llm.ts is DERIVED from this, so adding a provider below without
+ * widening this union is a compile error rather than a silently skipped
+ * provider — which is what happened when CLOUDFLARE_AI_TOKEN and
+ * MISTRAL_API_KEY were added against a hardcoded three-name union.
+ */
+export type ProviderEnvKey =
+  | 'GROQ_API_KEY'
+  | 'GEMINI_API_KEY'
+  | 'GEMINI_API_KEY_2'
+  | 'CLOUDFLARE_AI_TOKEN'
+  | 'MISTRAL_API_KEY'
+
 export const LLM_PROVIDERS: {
   name: string
-  envKey: 'GROQ_API_KEY' | 'GEMINI_API_KEY' | 'GEMINI_API_KEY_2'
+  envKey: ProviderEnvKey
   baseUrl: string
   model: string
   authHeader?: string
@@ -113,6 +133,39 @@ export const LLM_PROVIDERS: {
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/',
     model: 'gemini-3.8-flash',
     authHeader: 'x-goog-api-key'
+  },
+  {
+    // Cloudflare Workers AI. 10,000 neurons/day, no card, and this ecosystem
+    // already runs on Cloudflare — so it is the only entry here that needs no
+    // new account.
+    //
+    // `{CLOUDFLARE_ACCOUNT_ID}` is substituted by createLLMClient from the env
+    // of the same name; the provider is skipped when it is absent, exactly as a
+    // missing key skips one. Cloudflare is the only provider whose account id
+    // lives in the PATH rather than a header, which is why the mechanism exists.
+    //
+    // NOTE the token scope: a Cloudflare API token needs "Workers AI: Read" to
+    // call this. The token this ecosystem already holds is scoped for D1 and
+    // Workers and returns `401 code 10000` here — widening it, or minting a
+    // second, is the whole setup cost.
+    name: 'cloudflare',
+    envKey: 'CLOUDFLARE_AI_TOKEN',
+    baseUrl: 'https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/v1',
+    model: '@cf/meta/llama-3.1-8b-instruct'
+  },
+  {
+    // Mistral. $10/month of credits on the free plan, no card. Placed LAST
+    // because it is the only entry that can actually run out of money — the
+    // others refuse and cost nothing, this one spends.
+    //
+    // `-latest` is a moving alias on purpose: Mistral keeps it pointed at a
+    // current model, which is the opposite of OpenRouter's `:free` ids that
+    // vanish. A model that disappears 400s on every call and the chain swallows
+    // it as a fallthrough — invisible, exactly how Cerebras failed.
+    name: 'mistral',
+    envKey: 'MISTRAL_API_KEY',
+    baseUrl: 'https://api.mistral.ai/v1',
+    model: 'mistral-large-latest'
   }
 ] as const
 
