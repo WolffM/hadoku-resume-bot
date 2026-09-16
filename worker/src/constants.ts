@@ -48,7 +48,19 @@ export const LLM_CONFIG = {
 // correct, and the machinery stays because adding a second provider must remain
 // a one-line change — this account has been starved by a neighbour once already
 // (watchparty's subtitle recaps, migrating off Groq as of 2026-09-09).
-export const LLM_PROVIDERS = [
+// The element type is declared EXPLICITLY, and `authHeader` is declared here
+// even though no provider currently sets it. Without that, TS infers the union
+// from the members, `'authHeader' in p` narrows to `unknown` (TS 4.9+ in-
+// narrowing), and llm.ts's `[p.authHeader]` computed key fails TS2464. That is
+// exactly what broke the 3.10.4 publish on 2026-09-16: the Bearer revert removed
+// the last `authHeader`, and a mechanism with no users stopped compiling.
+export const LLM_PROVIDERS: {
+  name: string
+  envKey: 'GROQ_API_KEY' | 'GEMINI_API_KEY' | 'GEMINI_API_KEY_2'
+  baseUrl: string
+  model: string
+  authHeader?: string
+}[] = [
   {
     name: 'groq',
     envKey: 'GROQ_API_KEY',
