@@ -15,8 +15,8 @@ importers:
         specifier: ^1.0.12
         version: 1.0.12(react@19.2.0)(zod@4.1.12)
       '@wolffm/worker-utils':
-        specifier: ^1.5.13
-        version: 1.5.13(zod@4.1.12)
+        specifier: ^1.5.14
+        version: 1.5.14(zod@4.1.12)
       hono:
         specifier: ^4.11.4
         version: 4.12.8
@@ -59,7 +59,7 @@ importers:
         version: 8.46.4(eslint@9.39.1)(typescript@5.9.3)
       '@vitejs/plugin-react':
         specifier: ^5.1.0
-        version: 5.1.1(vite@7.2.2(yaml@2.9.0))
+        version: 5.1.1(vite@7.2.2(yaml@2.9.1))
       '@wolffm/catalogue':
         specifier: ^1.0.1
         version: 1.0.1
@@ -107,10 +107,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^7.1.12
-        version: 7.2.2(yaml@2.9.0)
+        version: 7.2.2(yaml@2.9.1)
       vite-plugin-dts:
         specifier: ^4.5.4
-        version: 4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2(yaml@2.9.0))
+        version: 4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2(yaml@2.9.1))
 
 packages:
 
@@ -889,8 +889,8 @@ packages:
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
-  '@wolffm/worker-utils@1.5.13':
-    resolution: {integrity: sha512-aX5mxYcMhx2Rk4d5jpMUuT+AQdjeNTazscfComwCjYrJuKvjXA8me18z+opQsNnOSXpGSJ/S2Rgc3VaIPE1H5A==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.5.13/673854e3344342b8a4e2d16d380bbeaf78aafa69}
+  '@wolffm/worker-utils@1.5.14':
+    resolution: {integrity: sha512-p4ogUfX0K/fkIIDuBQ4IHfbSCWPA7JHJfHSn/PDiPYZj2YkbOlc+qUJ1GWaX8AprmSY2MyasgKSWKDoXuWcRMg==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.5.14/7c36b4b668ed284142a8c46fa27accf59b1281e3}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2649,8 +2649,8 @@ packages:
   yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
-  yaml@2.9.0:
-    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
     engines: {node: '>= 14.6'}
     hasBin: true
 
@@ -3334,7 +3334,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react@5.1.1(vite@7.2.2(yaml@2.9.0))':
+  '@vitejs/plugin-react@5.1.1(vite@7.2.2(yaml@2.9.1))':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.5)
@@ -3342,7 +3342,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.47
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 7.2.2(yaml@2.9.0)
+      vite: 7.2.2(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3413,7 +3413,7 @@ snapshots:
       react: 19.2.0
       zod: 4.1.12
 
-  '@wolffm/worker-utils@1.5.13(zod@4.1.12)':
+  '@wolffm/worker-utils@1.5.14(zod@4.1.12)':
     dependencies:
       '@hono/zod-openapi': 1.6.3(hono@4.12.8)(zod@4.1.12)
       '@wolffm/logger': 1.4.0
@@ -4944,7 +4944,7 @@ snapshots:
 
   openapi3-ts@4.6.1:
     dependencies:
-      yaml: 2.9.0
+      yaml: 2.9.1
 
   optionator@0.9.4:
     dependencies:
@@ -5614,7 +5614,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-dts@4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2(yaml@2.9.0)):
+  vite-plugin-dts@4.5.4(rollup@4.53.2)(typescript@5.9.3)(vite@7.2.2(yaml@2.9.1)):
     dependencies:
       '@microsoft/api-extractor': 7.57.7
       '@rollup/pluginutils': 5.3.0(rollup@4.53.2)
@@ -5627,13 +5627,13 @@ snapshots:
       magic-string: 0.30.21
       typescript: 5.9.3
     optionalDependencies:
-      vite: 7.2.2(yaml@2.9.0)
+      vite: 7.2.2(yaml@2.9.1)
     transitivePeerDependencies:
       - '@types/node'
       - rollup
       - supports-color
 
-  vite@7.2.2(yaml@2.9.0):
+  vite@7.2.2(yaml@2.9.1):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.3)
@@ -5643,7 +5643,7 @@ snapshots:
       tinyglobby: 0.2.15
     optionalDependencies:
       fsevents: 2.3.3
-      yaml: 2.9.0
+      yaml: 2.9.1
 
   vscode-uri@3.1.0: {}
 
@@ -5708,7 +5708,7 @@ snapshots:
 
   yallist@4.0.0: {}
 
-  yaml@2.9.0: {}
+  yaml@2.9.1: {}
 
   yocto-queue@0.1.0: {}
 
