@@ -1,4 +1,5 @@
 {
   "//": "env-var <- vault-key mapping consumed by @wolffm/dev-vault. No secret values here.",
-  "RESUME_FRIEND_KEY": "RESUMEBOT_FRIEND_KEY"
+  "RESUME_FRIEND_KEY": "RESUMEBOT_FRIEND_KEY",
+  "HADOKU_NPM_READ_TOKEN": "HADOKU_NPM_READ_TOKEN"
 }
