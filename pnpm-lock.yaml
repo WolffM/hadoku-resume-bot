@@ -2059,8 +2059,8 @@ packages:
       zod:
         optional: true
 
-  openapi3-ts@4.6.1:
-    resolution: {integrity: sha512-XW9MOldkhoICNeXVzzmXzmOW5G73ppOEGmh7fLCqHjgfdEYCGGN+00MlVCeUZgovjjfC56j9tvtDt1zGabNjjA==}
+  openapi3-ts@4.6.2:
+    resolution: {integrity: sha512-gyyil3DweqhXiEhTqtAs9wwRLfWHmetwhI4kmM5Rn0d6gtmK863Ki7qqbQnp9+Wwlqoe3B1LFWj7kMp5ctE4rQ==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -2674,7 +2674,7 @@ snapshots:
 
   '@asteasolutions/zod-to-openapi@9.1.0(zod@4.1.12)':
     dependencies:
-      openapi3-ts: 4.6.1
+      openapi3-ts: 4.6.2
       zod: 4.1.12
 
   '@babel/code-frame@7.27.1':
@@ -2969,7 +2969,7 @@ snapshots:
       '@asteasolutions/zod-to-openapi': 9.1.0(zod@4.1.12)
       '@hono/zod-validator': 0.9.1(hono@4.12.8)(zod@4.1.12)
       hono: 4.12.8
-      openapi3-ts: 4.6.1
+      openapi3-ts: 4.6.2
       zod: 4.1.12
 
   '@hono/zod-validator@0.9.1(hono@4.12.8)(zod@4.1.12)':
@@ -4942,7 +4942,7 @@ snapshots:
     optionalDependencies:
       zod: 4.1.12
 
-  openapi3-ts@4.6.1:
+  openapi3-ts@4.6.2:
     dependencies:
       yaml: 2.9.1
 
