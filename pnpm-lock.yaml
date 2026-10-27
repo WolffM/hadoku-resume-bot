@@ -15,8 +15,8 @@ importers:
         specifier: ^1.0.20
         version: 1.0.20(react@19.2.0)(zod@4.1.12)
       '@wolffm/worker-utils':
-        specifier: ^1.6.10
-        version: 1.6.10(zod@4.1.12)
+        specifier: ^1.6.11
+        version: 1.6.11(hono@4.12.8)(zod@4.1.12)
       hono:
         specifier: ^4.11.4
         version: 4.12.8
@@ -890,8 +890,10 @@ packages:
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
-  '@wolffm/worker-utils@1.6.10':
-    resolution: {integrity: sha512-3KklSeg6Xa7kfbM1iA8RNPHCSjSRakDg+8kDvBVihCtX+pQ0NP4gLU0TMzY2U3KiwxM91PmyV/mOsS4V4ZrY7A==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.6.10/76d0d80ee94fb8976354e1e76e465a9cfffd989b}
+  '@wolffm/worker-utils@1.6.11':
+    resolution: {integrity: sha512-gf3f8BO7gY954Zs/0RWoE1ovR1NsM1C3AL6ogubBBkhk9E58j36eJrl4aB+qu93s+fswCH560wdM3RXOqOkE5Q==, tarball: https://npm.pkg.github.com/download/@wolffm/worker-utils/1.6.11/e3497d1cf82ea11ee7fd38e7feea7c7cca2b89c5}
+    peerDependencies:
+      hono: ^4.11.4
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -1542,10 +1544,6 @@ packages:
 
   hono@4.12.8:
     resolution: {integrity: sha512-VJCEvtrezO1IAR+kqEYnxUOoStaQPGrCmX3j4wDTNOcD1uRPFpGlwQUIW8niPuvHXaTUxeOUl5MMDGrl+tmO9A==}
-    engines: {node: '>=16.9.0'}
-
-  hono@4.13.13:
-    resolution: {integrity: sha512-CQ46U0ZkAGmbT/4UxdzzGJpacP2IeKgY4a5/tOI9AABbpOMfK739wfDXmv1usCk+3RkKj1hQy4/fjhiwa2xlrA==}
     engines: {node: '>=16.9.0'}
 
   hookified@1.15.1:
@@ -2969,17 +2967,17 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@hono/zod-openapi@1.6.3(hono@4.13.13)(zod@4.1.12)':
+  '@hono/zod-openapi@1.6.3(hono@4.12.8)(zod@4.1.12)':
     dependencies:
       '@asteasolutions/zod-to-openapi': 9.1.0(zod@4.1.12)
-      '@hono/zod-validator': 0.9.1(hono@4.13.13)(zod@4.1.12)
-      hono: 4.13.13
+      '@hono/zod-validator': 0.9.1(hono@4.12.8)(zod@4.1.12)
+      hono: 4.12.8
       openapi3-ts: 4.6.2
       zod: 4.1.12
 
-  '@hono/zod-validator@0.9.1(hono@4.13.13)(zod@4.1.12)':
+  '@hono/zod-validator@0.9.1(hono@4.12.8)(zod@4.1.12)':
     dependencies:
-      hono: 4.13.13
+      hono: 4.12.8
       zod: 4.1.12
 
   '@humanfs/core@0.19.1': {}
@@ -3419,11 +3417,11 @@ snapshots:
       react: 19.2.0
       zod: 4.1.12
 
-  '@wolffm/worker-utils@1.6.10(zod@4.1.12)':
+  '@wolffm/worker-utils@1.6.11(hono@4.12.8)(zod@4.1.12)':
     dependencies:
-      '@hono/zod-openapi': 1.6.3(hono@4.13.13)(zod@4.1.12)
+      '@hono/zod-openapi': 1.6.3(hono@4.12.8)(zod@4.1.12)
       '@wolffm/logger': 1.4.0
-      hono: 4.13.13
+      hono: 4.12.8
     transitivePeerDependencies:
       - zod
 
@@ -4250,8 +4248,6 @@ snapshots:
       hermes-estree: 0.25.1
 
   hono@4.12.8: {}
-
-  hono@4.13.13: {}
 
   hookified@1.15.1: {}
 
