@@ -198,6 +198,16 @@ jobs:
           body: '{"event_type":"packages_updated","client_payload":{"packages":["@wolffm/resume-bot"],"sha":"${{ github.sha }}"}}'
           service-key: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
 
+      # The same bytes again on npmjs as @hadoku/resume-bot, so a repo outside
+      # the fleet can install it without a GitHub token (hadoku_site
+      # docs/operations/NPMJS_PUBLISHING.md). AFTER the notify, so an npmjs
+      # problem never holds back a fleet release.
+      - name: Stage for npmjs
+        if: steps.package_changed.outputs.changed == 'true'
+        uses: WolffM/hadoku-actions/publish-npmjs@ac076ceee67f1def12a70c0b86bddb33f3dbd8ab
+        with:
+          package-dir: .
+
       # A FAILED PUBLISH USED TO BE SILENT, and that is how 3.10.4 did not exist
       # for hours on 2026-09-16 while a handoff doc said it was published. The
       # build had failed on a tsc error, nothing announced it, and from the
@@ -211,5 +221,30 @@ jobs:
         uses: WolffM/hadoku-actions/report-job@v1
         with:
           job-name: resume-bot:publish
+          service-key: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
+          started-at: ${{ env.JOB_STARTED_AT }}
+
+  # npmjs publishes through trusted publishing, which refuses self-hosted
+  # runners: the publish job above staged the gated tarball, and this hosted
+  # job (no checkout, no secret but the reporter's) hands it to npm.
+  # @hadoku/resume-bot trusts exactly this repo and workflow file.
+  npmjs:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+      actions: read
+    steps:
+      - name: Mark the start, so the reported duration is real
+        run: echo "JOB_STARTED_AT=$(date -u +%s)" >> "$GITHUB_ENV"
+
+      - uses: WolffM/hadoku-actions/publish-npmjs/publish@ac076ceee67f1def12a70c0b86bddb33f3dbd8ab
+
+      - name: Report the outcome so a silent failure can't hide
+        if: always()
+        uses: WolffM/hadoku-actions/report-job@v1
+        with:
+          job-name: resume-bot:publish-npmjs
           service-key: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
           started-at: ${{ env.JOB_STARTED_AT }}

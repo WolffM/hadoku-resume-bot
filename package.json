@@ -1,7 +1,8 @@
 {
   "name": "@wolffm/resume-bot",
-  "version": "3.11.0",
+  "version": "3.11.1",
   "description": "AI-powered conversational interface for interactive resume exploration",
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@11.5.0",
   "repository": {
