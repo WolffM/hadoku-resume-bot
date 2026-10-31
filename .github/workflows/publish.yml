@@ -226,7 +226,7 @@ jobs:
 
   # npmjs publishes through trusted publishing, which refuses self-hosted
   # runners: the publish job above staged the gated tarball, and this hosted
-  # job (no checkout, no secret but the reporter's) hands it to npm.
+  # job (no checkout, no secret) hands it to npm.
   # @hadoku/resume-bot trusts exactly this repo and workflow file.
   npmjs:
     needs: publish
@@ -235,16 +235,33 @@ jobs:
     permissions:
       id-token: write
       actions: read
+    outputs:
+      started-at: ${{ steps.start.outputs.at }}
     steps:
-      - name: Mark the start, so the reported duration is real
-        run: echo "JOB_STARTED_AT=$(date -u +%s)" >> "$GITHUB_ENV"
+      - name: Mark the start, for npmjs-report's duration
+        id: start
+        run: echo "at=$(date -u +%s)" >> "$GITHUB_OUTPUT"
 
       - uses: WolffM/hadoku-actions/publish-npmjs/publish@ac076ceee67f1def12a70c0b86bddb33f3dbd8ab
+
+  # This job cannot report for itself: Cloudflare's Bot Fight Mode challenges
+  # every request from a GitHub-hosted runner to hadoku.me (403,
+  # cf-mitigated: challenge) before any worker runs, so its report never
+  # landed. Our runner reports the hosted job's result instead.
+  npmjs-report:
+    needs: npmjs
+    if: always()
+    runs-on: ${{ fromJSON(vars.CI_RUNNER) }}
+    timeout-minutes: 5
+    steps:
+      - name: Carry the hosted job's start, so the reported duration is real
+        run: echo "JOB_STARTED_AT=${{ needs.npmjs.outputs.started-at }}" >> "$GITHUB_ENV"
 
       - name: Report the outcome so a silent failure can't hide
         if: always()
         uses: WolffM/hadoku-actions/report-job@v1
         with:
           job-name: resume-bot:publish-npmjs
+          outcome: ${{ needs.npmjs.result }}
           service-key: ${{ secrets.KEY_SERVICE_RESUME_BOT }}
           started-at: ${{ env.JOB_STARTED_AT }}
