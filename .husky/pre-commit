@@ -12,12 +12,12 @@
 # non-zero exit. core.hooksPath now points at .husky itself, which is tracked.
 [ "${HUSKY-}" = "0" ] && exit 0
 
-# Not in CI. This hook is the developer loop: it bumps the version, runs
-# lint/format/stylelint and typechecks before a LOCAL commit. CI runs every one
-# of those as its own job, and publish.yml does not depend on the bump — it
-# walks from the registry's latest to the first unpublished version, precisely
-# because "CI bumps are published but never committed back, so the committed
-# version only falls behind". Nothing here is load-bearing in CI.
+# Not in CI. This hook is the developer loop: it runs lint/format/stylelint and
+# typechecks before a LOCAL commit. It does NOT touch the version, and nothing
+# may: the version is CI's, never a commit's. publish.yml's Version step
+# (hadoku-actions/next-version) sets it to one patch above the registry's
+# newest, in the CI workspace only. CI runs every gate here as its own job, so
+# nothing in this hook is load-bearing in CI.
 #
 # It is actively harmful there. The auto-update workflow's "Commit and push if
 # changed" step fires this hook, whose gates shell out to pnpm with no
@@ -89,42 +89,6 @@ if ! pnpm run lint:css; then
 fi
 
 echo "✅ Linting and formatting complete!"
-
-# Bump version if src/, package.json, or build config changed
-echo "📦 Checking if version bump is needed..."
-
-# BUMP=major|minor|patch|none overrides the default. Unset means `auto`: bump the
-# patch, rolling over to the next minor at .20. `auto` cannot reach a major, so a
-# breaking release needs either BUMP=major or a `feat!:`/`BREAKING CHANGE:` commit
-# message, which .husky/post-commit levels up after the fact.
-bump_level=$(printf '%s' "${BUMP:-auto}" | tr '[:upper:]' '[:lower:]')
-case "$bump_level" in
-  major|minor|patch|auto|none) ;;
-  *)
-    echo "❌ BUMP=$BUMP is not a valid level."
-    echo "💡 Use one of: major, minor, patch, none (or leave BUMP unset for auto)."
-    exit 1
-    ;;
-esac
-
-if git diff --cached --name-only | grep -q -E "(src/|package\.json|vite\.config\.|tsconfig\.)"; then
-  if [ "$bump_level" = "none" ]; then
-    echo "⏭️  BUMP=none — leaving the version alone"
-  else
-    echo "🔄 Code or build config changes detected, bumping version ($bump_level)..."
-    transition=$(node scripts/bump-version.mjs "$bump_level") || exit 1
-
-    if [ -n "$transition" ]; then
-      echo "✅ Version bumped: $transition"
-      # Dependency edits in this commit can move the lockfile; the root version
-      # itself is not recorded there, so this is a no-op for a plain bump.
-      pnpm install --lockfile-only
-      git add package.json pnpm-lock.yaml
-    fi
-  fi
-else
-  echo "ℹ️  No code changes detected, skipping version bump"
-fi
 
 echo "✅ All pre-commit checks passed!"
 

@@ -36,30 +36,11 @@ All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/re
 
 ## Versioning
 
-**The commit message decides the version. There is nothing to remember.**
-
-- `feat!:` / `<type>(scope)!:` / a `BREAKING CHANGE:` footer → **major**
-- `feat:` → **minor**
-- anything else → patch, rolling over at .20 to the next minor (1.1.20 -> 1.2.0)
-
-Two hooks, because one cannot do it alone:
-
-- `.husky/pre-commit` writes the ordinary patch/auto bump. It is the only hook
-  whose staging lands in the commit it runs on — and the only one that cannot
-  see the commit message, because git has not obtained it yet.
-- `.husky/post-commit` runs `scripts/version-from-commit.mjs`, which reads the
-  message, and if it asks for a higher level, recomputes from the parent
-  commit's version and amends. Idempotent (always derived from `HEAD^`, so
-  `--amend` converges rather than climbing), and it skips merges, rebases and
-  cherry-picks.
-
-`BUMP=major|minor|patch|none git commit ...` still overrides the message when
-you need it — e.g. `BUMP=patch` for a break that is not in the published API.
-
-- publish.yml has a fallback bump if the hook was skipped
-- Version arithmetic lives in `scripts/bump-version.mjs`; the message→level
-  mapping in `scripts/version-from-commit.mjs`. Neither is published (`files`
-  is `["dist"]`)
+**The version is CI's, never a commit's.** Nobody edits it and no hook bumps
+it. publish.yml's `Version` step (`WolffM/hadoku-actions/next-version@v1`) sets
+it to one patch above the registry's newest, in the CI workspace only, and
+nothing is committed back. A committed version above the registry is kept, so a
+deliberate major/minor bump stays possible.
 
 Majors reach production on their own: hadoku_site's update-packages workflow
 upgrades `@wolffm/*` across major boundaries, ignoring the semver range.
