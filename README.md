@@ -22,9 +22,9 @@ token are needed.
 
 1. Ask the operator for a service grant for `resume-bot-service-key`. Your hadoku.me
    account must be friend tier or above. You cannot request one yourself.
-2. Sign in at [hadoku.me](https://hadoku.me) on the computer you will approve from, and
-   save a passkey there: settings gear, or [hadoku.me/auth](https://hadoku.me/auth)
-   while signed in → "Save a passkey".
+2. Sign in at [hadoku.me](https://hadoku.me) on the computer you will approve from.
+   If you have no passkey yet, the approval page asks you to save one first (Windows
+   Hello, Touch ID, or your phone).
 3. In your clone, run `npx @hadoku/dev-vault login`. It prints a code and a link to
    `https://hadoku.me/account/device?code=XXXX-XXXX`; leave it running. The request
    lives 24 hours.
@@ -37,14 +37,15 @@ token are needed.
 6. Add `//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}` to your user `.npmrc`
    (`~/.npmrc`, or `%USERPROFILE%\.npmrc` on Windows), then install with
    `npx @hadoku/dev-vault -- pnpm install`. dev-vault fills `NODE_AUTH_TOKEN` (and
-   `RESUME_FRIEND_KEY`) for whatever it runs. On Windows it cannot start a `.cmd` shim
-   like `pnpm` directly: `npx @hadoku/dev-vault -- cmd /c pnpm install`.
+   `RESUME_FRIEND_KEY`) for whatever it runs.
 
 When the credential expires, run `npx @hadoku/dev-vault login` again.
 
 - **The passkey dialog is empty** ("Choose a passkey" with nothing in it, on Windows):
-  there is no passkey on this computer. Save one (step 2), or pick "Use another device"
+  the passkey is not on this computer. Pick "Use another device"
   and scan the QR with the phone that holds yours.
+- **"Cloudflare refused this network"**: cloud servers, Codespaces and some VPNs are
+  blocked before hadoku.me sees them. Run it from a home or office connection.
 - **The request expired**: run `npx @hadoku/dev-vault login` again.
 - **401, or "required: friend", from hadoku.me**: the credential has expired, or you hold
   no grant. Log in again; if that is refused, ask the operator.
