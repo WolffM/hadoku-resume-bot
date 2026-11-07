@@ -169,7 +169,7 @@ jobs:
       # problem never holds back a fleet release.
       - name: Stage for npmjs
         if: steps.package_changed.outputs.changed == 'true'
-        uses: WolffM/hadoku-actions/publish-npmjs@ac076ceee67f1def12a70c0b86bddb33f3dbd8ab
+        uses: WolffM/hadoku-actions/publish-npmjs@v1
         with:
           package-dir: .
 
@@ -207,7 +207,7 @@ jobs:
         id: start
         run: echo "at=$(date -u +%s)" >> "$GITHUB_OUTPUT"
 
-      - uses: WolffM/hadoku-actions/publish-npmjs/publish@ac076ceee67f1def12a70c0b86bddb33f3dbd8ab
+      - uses: WolffM/hadoku-actions/publish-npmjs/publish@v1
 
   # This job cannot report for itself: Cloudflare's Bot Fight Mode challenges
   # every request from a GitHub-hosted runner to hadoku.me (403,
