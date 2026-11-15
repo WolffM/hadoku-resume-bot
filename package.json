@@ -55,7 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
     "@vitejs/plugin-react": "^5.1.0",
-    "@wolffm/catalogue": "^1.0.13",
+    "@wolffm/catalogue": "^1.0.14",
     "@wolffm/logger": "^1.4.4",
     "@wolffm/task-ui-components": "^4.23.35",
     "@wolffm/themes": "^5.14.4",
@@ -75,7 +75,7 @@
   },
   "dependencies": {
     "@wolffm/prefs-client": "^1.1.27",
-    "@wolffm/worker-utils": "^1.7.23",
+    "@wolffm/worker-utils": "^1.7.24",
     "hono": "^4.11.4",
     "openai": "^6.21.0",
     "pdf-lib": "^1.17.1",
