@@ -15,9 +15,9 @@ The best facts about Resume Bot, each with its source.
 ## The same day, twice
 
 - 2026-08-05 is this repo's busiest day on record, 32 commits (fact sheet,
-  2026-11-16), and the headline change that day — dropping its own local
-  copies of the theme system for a shared theme root (`e16eb19`) — landed on
-  the exact same day as the equivalent refactor in Job Platform
+  2026-11-16). The headline change that day — dropping its own local copies
+  of the theme system for a shared theme root (`e16eb19`) — landed on the
+  exact same day as the equivalent refactor in Job Platform
   (`WolffM/hadoku-jobplatform@3a0e440`, also 2026-08-05). Neither repo's
   theme code had to be invented twice.
 - 2026-07-14 is the day both halves of one cross-app feature shipped: this
@@ -38,11 +38,10 @@ The best facts about Resume Bot, each with its source.
 - A pull-request check added to protect `main` (`42641b0`, 2026-08-03) broke
   the very next morning's automated dependency-update push, which had
   always pushed straight to `main` with no special token. Ten
-  protected-branch rejections failed in a row on 2026-08-04 before the
-  workflow was given a token that could get past the rule, taught to fail
-  fast on that exact rejection instead of retrying it, and given a status
-  report so a red streak no longer waits for the next day's digest
-  (`9c3250f`).
+  protected-branch rejections failed in a row on 2026-08-04. The fix gave
+  the workflow a token that could get past the rule, taught it to fail fast
+  on that exact rejection instead of retrying it, and added a status report
+  so a red streak no longer waits for the next day's digest (`9c3250f`).
 
 ## Scale and shape
 

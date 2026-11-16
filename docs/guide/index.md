@@ -1,12 +1,10 @@
 ---
 title: Resume Bot
 summary: >-
-  A two-panel résumé at [hadoku.me/resume](https://hadoku.me/resume): the
-  résumé itself on the left, and an AI chat that answers questions about it
-  on the right. The same content and the same AI tailoring also power
-  per-job résumés and cover letters for other apps on hadoku.me, through its
-  worker API. Chat and the résumé are open to anyone; tailoring and content
-  management need an account.
+  A two-panel résumé at [hadoku.me/resume](https://hadoku.me/resume) —
+  the résumé and an AI chat about it, open to anyone, with tailored
+  résumés, cover letters and content editing open only to a signed-in
+  account.
 features:
   - name: The résumé
     summary: A document-formatted résumé, with a PDF download, instead of a raw markdown dump.
@@ -42,6 +40,8 @@ letter on demand. It lives at
 [hadoku.me/resume](https://hadoku.me/resume), and the same worker API backs
 per-job tailoring for other apps in the hadoku.me family, including
 [Job Platform](https://github.com/WolffM/hadoku-jobplatform).
+
+![The résumé viewer on the left, with download buttons and a Schedule a Meeting link; the chat panel on the right with its opening prompt](images/resume-chat.webp)
 
 Chatting and reading the résumé need no account. Minting a tailored link,
 generating a résumé or cover letter for a specific job, and editing the

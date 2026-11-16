@@ -8,8 +8,8 @@ tiers: an account the owner has vouched for, and the owner's own accounts.
 
 **What it does.** Shows the résumé as a formatted document rather than a
 flat markdown dump: headings, job titles and skill rows are each styled for
-what they are, because the same markdown construct (`###`, `**bold**`)
-means something different depending on which section it is in. A **Download**
+what they are. The same markdown construct (`###`, `**bold**`) means
+something different depending on which section it is in. A **Download**
 toolbar offers the same content as a server-rendered PDF, plain markdown or
 JSON.
 
@@ -52,10 +52,11 @@ or directly against the API.
 
 **What it does.** Given a job title, company and description, generates a
 résumé (two LLM passes: picking which content blocks fit, then a light
-rewrite) and a cover letter (one pass) in markdown, cached for 30 days per
-job (content-addressed by job title, company and description, so a changed
-posting gets a fresh key on its own) so the same posting does not
-regenerate work every night (`f3f3f18`). This is the API that
+rewrite) and a cover letter (one pass) in markdown. The result is cached
+for 30 days per job, content-addressed by job title, company and
+description — so a changed posting gets a fresh key on its own, and the
+same posting does not regenerate work every night (`f3f3f18`). This is the
+API that
 [Job Platform](https://github.com/WolffM/hadoku-jobplatform)'s **Generate
 packet** button calls.
 
@@ -85,7 +86,7 @@ anyone below admin.
 
 ## Trivia
 
-The free LLM tier this app runs on caps requests at 8,000 tokens a minute,
-and one tailored résumé alone spends about 15,200 tokens across its two
+The free LLM tier this app runs on caps requests at 8,000 tokens a minute.
+One tailored résumé alone spends about 15,200 tokens across its two
 passes — enough that a single generation can only ever finish by straddling
 the boundary between one minute and the next.

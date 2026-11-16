@@ -23,9 +23,9 @@ API.
 
 `POST /tailored-resume` and `POST /cover-letter` landed together on
 2026-04-02, built on a new content-block model: each piece of résumé
-content — a job, a project, a skill group — stored as its own tagged block,
-so an LLM could select a relevant subset per job rather than rewriting the
-whole document (`6011f58`).
+content — a job, a project, a skill group — stored as its own tagged block.
+An LLM could then select a relevant subset per job rather than rewriting
+the whole document (`6011f58`).
 
 ## Shared tiers and link-tailored variants (July 2026)
 
@@ -51,13 +51,13 @@ Python tool that only ever ran on the owner's own machine (`7d32d08`).
 A pull-request check added on 2026-08-03 (`42641b0`) made `main` a
 protected branch. The automated weekly `@wolffm/*` update bot had always
 pushed straight to `main` with the default token, which cannot satisfy a
-required check, but the gap stayed invisible until a publish storm finally
-gave it something to commit: ten protected-branch rejections in a row on
-2026-08-04, each buried under the push-retry loop's own rebase attempts,
-before the workflow was given a token that could bypass the rule, the
-retry loop was taught to fail fast on this exact rejection instead of
-retrying it, and a red streak started reporting itself instead of waiting
-for the next day's digest (`9c3250f`).
+required check — but the gap stayed invisible until a publish storm
+finally gave it something to commit. Ten protected-branch rejections
+failed in a row on 2026-08-04, each buried under the push-retry loop's own
+rebase attempts. The fix gave the workflow a token that could bypass the
+rule, taught the retry loop to fail fast on this exact rejection instead
+of retrying it, and made a red streak report itself instead of waiting for
+the next day's digest (`9c3250f`).
 
 ## The résumé becomes a document (August 2026)
 
@@ -85,7 +85,7 @@ time (`4cbbe5b`).
 
 ## Trivia
 
-The worker API and the UI component were extracted and parameterized in the
-same commit that removed the old Express server, which is why there is no
-era in this history called "removing the local dev server" — by the time it
-was gone, its replacement already existed (`961ff4a`).
+The worker API and the UI component were extracted and parameterized in
+the same commit that removed the old Express server. That is why there is
+no era in this history called "removing the local dev server" — by the
+time it was gone, its replacement already existed (`961ff4a`).
