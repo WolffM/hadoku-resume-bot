@@ -1,36 +1,3 @@
----
-title: Resume Bot
-summary: >-
-  A two-panel résumé at [hadoku.me/resume](https://hadoku.me/resume) —
-  the résumé and an AI chat about it, open to anyone, with tailored
-  résumés, cover letters and content editing open only to a signed-in
-  account.
-features:
-  - name: The résumé
-    summary: A document-formatted résumé, with a PDF download, instead of a raw markdown dump.
-    anchor: the-résumé
-  - name: Chat
-    summary: Ask an AI questions about the background behind the résumé; it answers from the résumé's own content.
-    anchor: chat
-  - name: Link-tailored variants
-    summary: A résumé built for one posting, behind its own shareable link, falling back to the full résumé if the link expires.
-    anchor: link-tailored-variants
-    tier: friend
-  - name: Tailored résumés and cover letters
-    summary: Generate a résumé and cover letter tailored to one job description, for this app or another on hadoku.me.
-    anchor: tailored-résumés-and-cover-letters
-    tier: friend
-  - name: The content builder
-    summary: An admin UI to edit the résumé's content blocks directly, without redeploying code.
-    anchor: the-content-builder
-    tier: admin
-trivia:
-  - 'The first commit held 1,514 lines and 17 files; the very next one, labelled "first test", touched 18 files and added 3,427 lines (`6ca5525`, `79a0017`).'
-  - "A shared link's slug is 72 bits of random, URL-safe base64 — unguessable by design, so revoking it is the only way to kill it (`602066f`)."
-  - 'The free LLM tier this app runs on caps 8,000 tokens a minute, and one tailored résumé alone spends about 15,200 across its two passes — so a single generation can only ever succeed by straddling the boundary between two minutes (`d193250`).'
-  - "Versioning used to be a pre-commit hook bumping the patch on every commit, including ones that changed nothing shippable; it is CI's job now, computed once at publish time (`4cbbe5b`)."
----
-
 # Resume Bot
 
 Resume Bot is a dual-purpose package: a browser widget that shows a résumé
