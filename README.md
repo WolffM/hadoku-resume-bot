@@ -1,5 +1,7 @@
 # @wolffm/resume-bot
 
+**Guide:** [overview](docs/guide/index.md) · [features](docs/guide/features.md) · [contributing](docs/guide/contributing.md) · [history](docs/guide/history.md) · [trivia](docs/guide/trivia.md)
+
 AI-powered conversational interface for interactive resume exploration — chat with an AI about my background, skills, and experience while browsing the resume itself.
 
 **See it live:** [hadoku.me/resume](https://hadoku.me/resume)
