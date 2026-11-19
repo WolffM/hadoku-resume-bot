@@ -61,8 +61,8 @@ importers:
         specifier: ^5.1.0
         version: 5.1.1(vite@7.2.2(yaml@2.9.1))
       '@wolffm/catalogue':
-        specifier: ^1.0.16
-        version: 1.0.16
+        specifier: ^1.0.17
+        version: 1.0.17
       '@wolffm/logger':
         specifier: 1.4.4
         version: 1.4.4
@@ -858,8 +858,8 @@ packages:
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
 
-  '@wolffm/catalogue@1.0.16':
-    resolution: {integrity: sha512-JDPty0ReBAlhzr/d5YQ+w33fxIQpjwTjmQwIVBK8tTytouBdxkFIECpcE3wkIhOxGpFLe+rd601N+93PleEm/A==, tarball: https://npm.pkg.github.com/download/@wolffm/catalogue/1.0.16/90d74489d97c0227dde8a0202fd5601a1f9ab38d}
+  '@wolffm/catalogue@1.0.17':
+    resolution: {integrity: sha512-9yxMMjOtmyudc2PfVGk2hCgmquouvurdVt5z7RH/bIbFJjYswYBPL/qsMbPI+pQIdCNLsRqTCPfD9/dINfPfXg==, tarball: https://npm.pkg.github.com/download/@wolffm/catalogue/1.0.17/2ba53f9e3f91b87393b7f4d68f99bf619a33f828}
     engines: {node: '>=18'}
 
   '@wolffm/logger@1.4.4':
@@ -3390,7 +3390,7 @@ snapshots:
 
   '@vue/shared@3.5.30': {}
 
-  '@wolffm/catalogue@1.0.16': {}
+  '@wolffm/catalogue@1.0.17': {}
 
   '@wolffm/logger@1.4.4': {}
 
