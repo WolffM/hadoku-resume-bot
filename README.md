@@ -6,11 +6,7 @@ AI-powered conversational interface for interactive resume exploration — chat 
 
 **See it live:** [hadoku.me/resume](https://hadoku.me/resume)
 
-This repo is the npm package that powers that widget. The rest of this README is for contributors working on the package itself.
-
-## Overview
-
-Two-panel UI: a markdown resume viewer on the left, an AI chat interface on the right. The chat uses Groq's LLM to answer questions about the resume. Also exposes a worker API for generating tailored resumes and cover letters.
+This repo is the npm package that powers that widget. The rest of this README is for contributors working on the package itself; what it does and how it's built are in the [guide](docs/guide/index.md) above.
 
 ## Development
 
@@ -23,40 +19,13 @@ The identity to ask for is `resume-bot-service-key`.
 
 ### Local Development Setup
 
-This package includes a development environment for testing the component locally:
-
 ```bash
-# Install dependencies (outside the fleet: npx @hadoku/dev-vault -- pnpm install)
-pnpm install
-
-# Start dev server (opens http://localhost:5173)
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Lint and format
-pnpm lint:fix
-pnpm format
+pnpm install   # outside the fleet: npx @hadoku/dev-vault -- pnpm install
+pnpm dev       # opens http://localhost:5173, mounting the component directly
 ```
 
-The dev server uses `index.html` which imports and mounts the component directly. You can pass different configurations via URL parameters:
-
-**Example URLs:**
-
-```bash
-# Default configuration
-http://localhost:5173
-
-# Custom theme
-http://localhost:5173?theme=ocean
-
-# Admin user
-http://localhost:5173?userType=admin&sessionId=test-123
-
-# Full configuration
-http://localhost:5173?theme=ocean&userType=admin&sessionId=dev-session
-```
+The rest of the commands, and the dev harness's URL parameters for trying
+different states, are in [contributing.md](docs/guide/contributing.md#run-it).
 
 ## Integration
 
@@ -107,6 +76,7 @@ gated in-worker via `@wolffm/worker-utils` edge-auth — see `worker/src/index.t
 
 - `${apiBaseUrl}/chat` - POST - Chat with the bot (public, rate-limited)
 - `${apiBaseUrl}/resume` - GET - Fetch resume content, incl. `?v={slug}` variants (public)
+- `${apiBaseUrl}/resume.pdf` - GET - Server-rendered PDF download (public)
 - `${apiBaseUrl}/system-prompt` - GET - Fetch system prompt (admin/friend)
 - `${apiBaseUrl}/tailored-resume` - POST - Per-job tailored resume (admin/friend/service)
 - `${apiBaseUrl}/cover-letter` - POST - Per-job cover letter (admin/friend/service)
@@ -114,31 +84,15 @@ gated in-worker via `@wolffm/worker-utils` edge-auth — see `worker/src/index.t
 
 ## Deployment
 
-Pushes to `main` automatically:
-
-1. Build and publish to GitHub Packages
-2. Notify parent site to update
-3. Parent pulls new version and redeploys
-
-### Versioning
-
-Version bumps are handled automatically through two mechanisms:
-
-1. **Pre-commit hook** (primary): The `.husky/pre-commit` hook automatically bumps the version for every commit
-2. **Workflow fallback**: The publish workflow checks if the current version already exists in the registry and bumps it if needed
-
-This dual approach ensures versions are always incremented, even if commits bypass the pre-commit hook (e.g., web UI edits, `--no-verify` commits).
-
-Version bumping follows this pattern:
-
-- Patch version increments on each commit (1.1.8 → 1.1.9)
-- At patch 20, rolls over to next minor (1.1.20 → 1.2.0)
+Pushes to `main` build, publish and notify the parent site automatically, with
+the version computed by CI at publish time — never by a commit or a hook. See
+[contributing.md#how-it-deploys](docs/guide/contributing.md#how-it-deploys).
 
 ## Architecture
 
-This package has two exports:
+This package has two exports, built and published together as
+`@wolffm/resume-bot`; the full architecture — content model, gating, the LLM
+provider chain — is in [contributing.md#architecture](docs/guide/contributing.md#architecture).
 
 - **UI component** (`.` export): `mount(el, props)` / `unmount(el)` — React app from `src/entry.tsx`
 - **Worker API** (`./api` export): `createResumeHandler(basePath, options)` — Hono router from `worker/src/index.ts` (`options.ownerName` sets the chat owner)
-
-Both are built and published together as `@wolffm/resume-bot`.
