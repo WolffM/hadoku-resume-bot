@@ -220,14 +220,34 @@ const MAX_RATE_LIMIT_RETRIES = 1
 const MAX_RETRY_WAIT_MS = 5_000
 
 function retryAfterMs(err: unknown): number | null {
-  const e = err as { status?: number; headers?: Record<string, string> } | null
-  if (!e || e.status !== 429) return null
-  const header = e.headers?.['retry-after']
-  const seconds = header ? Number(header) : NaN
-  // Fall back to a short fixed wait when the header is missing/unparseable.
-  const ms = Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 5_000
-  return Math.min(ms, MAX_RETRY_WAIT_MS)
+  const ms = requestedWaitMs(err)
+  return ms === null ? null : Math.min(ms, MAX_RETRY_WAIT_MS)
 }
+
+/**
+ * The wait a 429 asked for, uncapped; null when the error is not a 429. A
+ * missing or unparseable Retry-After falls back to a short fixed wait.
+ */
+function requestedWaitMs(err: unknown): number | null {
+  const e = err as { status?: number; headers?: Headers | Record<string, string> } | null
+  if (!e || e.status !== 429) return null
+  const h = e.headers
+  const header = h instanceof Headers ? h.get('retry-after') : h?.['retry-after']
+  const seconds = header ? Number(header) : NaN
+  return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 5_000
+}
+
+/**
+ * The longest Retry-After worth honouring once the whole chain has failed.
+ *
+ * Groq's 429 names the exact moment its per-minute window frees up, and for a
+ * packet (tailored résumé, then the extras a second later) that is 7-12s away
+ * (measured 2026-11-20). Falling over to the next provider is still the first
+ * move; this wait is only for when every fallback has also refused, which is
+ * when failing is the only alternative. It is short enough to sit inside the
+ * caller's deadline, unlike the 45s window-rollover waits this file retired.
+ */
+const CHAIN_RETRY_MAX_WAIT_MS = 15_000
 
 /** Call one provider, honouring Retry-After only when there's no fallback left. */
 async function callProvider(
@@ -310,6 +330,7 @@ export async function sendChatCompletion(
   // Groq rate limit that pushed the request onto a broken fallback reads as
   // the fallback's problem alone.
   const failures: string[] = []
+  let rateLimited: { provider: LLMProvider; waitMs: number } | undefined
   for (let i = 0; i < chain.length; i++) {
     const isLast = i === chain.length - 1
     try {
@@ -323,6 +344,27 @@ export async function sendChatCompletion(
         throw new DeadlineExceededError(failures.join('; '))
       }
       // Otherwise fall over to the next free provider.
+      const wait = requestedWaitMs(err)
+      if (wait !== null && !rateLimited) rateLimited = { provider: chain[i], waitMs: wait }
+    }
+  }
+  // Everything refused. If one provider was only rate limited and said for how
+  // long, and that is soon enough to fit the caller's budget, its window
+  // reopening is the request's best remaining chance.
+  if (
+    rateLimited &&
+    rateLimited.waitMs <= CHAIN_RETRY_MAX_WAIT_MS &&
+    remainingMs(options?.deadline) >= rateLimited.waitMs + MIN_ATTEMPT_MS
+  ) {
+    await new Promise(resolve => setTimeout(resolve, rateLimited.waitMs))
+    try {
+      return await callProvider(rateLimited.provider, messages, options, false)
+    } catch (err) {
+      failures.push(
+        `${rateLimited.provider.name} after ${Math.round(rateLimited.waitMs / 1000)}s wait: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      )
     }
   }
   throw new Error(`All LLM providers failed: ${failures.join('; ')}`)

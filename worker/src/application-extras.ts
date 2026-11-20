@@ -3,7 +3,7 @@ import { cacheKey } from './blocks.js'
 import { sendChatCompletion, type LLMChain } from './llm.js'
 import { stripCodeFence } from './tailored-resume.js'
 import { normalizeTypography } from './typography.js'
-import { APPLICATION_EXTRAS_TOKENS } from './constants.js'
+import { APPLICATION_EXTRAS_TOKENS, OPERATION_BUDGET_MS } from './constants.js'
 import { getContactProfile, renderStandardFields, type ContactProfile } from './contact.js'
 
 // See tailored-resume.ts for why this is 30 days and not 24 hours.
@@ -151,7 +151,9 @@ Keep every answer truthful to the résumé and the candidate facts. Do not fabri
 
   const response = await sendChatCompletion(client, [{ role: 'user', content: prompt }], {
     maxTokens: APPLICATION_EXTRAS_TOKENS,
-    temperature: 0.5
+    temperature: 0.5,
+    // Without one, a wait for a rate limit has no ceiling but the edge's 120s.
+    deadline: Date.now() + OPERATION_BUDGET_MS
   })
 
   let parsed: Partial<ApplicationExtras>
