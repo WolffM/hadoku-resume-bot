@@ -1,5 +1,19 @@
 # Handoff: resume-api's Gemini provider is bound but every call fails
 
+> **Update 2026-11-20: the cause is now known.** Every "no body" in this doc was
+> Google's error arriving as a JSON array, `[{"error":{...}}]`, which the openai
+> SDK cannot read (fixed in `1e6d0dc`). With the bodies visible, prod says:
+>
+> - key in `x-goog-api-key`, Authorization deleted → `400 Missing or invalid Authorization header.`
+> - key as `Authorization: Bearer` (now shipped, `7e28f02`) → **`401 API key not valid. Please pass a valid API key.`**
+>
+> So the header theory below was wrong, and **the bound key itself is invalid.**
+> The one remaining ask: replace `GOOGLE_GEMINI_AGENT_API_KEY_MATTHAEUS` in the
+> vault with a working AI Studio key and push it
+> (`administration.py rotate-secret GOOGLE_GEMINI_AGENT_API_KEY_MATTHAEUS --keep`).
+> Until then a Groq 429 is waited out once (`17b54e0`) rather than failing.
+> The rest of this doc is the September record.
+
 **To:** hadoku_site operator · **From:** hadoku-jobplatform side · **2026-09-15**
 
 **Not an outage.** Groq still serves every request; Gemini was added as overflow
