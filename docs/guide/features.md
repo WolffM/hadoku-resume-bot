@@ -86,7 +86,7 @@ anyone below admin.
 
 ## Trivia
 
-The free LLM tier this app runs on caps requests at 8,000 tokens a minute.
+The free LLM tier this app falls back to caps requests at 8,000 tokens a minute.
 One tailored résumé alone spends about 15,200 tokens across its two
 passes — enough that a single generation can only ever finish by straddling
 the boundary between one minute and the next.

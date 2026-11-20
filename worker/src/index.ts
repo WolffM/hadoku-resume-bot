@@ -44,8 +44,12 @@ import {
 } from './builder.js'
 
 interface ResumeEnv {
-  /** Groq API key — the only provider in the chain. See constants.ts. */
-  GROQ_API_KEY: string
+  /** Groq API key: the free fallback behind the Claude pool. See constants.ts. */
+  GROQ_API_KEY?: string
+  /** Service binding to edge-router, for leasing from crossposter (claude-pool.ts). */
+  EDGE?: { fetch: typeof fetch }
+  /** resume-api's service identity (resume-bot-service-key), sent as X-User-Key. */
+  HADOKU_SERVICE_KEY?: string
   /** Legacy fallback for the system prompt; CONTENT_KV `resume:prompt` wins. */
   RESUME_SYSTEM_PROMPT?: string
   /**
@@ -57,6 +61,22 @@ interface ResumeEnv {
   EDGE_AUTH_SECRET: string
   RATE_LIMIT_KV: KVNamespace
   CONTENT_KV: KVNamespace
+}
+
+/**
+ * Work that should finish after the response: ctx.waitUntil when the host
+ * forwards an ExecutionContext. Without one it is awaited nowhere, so it is
+ * at least never an unhandled rejection; claude-pool.ts logs its own failures.
+ */
+function deferTo(c: { executionCtx: { waitUntil(p: Promise<unknown>): void } }) {
+  return (work: Promise<unknown>) => {
+    try {
+      c.executionCtx.waitUntil(work)
+    } catch {
+      // Hono throws when there is no ExecutionContext (a test, a bare fetch).
+      void work
+    }
+  }
 }
 
 export interface ResumeHandlerOptions {
@@ -227,7 +247,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
         messages.unshift({ role: 'system', content: systemPrompt })
       }
 
-      const client = createLLMClient(c.env)
+      const client = createLLMClient(c.env, deferTo(c))
       const response = await sendChatCompletion(client, messages)
       return c.json(response)
     } catch (error) {
@@ -337,7 +357,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env)
+      const client = createLLMClient(c.env, deferTo(c))
       const variant = await mintVariant(client, c.env.CONTENT_KV, body)
       return c.json(variant)
     } catch (error) {
@@ -392,7 +412,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env)
+      const client = createLLMClient(c.env, deferTo(c))
       const result = await generateTailoredResume(client, c.env.CONTENT_KV, body)
       return c.json(result)
     } catch (error) {
@@ -421,7 +441,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env)
+      const client = createLLMClient(c.env, deferTo(c))
       const resumeContent = await getResumeContent(c.env)
       const result = await generateCoverLetter(client, c.env.CONTENT_KV, resumeContent, body)
       return c.json(result)
@@ -456,7 +476,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
     }
 
     try {
-      const client = createLLMClient(c.env)
+      const client = createLLMClient(c.env, deferTo(c))
       const result = await generateApplicationExtras(client, c.env.CONTENT_KV, body)
       return c.json(result)
     } catch (error) {

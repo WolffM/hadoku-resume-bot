@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { claudePoolProvider, type ClaudePoolEnv, type Defer } from './claude-pool.js'
 import { LLM_CONFIG, LLM_PROVIDERS, MIN_ATTEMPT_MS, type ProviderEnvKey } from './constants.js'
 
 /**
@@ -54,11 +55,25 @@ export interface ChatResponse {
   }
 }
 
-/** One free-tier provider in the chain: an OpenAI-compatible client + its model id. */
+/** What one attempt asks of a provider; the chain has already resolved defaults. */
+export interface CompletionRequest {
+  maxTokens: number
+  temperature: number
+  /** This attempt's ceiling: the provider's own, narrowed by the request's deadline. */
+  timeoutMs: number
+}
+
+/**
+ * One provider in the chain. `complete` makes ONE attempt and throws on any
+ * failure; an error carrying `status` 429 and a Retry-After is what the chain
+ * may wait on. Fallover, deadlines and retries all belong to the chain.
+ */
 export interface LLMProvider {
   name: string
-  client: OpenAI
   model: string
+  /** The longest one attempt may take before the chain gives up on it. */
+  attemptTimeoutMs: number
+  complete(messages: ChatMessage[], req: CompletionRequest): Promise<ChatResponse>
 }
 
 /** A prioritized chain of providers; calls fall over from one to the next. */
@@ -70,10 +85,11 @@ export type LLMChain = LLMProvider[]
  * behind the provider list; the account id is separate because it is not a
  * credential and is substituted into a base URL rather than sent as one.
  */
-export type LLMEnv = Partial<Record<ProviderEnvKey, string>> & {
-  /** Substituted into Cloudflare's base URL, which carries it in the path. */
-  CLOUDFLARE_ACCOUNT_ID?: string
-}
+export type LLMEnv = Partial<Record<ProviderEnvKey, string>> &
+  ClaudePoolEnv & {
+    /** Substituted into Cloudflare's base URL, which carries it in the path. */
+    CLOUDFLARE_ACCOUNT_ID?: string
+  }
 
 // ---------------------------------------------------------------------------
 // Latency budget. Every number here is derived from ONE constraint: edge-router
@@ -161,8 +177,12 @@ export async function normalizeErrorBody(res: Response): Promise<Response> {
  * key binding is present, so a missing key degrades the chain instead of
  * breaking it. Today that list is Groq alone — see constants.ts for why.
  */
-export function createLLMClient(env: LLMEnv): LLMChain {
+export function createLLMClient(env: LLMEnv, defer?: Defer): LLMChain {
   const chain: LLMChain = []
+  // Claude on the operator's subscription first, whenever this worker can lease
+  // from crossposter's pool; the free providers below are its fallback.
+  const claude = claudePoolProvider(env, defer ?? (work => void work))
+  if (claude) chain.push(claude)
   for (const p of LLM_PROVIDERS) {
     const apiKey = env[p.envKey]
     if (!apiKey) continue
@@ -173,31 +193,67 @@ export function createLLMClient(env: LLMEnv): LLMChain {
     const baseUrl = p.baseUrl.replace('{CLOUDFLARE_ACCOUNT_ID}', env.CLOUDFLARE_ACCOUNT_ID ?? '')
     if (baseUrl.includes('{')) continue
     const authHeader: string | undefined = 'authHeader' in p ? p.authHeader : undefined
-    chain.push({
-      name: p.name,
-      model: p.model,
-      client: new OpenAI({
-        apiKey,
-        baseURL: baseUrl,
-        // Every provider goes through providerFetch: it moves the key for a
-        // provider that names an `authHeader`, and unwraps an error body the SDK
-        // would otherwise report as "(no body)". See providerFetch.
-        fetch: providerFetch(apiKey, authHeader),
-        // Both of these MUST be set explicitly. The SDK defaults are a 10-minute
-        // timeout and 2 internal retries, which is catastrophic here: a hung
-        // provider would burn 30 minutes inside a request the edge gives 120s,
-        // and those hidden retries stack UNDERNEATH the chain fallback and the
-        // rate-limit loop below, multiplying every wait we think we control.
-        timeout: REQUEST_TIMEOUT_MS,
-        // Zero, not lowered. Failing over to the NEXT provider is strictly
-        // better than retrying the one that just failed, and that is exactly
-        // what sendChatCompletion does. SDK-level retries would only re-hit the
-        // same rate-limited endpoint, invisibly.
-        maxRetries: 0
-      })
-    })
+    chain.push(
+      openAIProvider(
+        p.name,
+        p.model,
+        new OpenAI({
+          apiKey,
+          baseURL: baseUrl,
+          // Every provider goes through providerFetch: it moves the key for a
+          // provider that names an `authHeader`, and unwraps an error body the SDK
+          // would otherwise report as "(no body)". See providerFetch.
+          fetch: providerFetch(apiKey, authHeader),
+          // Both of these MUST be set explicitly. The SDK defaults are a 10-minute
+          // timeout and 2 internal retries, which is catastrophic here: a hung
+          // provider would burn 30 minutes inside a request the edge gives 120s,
+          // and those hidden retries stack UNDERNEATH the chain fallback and the
+          // rate-limit loop below, multiplying every wait we think we control.
+          timeout: REQUEST_TIMEOUT_MS,
+          // Zero, not lowered. Failing over to the NEXT provider is strictly
+          // better than retrying the one that just failed, and that is exactly
+          // what sendChatCompletion does. SDK-level retries would only re-hit the
+          // same rate-limited endpoint, invisibly.
+          maxRetries: 0
+        })
+      )
+    )
   }
   return chain
+}
+
+/** An OpenAI-compatible endpoint (Groq, Gemini, Cloudflare, Mistral) as a chain provider. */
+function openAIProvider(name: string, model: string, client: OpenAI): LLMProvider {
+  return {
+    name,
+    model,
+    attemptTimeoutMs: REQUEST_TIMEOUT_MS,
+    async complete(messages, req) {
+      const response = await client.chat.completions.create(
+        { model, messages, temperature: req.temperature, max_tokens: req.maxTokens },
+        { timeout: req.timeoutMs }
+      )
+      const choice = response.choices[0]
+      if (!choice || !choice.message?.content) {
+        throw new Error('No response from LLM')
+      }
+      return {
+        message: choice.message.content,
+        // WHICH provider answered. The chain falls over silently by design, so
+        // without this a packet written by a weaker fallback is indistinguishable
+        // from one written by the primary — and the first sign of a quality
+        // regression would be a real job application that reads badly.
+        provider: name,
+        usage: response.usage
+          ? {
+              prompt_tokens: response.usage.prompt_tokens,
+              completion_tokens: response.usage.completion_tokens,
+              total_tokens: response.usage.total_tokens
+            }
+          : undefined
+      }
+    }
+  }
 }
 
 // Free tiers enforce a per-minute token budget (e.g. Groq is 8k TPM). A fresh
@@ -267,37 +323,13 @@ async function callProvider(
       )
     }
     try {
-      const response = await provider.client.chat.completions.create(
-        {
-          model: provider.model,
-          messages,
-          temperature: options?.temperature ?? LLM_CONFIG.TEMPERATURE,
-          max_tokens: options?.maxTokens ?? LLM_CONFIG.MAX_TOKENS
-        },
-        // Whichever is tighter: the per-attempt ceiling, or all the time this
-        // request has left. The client-level default already caps the former;
-        // this narrows it as the shared budget drains.
-        { timeout: Math.min(REQUEST_TIMEOUT_MS, left) }
-      )
-      const choice = response.choices[0]
-      if (!choice || !choice.message?.content) {
-        throw new Error('No response from LLM')
-      }
-      return {
-        message: choice.message.content,
-        // WHICH provider answered. The chain falls over silently by design, so
-        // without this a packet written by a weaker fallback is indistinguishable
-        // from one written by the primary — and the first sign of a quality
-        // regression would be a real job application that reads badly.
-        provider: provider.name,
-        usage: response.usage
-          ? {
-              prompt_tokens: response.usage.prompt_tokens,
-              completion_tokens: response.usage.completion_tokens,
-              total_tokens: response.usage.total_tokens
-            }
-          : undefined
-      }
+      // Whichever is tighter: the provider's per-attempt ceiling, or all the
+      // time this request has left.
+      return await provider.complete(messages, {
+        maxTokens: options?.maxTokens ?? LLM_CONFIG.MAX_TOKENS,
+        temperature: options?.temperature ?? LLM_CONFIG.TEMPERATURE,
+        timeoutMs: Math.min(provider.attemptTimeoutMs, left)
+      })
     } catch (err) {
       if (err instanceof DeadlineExceededError) throw err
       const waitMs = retryOnRateLimit ? retryAfterMs(err) : null
@@ -323,7 +355,9 @@ export async function sendChatCompletion(
   options?: CompletionOptions
 ): Promise<ChatResponse> {
   if (chain.length === 0) {
-    throw new Error('No LLM providers configured (set GROQ_API_KEY or GEMINI_API_KEY)')
+    throw new Error(
+      'No LLM providers configured (bind EDGE + HADOKU_SERVICE_KEY for the Claude pool, or GROQ_API_KEY)'
+    )
   }
   // Every provider's failure, by name. The chain falls over silently, so the
   // error that surfaces is only the LAST provider's; without the others a

@@ -26,5 +26,5 @@ features:
 trivia:
   - 'The first commit held 1,514 lines and 17 files; the very next one, labelled "first test", touched 18 files and added 3,427 lines (`6ca5525`, `79a0017`).'
   - "A shared link's slug is 72 bits of random, URL-safe base64 — unguessable by design, so revoking it is the only way to kill it (`602066f`)."
-  - 'The free LLM tier this app runs on caps 8,000 tokens a minute, and one tailored résumé alone spends about 15,200 across its two passes — so a single generation can only ever succeed by straddling the boundary between two minutes (`d193250`).'
+  - 'The free LLM tier this app falls back to caps 8,000 tokens a minute, and one tailored résumé alone spends about 15,200 across its two passes — so a single generation can only ever succeed by straddling the boundary between two minutes (`d193250`).'
   - "Versioning used to be a pre-commit hook bumping the patch on every commit, including ones that changed nothing shippable; it is CI's job now, computed once at publish time (`4cbbe5b`)."

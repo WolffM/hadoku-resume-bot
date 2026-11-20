@@ -158,6 +158,32 @@ export const LLM_PROVIDERS: {
   }
 ] as const
 
+/**
+ * Claude on the operator's Claude Code subscription, leased from crossposter's
+ * pool (claude-pool.ts). First in the chain whenever the worker can lease.
+ *
+ * Measured 2026-11-20 on a pool lease, an application-extras-sized request
+ * (2.6k tokens in, JSON out):
+ *
+ *   claude-opus-5-5   effort low     20.8s   1,949 out
+ *   claude-opus-5-5   effort medium  33.9s   2,963 out
+ *   claude-sonnet-5-5 effort low     13.5s   1,676 out
+ *
+ * All three returned valid JSON. `low` keeps one attempt well inside
+ * OPERATION_BUDGET_MS, two passes of a tailored résumé included, which is why
+ * the attempt ceiling is 60s here and 20s for the free providers: a Claude call
+ * cut at 20s would fail every extras request it was given.
+ */
+export const CLAUDE_POOL = {
+  MODEL: 'claude-opus-5-5',
+  EFFORT: 'low',
+  // Thinking spends output tokens too, so this is not the free providers' cap.
+  MAX_TOKENS: 16000,
+  ATTEMPT_TIMEOUT_MS: 60_000,
+  LEASE_URL: 'https://hadoku.me/crossposter/claude-code/lease',
+  OUTCOME_URL: 'https://hadoku.me/crossposter/claude-code/lease/outcome'
+} as const
+
 export const RATE_LIMIT_CONFIG = {
   MAX_REQUESTS_PER_WINDOW: 30,
   WINDOW_DURATION_SECONDS: 60,

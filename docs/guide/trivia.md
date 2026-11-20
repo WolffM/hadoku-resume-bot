@@ -31,7 +31,7 @@ The best facts about Resume Bot, each with its source.
 - A link-tailored résumé's slug is 72 bits of random, URL-safe base64 —
   unguessable by design, so revoking it is the only way to kill a link
   (`602066f`).
-- The free LLM tier this app runs on caps requests at 8,000 tokens a minute.
+- The free LLM tier this app falls back to caps requests at 8,000 tokens a minute.
   One tailored résumé spends about 15,200 tokens across its two passes, so a
   single generation can only ever finish by straddling the boundary between
   one minute and the next, never by fitting inside one (`d193250`).

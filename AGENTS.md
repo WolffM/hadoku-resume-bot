@@ -18,7 +18,9 @@ Both ship in `dist/` via `pnpm build` (runs two vite builds + tsc).
 
 ## Worker API bindings (Cloudflare)
 
-`GROQ_API_KEY`, `RATE_LIMIT_KV`, `CONTENT_KV`
+`EDGE` (service binding to edge-router) + `HADOKU_SERVICE_KEY` (`resume-bot-service-key`,
+on the edge allow list `crossposter-claude-code-lease`): the Claude pool, first in the chain.
+`GROQ_API_KEY`: the free fallback. `RATE_LIMIT_KV`, `CONTENT_KV`.
 
 These are Cloudflare Worker bindings configured in hadoku_site's wrangler config, not .env vars.
 

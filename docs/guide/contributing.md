@@ -48,12 +48,14 @@ top of it — friend-and-up for `/system-prompt`, `/tailored-resume`,
 naming the lowest tier admits everything above it, including a same-origin
 Cloudflare service binding call stamped as `service` by another app.
 
-**The LLM provider chain** (`worker/src/constants.ts`) tries Groq first and
-falls over to a second free-tier provider on a rate limit, because Groq's
-free tier cannot serve one tailored résumé inside its own token-per-minute
-window; see [trivia.md](trivia.md) for the numbers. The order is a
-deliberate quality choice — every prompt was tuned against Groq's model —
-not a throughput one.
+**The LLM provider chain** (`worker/src/llm.ts`, `worker/src/constants.ts`)
+runs Claude first: Opus 5.5 on the operator's Claude Code subscription, leased
+per request from crossposter's account pool (`worker/src/claude-pool.ts`) and
+reported back after every call, so a spent account is benched and the pool
+moves on. The chain falls over to the free providers, Groq first, whenever
+this worker cannot lease: no `EDGE` binding or service key, a refusal, or no
+account usable. See [trivia.md](trivia.md) for why Groq alone cannot serve one
+tailored résumé inside its own token-per-minute window.
 
 **The content builder** (`src/builder/`, `worker/src/builder.ts`) is a
 separate admin-only bundle (`dist/builder.js`), built from the same repo but
