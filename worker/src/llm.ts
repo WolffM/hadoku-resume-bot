@@ -101,6 +101,60 @@ export type LLMEnv = Partial<Record<ProviderEnvKey, string>> & {
 const REQUEST_TIMEOUT_MS = 20_000
 
 /**
+ * The fetch every provider client uses. Two jobs:
+ *
+ * 1. A provider that names an `authHeader` wants its key THERE and NOWHERE
+ *    ELSE, so the SDK's `Authorization: Bearer` is deleted from the outgoing
+ *    Headers (a null defaultHeader is not reliably dropped on workerd).
+ *
+ * 2. An error body that is not shaped `{error: {...}}` is reshaped so it is.
+ *    The openai SDK reads ONLY `body.error`, and when that key is missing it
+ *    reports "400 status code (no body)" even though the body was there.
+ *    Google's OpenAI-compatible surface answers errors as a JSON ARRAY,
+ *    `[{"error": {...}}]`, so every Gemini refusal arrived as "(no body)" and
+ *    its actual reason was thrown away. That blind spot is how a Gemini
+ *    failure was misread as a header problem on 2026-09-15 and stayed broken.
+ */
+export function providerFetch(apiKey: string, authHeader?: string) {
+  return async (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const headers = new Headers(init?.headers)
+    if (authHeader) {
+      headers.delete('authorization')
+      headers.set(authHeader, apiKey)
+    }
+    const res = await fetch(url, { ...init, headers })
+    if (res.ok) return res
+    return normalizeErrorBody(res)
+  }
+}
+
+/** Rebuild a failed response so its body carries a top-level `error` the SDK can read. */
+export async function normalizeErrorBody(res: Response): Promise<Response> {
+  const text = await res.text()
+  let body = text
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    parsed = undefined
+  }
+  if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] && typeof parsed[0] === 'object') {
+    body = JSON.stringify(parsed[0])
+  } else if (
+    parsed !== undefined &&
+    (typeof parsed !== 'object' || parsed === null || !('error' in parsed))
+  ) {
+    // Valid JSON with no `error` key: hand the SDK the raw text as the message.
+    body = JSON.stringify({ error: { message: text.slice(0, 500) } })
+  }
+  const outHeaders = new Headers(res.headers)
+  // The body has been decoded and possibly rewritten, so these no longer describe it.
+  outHeaders.delete('content-encoding')
+  outHeaders.delete('content-length')
+  return new Response(body, { status: res.status, statusText: res.statusText, headers: outHeaders })
+}
+
+/**
  * Build the provider chain from whatever keys are configured, in LLM_PROVIDERS
  * order. Every provider speaks an OpenAI-compatible API, so a request can fall
  * over from one to the next transparently. A provider is included only when its
@@ -125,30 +179,10 @@ export function createLLMClient(env: LLMEnv): LLMChain {
       client: new OpenAI({
         apiKey,
         baseURL: baseUrl,
-        // A provider that names an `authHeader` wants its key THERE and NOWHERE
-        // ELSE. Google's OpenAI surface rejects a request carrying both its own
-        // header and an Authorization with "Multiple authentication credentials
-        // received" — a 400 that arrives with no body, so it reads as a generic
-        // bad request.
-        //
-        // Done in a fetch wrapper rather than `defaultHeaders: {Authorization:
-        // null}`. The null form drops the header under openai 6.32 on Node, and
-        // that is how it was verified, but the 400 persisted on workerd — so
-        // the header was still reaching the wire. Deleting it from the outgoing
-        // Headers is the only form that cannot be runtime-dependent.
-        // Captured BEFORE the closure: narrowing `p.authHeader` at the `?:` does
-        // not survive into a callback TypeScript must assume runs later, so the
-        // header name has to be a plain string by the time it is used.
-        ...(authHeader
-          ? {
-              fetch: (url: RequestInfo | URL, init?: RequestInit) => {
-                const headers = new Headers(init?.headers)
-                headers.delete('authorization')
-                headers.set(authHeader, apiKey)
-                return fetch(url, { ...init, headers })
-              }
-            }
-          : {}),
+        // Every provider goes through providerFetch: it moves the key for a
+        // provider that names an `authHeader`, and unwraps an error body the SDK
+        // would otherwise report as "(no body)". See providerFetch.
+        fetch: providerFetch(apiKey, authHeader),
         // Both of these MUST be set explicitly. The SDK defaults are a 10-minute
         // timeout and 2 internal retries, which is catastrophic here: a hung
         // provider would burn 30 minutes inside a request the edge gives 120s,
@@ -271,20 +305,25 @@ export async function sendChatCompletion(
   if (chain.length === 0) {
     throw new Error('No LLM providers configured (set GROQ_API_KEY or GEMINI_API_KEY)')
   }
-  let lastErr: unknown
+  // Every provider's failure, by name. The chain falls over silently, so the
+  // error that surfaces is only the LAST provider's; without the others a
+  // Groq rate limit that pushed the request onto a broken fallback reads as
+  // the fallback's problem alone.
+  const failures: string[] = []
   for (let i = 0; i < chain.length; i++) {
     const isLast = i === chain.length - 1
     try {
       return await callProvider(chain[i], messages, options, isLast)
     } catch (err) {
-      lastErr = err
+      failures.push(`${chain[i].name}: ${err instanceof Error ? err.message : String(err)}`)
       // A spent budget is not a provider problem, so the next provider cannot
       // help: the clock is shared and it is already out. Falling over here
       // would spend the caller's last milliseconds re-failing.
-      if (err instanceof DeadlineExceededError) throw err
-      if (isLast) throw err
+      if (err instanceof DeadlineExceededError) {
+        throw new DeadlineExceededError(failures.join('; '))
+      }
       // Otherwise fall over to the next free provider.
     }
   }
-  throw lastErr instanceof Error ? lastErr : new Error('All LLM providers failed')
+  throw new Error(`All LLM providers failed: ${failures.join('; ')}`)
 }
