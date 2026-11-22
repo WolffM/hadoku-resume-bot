@@ -76,7 +76,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "1.6.0",
     "@wolffm/prefs-client": "^1.1.31",
-    "@wolffm/worker-utils": "^1.7.32",
+    "@wolffm/worker-utils": "^2.0.0",
     "hono": "^4.11.4",
     "openai": "^6.21.0",
     "pdf-lib": "^1.17.1",
