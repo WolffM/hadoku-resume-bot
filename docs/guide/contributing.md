@@ -49,7 +49,7 @@ naming the lowest tier admits everything above it, including a same-origin
 Cloudflare service binding call stamped as `service` by another app.
 
 **The LLM provider chain** (`worker/src/llm.ts`, `worker/src/constants.ts`)
-runs Claude first: Opus 5.5 on the operator's Claude Code subscription, leased
+runs Claude first: Sonnet 5.5 on the operator's Claude Code subscription, leased
 per request from crossposter's account pool (`worker/src/claude-pool.ts`) and
 reported back after every call, so a spent account is benched and the pool
 moves on. The chain falls over to the free providers, Groq first, whenever

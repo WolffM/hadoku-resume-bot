@@ -169,13 +169,20 @@ export const LLM_PROVIDERS: {
  *   claude-opus-5-5   effort medium  33.9s   2,963 out
  *   claude-sonnet-5-5 effort low     13.5s   1,676 out
  *
- * All three returned valid JSON. `low` keeps one attempt well inside
+ * All three returned valid JSON. Re-measured 2026-11-22 on the real extras
+ * prompt (5k in): Opus low 22-25s at ~90 tok/s, Sonnet low 15-17s at ~118
+ * tok/s, and thinking off saves Sonnet nothing. The time is spent WRITING the
+ * ~2.2k-token kit, not thinking, so the faster writer wins: Sonnet took a
+ * full packet (résumé + kit) from ~45s on Opus down. Opus is a quality
+ * choice, not a fix, and it accepts no way to turn thinking off.
+ *
+ * `low` keeps one attempt well inside
  * OPERATION_BUDGET_MS, two passes of a tailored résumé included, which is why
  * the attempt ceiling is 60s here and 20s for the free providers: a Claude call
  * cut at 20s would fail every extras request it was given.
  */
 export const CLAUDE_POOL = {
-  MODEL: 'claude-opus-5-5',
+  MODEL: 'claude-sonnet-5-5',
   EFFORT: 'low',
   // Thinking spends output tokens too, so this is not the free providers' cap.
   MAX_TOKENS: 16000,

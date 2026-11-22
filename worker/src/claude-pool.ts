@@ -158,7 +158,8 @@ export function claudePoolProvider(env: ClaudePoolEnv, defer: Defer): LLMProvide
       timeout: req.timeoutMs
     })
     const { system, turns } = toAnthropic(messages)
-    // No temperature: Opus 5.5 rejects sampling parameters. The caller's
+    // No temperature: Opus 5.5 rejects sampling parameters, and the model is
+    // one constant, so keep the request valid for either. The caller's
     // maxTokens is sized for Groq's per-minute budget, and thinking counts
     // against max_tokens here, so the pool's own ceiling applies.
     const { data, response } = await client.beta.messages
