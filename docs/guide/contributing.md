@@ -14,10 +14,11 @@ pnpm lint:fix
 pnpm format
 ```
 
-`pnpm install` and `pnpm dev` need no credential. The friend-only API routes
-do; getting one is documented in this repo's own README (identity:
-`resume-bot-service-key`). There is no test framework configured in this
-repo — there are no tests to run.
+`pnpm install` and `pnpm dev` need no credential or `.npmrc`: the `@wolffm/*`
+dev dependencies are npm aliases of their public npmjs copies, and the dev
+harness talks to the public résumé API. The friend-only API routes take your
+own hadoku.me key, at friend tier, as `X-User-Key`. There is no test framework
+configured in this repo — there are no tests to run.
 
 Pass URL parameters to the dev harness to see different states:
 `?theme=ocean`, `?userType=admin&sessionId=test-123`.

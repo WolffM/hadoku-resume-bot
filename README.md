@@ -12,15 +12,17 @@ This repo is the npm package that powers that widget. The rest of this README is
 
 ### Getting access
 
-`pnpm install` and the friend-only API routes need your own credential; `pnpm dev`
-needs none. Getting one is the same for every hadoku repo, so the steps live on one page:
+A fresh clone installs, builds and passes every check with no credential and no
+`.npmrc`: the `@wolffm/*` dev dependencies are npm aliases of their public npmjs
+copies (`npm:@hadoku/<name>`). `pnpm dev` needs nothing either: it talks to the
+public résumé API. The friend-only API routes take your own hadoku.me key, at friend
+tier, in an `X-User-Key` header. The steps shared by every hadoku repo live on one page:
 **[hadoku.me/docs/contributing/#resume-bot](https://hadoku.me/docs/contributing/#resume-bot)**.
-The identity to ask for is `resume-bot-service-key`.
 
 ### Local Development Setup
 
 ```bash
-pnpm install   # outside the fleet: npx @hadoku/dev-vault -- pnpm install
+pnpm install
 pnpm dev       # opens http://localhost:5173, mounting the component directly
 ```
 
