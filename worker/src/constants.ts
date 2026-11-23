@@ -231,6 +231,13 @@ export const SELECTION_BUDGET = {
   ]
 } as const
 
+/**
+ * The most of a posting any prompt carries, for a provider with no per-request
+ * token ceiling (job-text.ts). A sanity bound, not a budget: real postings run
+ * 3-15k characters as text, and this is ~18k tokens.
+ */
+export const FULL_JD_MAX_CHARS = 60_000
+
 export const COVER_LETTER_TOKENS = 2048
 
 // The application-extras call emits a compact JSON bundle: a 3-paragraph cover

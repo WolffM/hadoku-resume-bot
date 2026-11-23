@@ -58,6 +58,16 @@ this worker cannot lease: no `EDGE` binding or service key, a refusal, or no
 account usable. See [trivia.md](trivia.md) for why Groq alone cannot serve one
 tailored résumé inside its own token-per-minute window.
 
+**Every generator reads the whole job posting** (`worker/src/job-text.ts`).
+The posting arrives as the HTML its ATS published, and is turned into plain
+text first. Claude gets all of it. A free provider has a per-request token
+ceiling, so it gets only as much as fits beside the rest of the prompt. This
+matters because what a posting asks of the applicant often sits near its end.
+Fleetio's "mention 'coffee' in your application" line was at character 4,350
+of 6,215, and the screening answers used to read only the first 3,000. The
+cover letter and screening answers are also told to follow any such
+instruction.
+
 **The content builder** (`src/builder/`, `worker/src/builder.ts`) is a
 separate admin-only bundle (`dist/builder.js`), built from the same repo but
 shipped and loaded on its own.

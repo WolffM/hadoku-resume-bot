@@ -1,6 +1,12 @@
 import OpenAI from 'openai'
 import { claudePoolProvider, type ClaudePoolEnv, type Defer } from './claude-pool.js'
-import { LLM_CONFIG, LLM_PROVIDERS, MIN_ATTEMPT_MS, type ProviderEnvKey } from './constants.js'
+import {
+  LLM_CONFIG,
+  LLM_PROVIDERS,
+  MIN_ATTEMPT_MS,
+  SELECTION_BUDGET,
+  type ProviderEnvKey
+} from './constants.js'
 
 /**
  * Options for one completion. `deadline` is the important one: it is an epoch
@@ -73,11 +79,27 @@ export interface LLMProvider {
   model: string
   /** The longest one attempt may take before the chain gives up on it. */
   attemptTimeoutMs: number
+  /**
+   * The most one request may spend, prompt and max_tokens together, or
+   * undefined when only the context window bounds it. The free tiers are a
+   * RATE limit per request (Groq: 8k tokens a minute, and a bigger request is a
+   * deterministic 413); Claude has none worth sizing a prompt to. Prompts that
+   * carry a whole job posting cut it for this, per provider (job-text.ts).
+   */
+  requestTokenLimit?: number
   complete(messages: ChatMessage[], req: CompletionRequest): Promise<ChatResponse>
 }
 
 /** A prioritized chain of providers; calls fall over from one to the next. */
 export type LLMChain = LLMProvider[]
+
+/**
+ * A completion's messages, or how to build them for the provider about to be
+ * tried. The function form is for a prompt whose size depends on the provider:
+ * the whole posting for Claude, what fits for a free tier. A builder that
+ * throws counts as that provider failing, so the chain moves on.
+ */
+export type Messages = ChatMessage[] | ((provider: LLMProvider) => ChatMessage[])
 
 /** Just the key bindings the chain reads — a subset of the worker env. */
 /**
@@ -228,6 +250,9 @@ function openAIProvider(name: string, model: string, client: OpenAI): LLMProvide
     name,
     model,
     attemptTimeoutMs: REQUEST_TIMEOUT_MS,
+    // Every free tier gets the strictest one's ceiling (Groq's), as every
+    // prompt here was sized before providers carried their own.
+    requestTokenLimit: SELECTION_BUDGET.MAX_REQUEST_TOKENS,
     async complete(messages, req) {
       const response = await client.chat.completions.create(
         { model, messages, temperature: req.temperature, max_tokens: req.maxTokens },
@@ -308,7 +333,7 @@ const CHAIN_RETRY_MAX_WAIT_MS = 15_000
 /** Call one provider, honouring Retry-After only when there's no fallback left. */
 async function callProvider(
   provider: LLMProvider,
-  messages: ChatMessage[],
+  messages: Messages,
   options: CompletionOptions | undefined,
   retryOnRateLimit: boolean
 ): Promise<ChatResponse> {
@@ -325,7 +350,8 @@ async function callProvider(
     try {
       // Whichever is tighter: the provider's per-attempt ceiling, or all the
       // time this request has left.
-      return await provider.complete(messages, {
+      const built = typeof messages === 'function' ? messages(provider) : messages
+      return await provider.complete(built, {
         maxTokens: options?.maxTokens ?? LLM_CONFIG.MAX_TOKENS,
         temperature: options?.temperature ?? LLM_CONFIG.TEMPERATURE,
         timeoutMs: Math.min(provider.attemptTimeoutMs, left)
@@ -351,7 +377,7 @@ async function callProvider(
  */
 export async function sendChatCompletion(
   chain: LLMChain,
-  messages: ChatMessage[],
+  messages: Messages,
   options?: CompletionOptions
 ): Promise<ChatResponse> {
   if (chain.length === 0) {

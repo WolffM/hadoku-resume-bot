@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { cacheKey } from './blocks.js'
-import { sendChatCompletion, type LLMChain } from './llm.js'
+import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
+import { clip, jobText, postingCharsFor, POSTING_INSTRUCTIONS_RULE } from './job-text.js'
 import { stripCodeFence } from './tailored-resume.js'
 import { normalizeTypography } from './typography.js'
 import { APPLICATION_EXTRAS_TOKENS, OPERATION_BUDGET_MS } from './constants.js'
@@ -58,10 +59,9 @@ export interface ApplicationExtrasResponse extends ApplicationExtras {
   cached: boolean
 }
 
-// The JD can be long; the extras only need the gist. Cap it so a huge posting
-// can't push this single call over Groq's per-minute token budget (the same
-// lesson the tailored-resume selector learned the hard way).
-const JD_CHARS = 3000
+// The posting is NOT capped here: it is cut per provider, and only for one with
+// a per-request ceiling (job-text.ts). It was a flat 3,000 characters of raw
+// HTML, which for Fleetio on 2026-11-23 was mostly the "about us" section.
 // The résumé is already condensed to what matters for this role; still cap it so
 // an unusually long tailored résumé stays within budget.
 const RESUME_CHARS = 4000
@@ -94,6 +94,9 @@ export async function generateApplicationExtras(
   // not be served a location-blind kit generated before they existed.
   const key = await cacheKey(
     'resume:extras',
+    // Kits cached before the whole posting was read were written from its first
+    // 3,000 characters; a new key retires them rather than serving them 30 days.
+    'full-posting',
     job_title,
     company,
     description,
@@ -107,7 +110,10 @@ export async function generateApplicationExtras(
     return { ...cachedExtras, standard_fields, contact, cached: true }
   }
 
-  const prompt = `You are preparing everything a candidate needs to apply for a job, besides the résumé itself — including the cover letter. Produce it as one JSON object.
+  const posting = jobText(description)
+  const buildPrompt = (
+    jd: string
+  ) => `You are preparing everything a candidate needs to apply for a job, besides the résumé itself — including the cover letter. Produce it as one JSON object.
 
 Candidate facts (use verbatim where relevant — never invent or contradict these):
 - Name: ${contact.name}
@@ -122,7 +128,7 @@ Job location: ${job_location || 'not stated in the posting'} (workplace type: ${
 Location rule: every location-related statement in the kit — cover letter, screening answers, availability — must be consistent with THIS job's location/workplace type above and the candidate's relocation/remote stance. If the job is hybrid or onsite outside the candidate's area, address it honestly using the relocation fact (e.g. openness to relocation or the stated remote preference); never imply the candidate is local to the job's city unless their location fact says so, and never answer as if the job were remote when it isn't.
 
 Job description:
-${cap(description, JD_CHARS)}
+${jd}
 
 The candidate's tailored résumé for this role:
 ${cap(resume_markdown, RESUME_CHARS)}
@@ -147,9 +153,20 @@ Return ONLY a JSON object with exactly these keys, no preamble, no markdown fenc
   "talking_points": ["3 to 5 short bullets for a recruiter phone screen — concrete, résumé-grounded strengths for THIS role."]
 }
 
-Keep every answer truthful to the résumé and the candidate facts. Do not fabricate employers, dates, or metrics.`
+Keep every answer truthful to the résumé and the candidate facts. Do not fabricate employers, dates, or metrics.
 
-  const response = await sendChatCompletion(client, [{ role: 'user', content: prompt }], {
+${POSTING_INSTRUCTIONS_RULE}`
+
+  const promptChars = buildPrompt('').length
+  const messages = (provider: LLMProvider) => [
+    {
+      role: 'user' as const,
+      content: buildPrompt(
+        clip(posting, postingCharsFor(provider, promptChars, APPLICATION_EXTRAS_TOKENS))
+      )
+    }
+  ]
+  const response = await sendChatCompletion(client, messages, {
     maxTokens: APPLICATION_EXTRAS_TOKENS,
     temperature: 0.5,
     // Without one, a wait for a rate limit has no ceiling but the edge's 120s.

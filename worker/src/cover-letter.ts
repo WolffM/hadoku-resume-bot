@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { cacheKey } from './blocks.js'
-import { sendChatCompletion, type LLMChain } from './llm.js'
+import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
+import { clip, jobText, postingCharsFor, POSTING_INSTRUCTIONS_RULE } from './job-text.js'
 import { normalizeTypography } from './typography.js'
 import { COVER_LETTER_TOKENS, OPERATION_BUDGET_MS } from './constants.js'
 import { stripCodeFence } from './tailored-resume.js'
@@ -30,7 +31,9 @@ export async function generateCoverLetter(
 ): Promise<CoverLetterResponse> {
   const { job_title, company, description, tone = 'conversational' } = req
 
-  const key = await cacheKey('resume:coverletter', job_title, company, description)
+  // 'full-posting': letters cached before the posting was sent as text, and
+  // with the rule about what a posting asks of the applicant, are retired.
+  const key = await cacheKey('resume:coverletter', 'full-posting', job_title, company, description)
   const hit = await kv.get(key)
   if (hit) {
     const result = JSON.parse(hit) as CoverLetterResponse
@@ -42,7 +45,10 @@ export async function generateCoverLetter(
       ? 'Use formal, professional language throughout.'
       : 'Use a conversational but professional tone — confident, direct, and human. Avoid stiff corporate phrasing.'
 
-  const prompt = `Write a tailored cover letter for a job application. ${toneGuidance}
+  const posting = jobText(description)
+  const buildPrompt = (
+    jd: string
+  ) => `Write a tailored cover letter for a job application. ${toneGuidance}
 
 Structure: exactly 3 paragraphs:
 1. Why this company specifically — reference something genuine about their work, mission, or the role itself
@@ -51,16 +57,27 @@ Structure: exactly 3 paragraphs:
 
 Job: ${job_title} at ${company}
 Job Description:
-${description}
+${jd}
 
 My Resume:
 ${resumeContent}
 
 Never use em dashes anywhere; use commas, colons, or hyphens instead.
 
+${POSTING_INSTRUCTIONS_RULE}
+
 Return only the cover letter in markdown, no preamble or explanation.`
 
-  const response = await sendChatCompletion(client, [{ role: 'user', content: prompt }], {
+  const promptChars = buildPrompt('').length
+  const messages = (provider: LLMProvider) => [
+    {
+      role: 'user' as const,
+      content: buildPrompt(
+        clip(posting, postingCharsFor(provider, promptChars, COVER_LETTER_TOKENS))
+      )
+    }
+  ]
+  const response = await sendChatCompletion(client, messages, {
     maxTokens: COVER_LETTER_TOKENS,
     deadline
   })

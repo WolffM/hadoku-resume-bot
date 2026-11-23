@@ -8,7 +8,8 @@ import {
   ALWAYS_TAG,
   PAGE_BREAK_MARKER
 } from './skeleton.js'
-import { sendChatCompletion, type LLMChain } from './llm.js'
+import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
+import { clip, jobText, postingCharsFor } from './job-text.js'
 import { normalizeTypography } from './typography.js'
 import {
   TAILORED_RESUME_TOKENS,
@@ -84,6 +85,9 @@ export async function generateTailoredResume(
   // which is the only reason it has not bitten.
   const key = await cacheKey(
     'resume:tailored',
+    // Résumés cached before the whole posting was read were tailored to a
+    // 1-2.5k-character slice of its HTML; a new key retires them.
+    'full-posting',
     job_title,
     company,
     description,
@@ -103,14 +107,17 @@ export async function generateTailoredResume(
 
   // Pass 1: block selection. Send only enough of each block to judge RELEVANCE
   // (id + type + tags + title + a snippet) — the FULL content is used at
-  // assembly below. The request MUST fit Groq's 8k TPM, which counts prompt +
-  // max_tokens (a RATE limit, not the model's 131k context), and
+  // assembly below. On a free tier the request MUST fit Groq's 8k TPM, which
+  // counts prompt + max_tokens (a RATE limit, not the model's 131k context), and
   // a 413 here is deterministic — the same palette + JD fails every retry — so
   // the prompt is shrunk to fit before sending: snippets degrade first (tags +
   // title carry most of the routing signal), then the JD slice. This is what
   // broke at 57 blocks with a fixed 200-char snippet (~8.3k-token prompts).
   const truncate = (s: string, max: number) => (s.length > max ? `${s.slice(0, max)}…` : s)
-  const buildPrompt = (snippetChars: number, jdChars: number): string => {
+  // The posting as text. Claude reads all of it; a free tier gets the slice
+  // its request ceiling allows (job-text.ts).
+  const posting = jobText(description)
+  const buildPrompt = (snippetChars: number, jdForSelection: string): string => {
     const blockSummaries = blocks
       .map(
         b =>
@@ -118,10 +125,6 @@ export async function generateTailoredResume(
           (snippetChars > 0 ? `\n---\n${truncate(b.content, snippetChars)}` : '')
       )
       .join('\n\n')
-    // The selector needs the gist of the posting, not every word — pass 2 gets
-    // the full description.
-    const jdForSelection = truncate(description, jdChars)
-
     const profileHint = profile_type
       ? `\nProfile preference: "${profile_type}" — prefer blocks tagged with this, but include cross-tag blocks where genuinely relevant (e.g. a Staff ML role will usually want a leadership block too).`
       : ''
@@ -148,28 +151,32 @@ Rules:
 - Respond with ONLY a valid JSON array of block IDs, nothing else. Example: ["header", "exp_microsoft_se2", "skills_ml"]`
   }
 
-  const { MAX_REQUEST_TOKENS, CHARS_PER_TOKEN, LADDER } = SELECTION_BUDGET
+  const { CHARS_PER_TOKEN, LADDER } = SELECTION_BUDGET
   const estimateTokens = (s: string) => Math.ceil(s.length / CHARS_PER_TOKEN)
-  const fits = (prompt: string) =>
-    estimateTokens(prompt) + TAILORED_RESUME_TOKENS.SELECTION <= MAX_REQUEST_TOKENS
-  let selectionPrompt = buildPrompt(LADDER[0][0], LADDER[0][1])
-  for (const [snippetChars, jdChars] of LADDER) {
-    selectionPrompt = buildPrompt(snippetChars, jdChars)
-    if (fits(selectionPrompt)) break
-  }
-  // Even the barest rung (tags/title only) can theoretically overflow if the
-  // palette grows huge — fail with a diagnosable message instead of a 413.
-  if (!fits(selectionPrompt)) {
+  // A provider without a request ceiling gets the whole posting and the
+  // fullest snippets. One with a ceiling walks the ladder down until the
+  // estimate fits; a 413 there is deterministic, so it is sized before sending.
+  const selectionFor = (provider: LLMProvider): string => {
+    const limit = provider.requestTokenLimit
+    if (limit === undefined)
+      return buildPrompt(LADDER[0][0], clip(posting, postingCharsFor(provider, 0, 0)))
+    let prompt = ''
+    for (const [snippetChars, jdChars] of LADDER) {
+      prompt = buildPrompt(snippetChars, clip(posting, jdChars))
+      if (estimateTokens(prompt) + TAILORED_RESUME_TOKENS.SELECTION <= limit) return prompt
+    }
+    // Even the barest rung (tags/title only) can overflow if the palette grows
+    // huge. Thrown inside the chain, so it fails over to the next provider and
+    // names this one in the final error.
     throw new Error(
-      `Selection prompt cannot fit the provider token budget even without snippets ` +
-        `(${estimateTokens(selectionPrompt)} est. tokens, budget ${MAX_REQUEST_TOKENS}); ` +
-        `the block palette (${blocks.length} blocks) is too large for single-pass selection`
+      `selection prompt cannot fit the ${limit}-token request ceiling even without snippets ` +
+        `(${estimateTokens(prompt)} est. tokens; the palette has ${blocks.length} blocks)`
     )
   }
 
   const selectionResponse = await sendChatCompletion(
     client,
-    [{ role: 'user', content: selectionPrompt }],
+    provider => [{ role: 'user', content: selectionFor(provider) }],
     { maxTokens: TAILORED_RESUME_TOKENS.SELECTION, temperature: 0.1, deadline }
   )
 
@@ -287,11 +294,11 @@ Rules:
 
   // Pass 2: optional tailoring. Two hard rules learned in production:
   //
-  // 1. The prompt must fit the same provider budget as pass 1 — a full JD on
-  //    top of the assembled résumé blew Groq's 8k request cap on every posting
-  //    over ~10k chars, deterministically. The JD slice gets whatever budget
-  //    remains after the instructions + résumé (its opening carries the
-  //    responsibilities/qualifications the rewrite actually needs).
+  // 1. The prompt must fit the provider's request ceiling — a full JD on top
+  //    of the assembled résumé blew Groq's 8k request cap on every posting
+  //    over ~10k chars, deterministically. So a free tier gets the slice of
+  //    the posting that remains after the instructions + résumé; Claude, with
+  //    no such ceiling, gets the whole posting (job-text.ts).
   // 2. Tailoring is POLISH, never load-bearing: any pass-2 failure — over
   //    budget, provider error, dropped page markers — falls back to the
   //    deterministic skeleton assembly instead of failing the request.
@@ -312,9 +319,12 @@ ${resumeMarkdown}
 
 Return only the full rewritten resume markdown, no preamble or explanation.`
 
-    const promptOverhead = estimateTokens(buildTailoringPrompt(''))
-    const jdBudgetTokens = MAX_REQUEST_TOKENS - TAILORED_RESUME_TOKENS.TAILORING - promptOverhead
-    const jdChars = Math.floor(jdBudgetTokens * CHARS_PER_TOKEN)
+    const promptChars = buildTailoringPrompt('').length
+    const jdCharsFor = (provider: LLMProvider) =>
+      postingCharsFor(provider, promptChars, TAILORED_RESUME_TOKENS.TAILORING)
+    // The best any provider in the chain can do. Claude, when leasable, takes
+    // the whole posting; a chain of free tiers only what their ceiling leaves.
+    const jdChars = Math.max(0, ...client.map(jdCharsFor))
 
     // Two budgets have to be satisfied before pass 2 is worth starting.
     //
@@ -332,7 +342,13 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
       try {
         const tailoredResponse = await sendChatCompletion(
           client,
-          [{ role: 'user', content: buildTailoringPrompt(truncate(description, jdChars)) }],
+          provider => {
+            const chars = jdCharsFor(provider)
+            // This provider would be tailoring blind; let the chain move on.
+            if (chars < 500)
+              throw new Error(`the résumé leaves ${chars} characters for the posting`)
+            return [{ role: 'user', content: buildTailoringPrompt(clip(posting, chars)) }]
+          },
           { maxTokens: TAILORED_RESUME_TOKENS.TAILORING, deadline }
         )
 
