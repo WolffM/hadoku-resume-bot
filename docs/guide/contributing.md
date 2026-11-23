@@ -68,6 +68,13 @@ of 6,215, and the screening answers used to read only the first 3,000. The
 cover letter and screening answers are also told to follow any such
 instruction.
 
+**A form's own questions get their own answers** (`worker/src/form-answers.ts`).
+The kit's screening answers are written to six generic questions. A caller
+that has read the application form, the apply runner, can send its free-text
+labels as `questions` on `/application-extras`. Each comes back in
+`form_answers` under its exact label, or empty when answering would mean
+inventing a fact.
+
 **The content builder** (`src/builder/`, `worker/src/builder.ts`) is a
 separate admin-only bundle (`dist/builder.js`), built from the same repo but
 shipped and loaded on its own.

@@ -22,6 +22,11 @@ export interface ApplicationExtrasRequest {
   job_location?: string
   /** The job's workplace type as posted: remote | hybrid | onsite | unknown. */
   workplace_type?: string
+  /**
+   * The application form's own free-text questions, when the caller has read
+   * the form (the apply runner). Answered in `form_answers`; see form-answers.ts.
+   */
+  questions?: unknown
 }
 
 export interface ScreeningAnswer {
@@ -52,6 +57,8 @@ export interface ApplicationExtras {
 }
 
 export interface ApplicationExtrasResponse extends ApplicationExtras {
+  /** One answer per question in the request's `questions`, under its exact label. */
+  form_answers?: ScreeningAnswer[]
   /** Deterministic copy-paste block for the boring repeated form fields. */
   standard_fields: string
   /** Raw contact profile, so the UI can offer any single field on its own. */

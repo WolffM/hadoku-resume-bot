@@ -24,6 +24,8 @@ import { createLLMClient, sendChatCompletion, type ChatMessage } from './llm.js'
 import { generateTailoredResume, type TailoredResumeRequest } from './tailored-resume.js'
 import { generateCoverLetter, type CoverLetterRequest } from './cover-letter.js'
 import { generateApplicationExtras, type ApplicationExtrasRequest } from './application-extras.js'
+import { generateFormAnswers, readQuestions } from './form-answers.js'
+import { OPERATION_BUDGET_MS } from './constants.js'
 import {
   getVariant,
   renderVariant,
@@ -477,8 +479,18 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
 
     try {
       const client = createLLMClient(c.env, deferTo(c))
+      // One clock for both calls, so the pair still answers inside the edge's 120s.
+      const deadline = Date.now() + OPERATION_BUDGET_MS
       const result = await generateApplicationExtras(client, c.env.CONTENT_KV, body)
-      return c.json(result)
+      const questions = readQuestions(body.questions)
+      if (!questions) return c.json(result)
+      const form_answers = await generateFormAnswers(
+        client,
+        c.env.CONTENT_KV,
+        { ...body, contact: result.contact, questions },
+        deadline
+      )
+      return c.json({ ...result, form_answers })
     } catch (error) {
       logger.error('application-extras generation failed', {
         error: (error as Error).message,

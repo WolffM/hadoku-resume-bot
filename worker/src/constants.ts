@@ -246,6 +246,10 @@ export const COVER_LETTER_TOKENS = 2048
 // capped in application-extras.ts.
 export const APPLICATION_EXTRAS_TOKENS = 3500
 
+// Answers to one form's own free-text questions (form-answers.ts): a handful of
+// 2-5 sentence answers in a JSON array, so well under the kit's allowance.
+export const FORM_ANSWERS_TOKENS = 2500
+
 // ---------------------------------------------------------------------------
 // Wall-clock budget for one REQUEST, as opposed to one LLM call.
 //
