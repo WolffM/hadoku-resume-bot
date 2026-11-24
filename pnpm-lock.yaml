@@ -64,8 +64,8 @@ importers:
         specifier: npm:@hadoku/logger@1.4.4
         version: '@hadoku/logger@1.4.4'
       '@wolffm/prefs-client':
-        specifier: npm:@hadoku/prefs-client@^1.1.32
-        version: '@hadoku/prefs-client@1.1.32(react@19.2.0)(zod@4.1.12)'
+        specifier: npm:@hadoku/prefs-client@^1.2.0
+        version: '@hadoku/prefs-client@1.2.0(react@19.2.0)(zod@4.1.12)'
       '@wolffm/task-ui-components':
         specifier: npm:@hadoku/task-ui-components@4.23.46
         version: '@hadoku/task-ui-components@4.23.46(@hadoku/themes@5.14.15(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)'
@@ -482,8 +482,8 @@ packages:
     resolution: {integrity: sha512-9yBQYHc4fRNqYY74jVYD5WELQRkhP2ogwCPi3YAJDUoruDESePyBGThsexfoFjKAgzWw2vv85LUSccQI1vjZUg==}
     engines: {node: '>=18'}
 
-  '@hadoku/prefs-client@1.1.32':
-    resolution: {integrity: sha512-W1Em/HvGfLgx6BIeSg0+2NbnbDyrc+mMgd9E/t1lAMhswHCKh9vPDAuFcLsPg3qEk4vPdk8JB9DIuB+9vpFtbA==}
+  '@hadoku/prefs-client@1.2.0':
+    resolution: {integrity: sha512-amEb9/ev6wudqmtfkPMxobedMREz5mJTh0poczGNxMdYyMS9sjdLWAjdsj2VkszU/oO6yWpkz63KpR83H5Loag==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
@@ -3019,7 +3019,7 @@ snapshots:
 
   '@hadoku/logger@1.4.4': {}
 
-  '@hadoku/prefs-client@1.1.32(react@19.2.0)(zod@4.1.12)':
+  '@hadoku/prefs-client@1.2.0(react@19.2.0)(zod@4.1.12)':
     dependencies:
       zod: 4.1.12
     optionalDependencies:
@@ -3033,7 +3033,7 @@ snapshots:
 
   '@hadoku/themes@5.14.15(react@19.2.0)':
     dependencies:
-      '@wolffm/prefs-client': '@hadoku/prefs-client@1.1.32(react@19.2.0)(zod@4.1.12)'
+      '@wolffm/prefs-client': '@hadoku/prefs-client@1.2.0(react@19.2.0)(zod@4.1.12)'
       zod: 4.1.12
     optionalDependencies:
       react: 19.2.0
