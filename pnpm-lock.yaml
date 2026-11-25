@@ -68,10 +68,10 @@ importers:
         version: '@hadoku/prefs-client@1.2.0(react@19.2.0)(zod@4.1.12)'
       '@wolffm/task-ui-components':
         specifier: npm:@hadoku/task-ui-components@4.23.47
-        version: '@hadoku/task-ui-components@4.23.47(@hadoku/themes@5.14.16(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)'
+        version: '@hadoku/task-ui-components@4.23.47(@hadoku/themes@5.14.17(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)'
       '@wolffm/themes':
-        specifier: npm:@hadoku/themes@5.14.16
-        version: '@hadoku/themes@5.14.16(react@19.2.0)'
+        specifier: npm:@hadoku/themes@5.14.17
+        version: '@hadoku/themes@5.14.17(react@19.2.0)'
       '@wolffm/worker-utils':
         specifier: npm:@hadoku/worker-utils@^2.0.1
         version: '@hadoku/worker-utils@2.0.1(hono@4.12.8)(zod@4.1.12)'
@@ -499,8 +499,8 @@ packages:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
 
-  '@hadoku/themes@5.14.16':
-    resolution: {integrity: sha512-mNaLSUWMIyJoGHU8CMg25DpefkiLLMU+2lZCubcPZJm65mhFzEsUBzuAxsfYvuFJqOJZsg8fV1ulm6PYPT240A==}
+  '@hadoku/themes@5.14.17':
+    resolution: {integrity: sha512-sPyetToEj4SX1PI1wOg+FNelNhoo4BQWJXehrguQhHxtqwr8K/JcLXG7xP6aYReDouuqvZ0pw8LPTO3bb90qyQ==}
     hasBin: true
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
@@ -3025,13 +3025,13 @@ snapshots:
     optionalDependencies:
       react: 19.2.0
 
-  '@hadoku/task-ui-components@4.23.47(@hadoku/themes@5.14.16(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@hadoku/task-ui-components@4.23.47(@hadoku/themes@5.14.17(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
-      '@wolffm/themes': '@hadoku/themes@5.14.16(react@19.2.0)'
+      '@wolffm/themes': '@hadoku/themes@5.14.17(react@19.2.0)'
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
 
-  '@hadoku/themes@5.14.16(react@19.2.0)':
+  '@hadoku/themes@5.14.17(react@19.2.0)':
     dependencies:
       '@wolffm/prefs-client': '@hadoku/prefs-client@1.2.0(react@19.2.0)(zod@4.1.12)'
       zod: 4.1.12
