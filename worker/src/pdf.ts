@@ -24,6 +24,7 @@ import {
   rgb
 } from 'pdf-lib'
 import { PAGE_BREAK_MARKER } from './skeleton.js'
+import { PAPER_SIZE, type Paper } from './paper.js'
 
 export interface ResumePdfInput {
   /** Résumé markdown (the canonical or variant-rendered content). */
@@ -39,6 +40,8 @@ export interface ResumePdfInput {
   title?: string
   /** Page geometry and type sizes. Default: the owner's layout. */
   style?: PdfStyle
+  /** Paper size. Default: US Letter, the owner's. */
+  paper?: Paper
 }
 
 /**
@@ -201,8 +204,11 @@ const COMPACT_TYPOGRAPHY: Typography = {
   entryHeading: { size: 10, gap: 6, after: 1 }
 }
 
-function typographyFor(style: PdfStyle | undefined): Typography {
-  return style === 'compact' ? COMPACT_TYPOGRAPHY : OWNER_TYPOGRAPHY
+function typographyFor(style: PdfStyle | undefined, paper: Paper = 'letter'): Typography {
+  const base = style === 'compact' ? COMPACT_TYPOGRAPHY : OWNER_TYPOGRAPHY
+  if (paper === 'letter') return base
+  const { width, height } = PAPER_SIZE[paper]
+  return { ...base, pageWidth: width, pageHeight: height }
 }
 
 const TEXT_COLOR = rgb(0.13, 0.13, 0.13)
@@ -534,10 +540,13 @@ async function embedFonts(doc: PDFDocument): Promise<FontSet> {
  * `renderResumePdf` would produce for it (without a cover letter). Fonts are
  * embedded once, so measuring many candidate versions stays cheap.
  */
-export async function createPageCounter(style: PdfStyle): Promise<(markdown: string) => number> {
+export async function createPageCounter(
+  style: PdfStyle,
+  paper: Paper = 'letter'
+): Promise<(markdown: string) => number> {
   const doc = await PDFDocument.create()
   const fonts = await embedFonts(doc)
-  const t = typographyFor(style)
+  const t = typographyFor(style, paper)
   return markdown => {
     const typesetter = new Typesetter(doc, fonts, t, true)
     typesetter.render(parseBlocks(markdown))
@@ -551,7 +560,7 @@ export async function renderResumePdf(input: ResumePdfInput): Promise<Uint8Array
   doc.setAuthor(input.ownerName)
 
   const fonts = await embedFonts(doc)
-  const typesetter = new Typesetter(doc, fonts, typographyFor(input.style))
+  const typesetter = new Typesetter(doc, fonts, typographyFor(input.style, input.paper))
   typesetter.render(parseBlocks(input.resume))
 
   if (input.coverLetter && input.coverLetter.length > 0) {

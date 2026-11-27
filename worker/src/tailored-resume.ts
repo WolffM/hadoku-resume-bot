@@ -14,6 +14,7 @@ import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
 import { clip, jobText, postingCharsFor } from './job-text.js'
 import { normalizeTypography } from './typography.js'
 import { createPageCounter } from './pdf.js'
+import { paperFor } from './contact.js'
 import { fitResumeToPages, GENERIC_MAX_PAGES } from './fit.js'
 import {
   TAILORED_RESUME_TOKENS,
@@ -396,9 +397,9 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
 
   // A user's résumé is held to two pages (the owner's skeleton has its own
   // fixed page structure). Measured with the PDF typesetter itself, on the
-  // text as the PDF route will render it.
+  // paper and text the PDF route will render.
   if (!isOwner) {
-    const countPages = await createPageCounter('compact')
+    const countPages = await createPageCounter('compact', await paperFor(kv, scope))
     resumeMarkdown = fitResumeToPages(resumeMarkdown, GENERIC_MAX_PAGES, md =>
       countPages(normalizeTypography(md))
     ).markdown

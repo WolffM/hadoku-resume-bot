@@ -65,8 +65,10 @@ import {
   getContactProfile,
   putContactProfile,
   sanitizeContact,
-  NoContactProfileError
+  NoContactProfileError,
+  paperFor
 } from './contact.js'
+import type { Paper } from './paper.js'
 import { parseResumeText } from './resume-import.js'
 
 interface ResumeEnv extends ScopeEnv {
@@ -490,7 +492,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       // A user's packet is named for that user, never the owner.
       let filename = `${filenameBase}.pdf`
       let documentName = ownerName
-      let userPacket = false
+      let userPaper: Paper | null = null
 
       if (slug) {
         const found = await findVariant(c.env.CONTENT_KV, slug)
@@ -502,7 +504,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
             if (found.scope.kind === 'user') {
               documentName = candidateName(found.variant.candidate_name, rendered)
               filename = `${filenameStem(documentName)}.pdf`
-              userPacket = true
+              userPaper = await paperFor(c.env.CONTENT_KV, found.scope)
             }
           }
         }
@@ -514,9 +516,11 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
         resume: normalizeTypography(content),
         coverLetter: coverLetter ? normalizeTypography(coverLetter) : null,
         ownerName: documentName,
-        // A user's packet: the compact two-page layout, and a plain title.
-        // The owner's PDF keeps its layout and title unchanged.
-        ...(userPacket ? { style: 'compact' as const, title: `${documentName} - Resume` } : {})
+        // A user's packet: the compact two-page layout on A4 (Letter in the US
+        // and Canada), and a plain title. The owner's PDF is unchanged.
+        ...(userPaper
+          ? { style: 'compact' as const, paper: userPaper, title: `${documentName} - Resume` }
+          : {})
       })
       // Copy into a fresh ArrayBuffer — hono's BodyInit typing rejects the
       // ArrayBufferLike-backed view pdf-lib returns.

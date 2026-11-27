@@ -6,6 +6,8 @@ import { beforeEach, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { PDFDocument } from 'pdf-lib'
 import { createPageCounter, renderResumePdf, type PdfStyle } from '../src/pdf.ts'
+import { paperForLocation, type Paper } from '../src/paper.ts'
+import { putContactProfile, sanitizeContact } from '../src/contact.ts'
 import { fitResumeToPages, GENERIC_MAX_PAGES } from '../src/fit.ts'
 import { assembleResume, GENERIC_LAYOUT } from '../src/skeleton.ts'
 import { parseResumeText } from '../src/resume-import.ts'
@@ -31,11 +33,16 @@ const JOBS = [
   'Junior Project Manager'
 ]
 
-async function renderedPages(markdown: string, style: PdfStyle): Promise<number> {
+async function renderedPages(
+  markdown: string,
+  style: PdfStyle,
+  paper: Paper = 'a4'
+): Promise<number> {
   const bytes = await renderResumePdf({
     resume: normalizeTypography(markdown),
     ownerName: 'Alex Marrow-Tate',
-    style
+    style,
+    paper
   })
   return (await PDFDocument.load(bytes)).getPageCount()
 }
@@ -69,10 +76,12 @@ describe('page counter', () => {
   it('counts exactly the pages the renderer produces, in both styles', async () => {
     const md = assembleResume(parseResumeText(PERSONA_FIVE_ROLES).blocks, GENERIC_LAYOUT)
     for (const style of ['owner', 'compact'] as const) {
-      const count = await createPageCounter(style)
-      for (const doc of [md, padded(md), PERSONA_MARKDOWN]) {
-        const text = normalizeTypography(doc)
-        assert.equal(count(text), await renderedPages(text, style), style)
+      for (const paper of ['a4', 'letter'] as const) {
+        const count = await createPageCounter(style, paper)
+        for (const doc of [md, padded(md), PERSONA_MARKDOWN]) {
+          const text = normalizeTypography(doc)
+          assert.equal(count(text), await renderedPages(text, style, paper), `${style} ${paper}`)
+        }
       }
     }
   })
@@ -87,7 +96,7 @@ describe('generic layout fits on two pages', () => {
 
   it('a typical five-role résumé renders on at most two pages', async () => {
     const md = assembleResume(parseResumeText(PERSONA_FIVE_ROLES).blocks, GENERIC_LAYOUT)
-    assert.ok((await renderedPages(md, 'owner')) > 2, 'the fixture is full length')
+    assert.ok((await renderedPages(md, 'owner', 'letter')) > 2, 'the fixture is full length')
 
     const out = await generateTailoredResume(fakeLLM().chain, kv.asKV(), JOB, undefined, USER)
     const pages = await renderedPages(out.resume_markdown, 'compact')
@@ -98,6 +107,16 @@ describe('generic layout fits on two pages', () => {
       bulletsPerJob(experienceOnly(out.resume_markdown)),
       bulletsPerJob(experienceOnly(md))
     )
+  })
+
+  it('also fits on Letter for a user located in the US', async () => {
+    const contact = sanitizeContact({ name: 'Alex Marrow-Tate', location: 'Austin, TX' })
+    assert.ok(contact)
+    await putContactProfile(kv.asKV(), contact, USER)
+    const llm = fakeLLM({ tailor: padded })
+    const out = await generateTailoredResume(llm.chain, kv.asKV(), JOB, undefined, USER)
+    const pages = await renderedPages(out.resume_markdown, 'compact', 'letter')
+    assert.ok(pages <= GENERIC_MAX_PAGES, `rendered ${pages} Letter pages`)
   })
 
   it('condenses a padded rewrite to two pages, keeping every job and its newest bullets', async () => {
@@ -136,7 +155,7 @@ describe('generic layout fits on two pages', () => {
 
 describe('fitResumeToPages', () => {
   it('leaves a résumé that already fits untouched', async () => {
-    const count = await createPageCounter('compact')
+    const count = await createPageCounter('compact', 'a4')
     const md = assembleResume(parseResumeText(PERSONA_MARKDOWN).blocks, GENERIC_LAYOUT)
     const fit = fitResumeToPages(md, GENERIC_MAX_PAGES, count)
     assert.equal(fit.condensed, false)
@@ -199,5 +218,23 @@ describe('resume import', () => {
       /\n- Programs included: Example Retail Bank: digital advertising optimization \(12-person team\); Example Grocers: /
     )
     assert.doesNotMatch(second.content, /\n- Example Grocers/)
+  })
+})
+
+describe('paper size', () => {
+  it('is A4 everywhere except the US and Canada, and A4 when unknown', () => {
+    for (const loc of ['Berlin, Germany', 'Hamburg', 'London, UK', 'Paris, FR', 'Remote', '', null])
+      assert.equal(paperForLocation(loc), 'a4', String(loc))
+    for (const loc of [
+      'Austin, TX',
+      'New York, NY, USA',
+      'San Francisco, CA',
+      'Toronto, ON',
+      'Vancouver, Canada',
+      'Remote (US)',
+      'United States'
+    ])
+      assert.equal(paperForLocation(loc), 'letter', loc)
+    assert.equal(paperForLocation('Open to work with us in Berlin'), 'a4')
   })
 })

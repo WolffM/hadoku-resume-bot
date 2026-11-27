@@ -302,7 +302,26 @@ describe('variants', () => {
     assert.ok(!text.includes('Jordan Example'), 'PDF metadata names the user, not the owner')
     const doc = await PDFDocument.load(pdf.body as ArrayBuffer, { updateMetadata: false })
     assert.equal(doc.getTitle(), 'Robin Quillfeather - Resume', 'plain title, no em dash')
+    const { width, height } = doc.getPage(0).getSize()
+    assert.deepEqual([width, height], [595.28, 841.89], 'A4 for a user outside the US and Canada')
     assert.equal(doc.getAuthor(), 'Robin Quillfeather')
+  })
+
+  it('a user located in the US or Canada gets a Letter PDF', async () => {
+    await call('POST', '/blocks/import', friendA, { resume_text: PERSONA_MARKDOWN })
+    const put = await call('PUT', '/contact-profile', friendA, {
+      contact: { name: 'Robin Quillfeather', location: 'Toronto, ON' }
+    })
+    assert.equal(put.status, 200)
+    await call('POST', '/variants', friendA, {
+      label: 'Initech',
+      slug: 'robin-toronto',
+      markdown: '# Robin Quillfeather\n\n# Summary\n\nDelivery lead.'
+    })
+    const pdf = await call('GET', '/resume.pdf?v=robin-toronto', null)
+    const doc = await PDFDocument.load(pdf.body as ArrayBuffer, { updateMetadata: false })
+    const { width, height } = doc.getPage(0).getSize()
+    assert.deepEqual([width, height], [612, 792])
   })
 
   it("the owner's links and PDF are unchanged", async () => {
@@ -320,6 +339,8 @@ describe('variants', () => {
     )
     const doc = await PDFDocument.load(pdf.body as ArrayBuffer, { updateMetadata: false })
     assert.equal(doc.getTitle(), 'Jordan Example \u2014 R\u00e9sum\u00e9', 'owner title unchanged')
+    const { width, height } = doc.getPage(0).getSize()
+    assert.deepEqual([width, height], [612, 792], 'the owner stays on US Letter')
   })
 
   it('a slug with a colon cannot reach into a user key space', async () => {

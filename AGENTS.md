@@ -65,8 +65,10 @@ registry userId after the namespace (`resume:blocks:<userId>:<id>`,
   (oldest jobs down to one or two), shortens certifications and optional
   sections, and as a last resort drops optional sections. Every job heading,
   employer line, date and the education section always stay. A user's packet
-  PDF uses the `compact` style in `pdf.ts` and the title "<Name> - Resume";
-  the owner's PDF layout and title are unchanged.
+  PDF uses the `compact` style in `pdf.ts` and the title "<Name> - Resume",
+  on A4, or US Letter when the user's contact location is in the US or Canada
+  (`worker/src/paper.ts`); the fitter measures on the same paper. The owner's
+  PDF layout, Letter paper and title are unchanged.
 - `RESUME_OWNER_USER_ID` and `ON_BEHALF_CALLER_USER_IDS` are plain `[vars]` on
   resume-api in hadoku_site's wrangler config.
 

@@ -1,5 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
+import { paperForLocation, type Paper } from './paper.js'
 
 /**
  * The owner's constant application facts — the boring, repeated form fields plus
@@ -45,6 +46,15 @@ export async function getContactProfile(
 ): Promise<ContactProfile | null> {
   const json = await kv.get(scopeKeys(scope).contact)
   return json ? (JSON.parse(json) as ContactProfile) : null
+}
+
+/**
+ * The paper a scope's PDFs are set on: Letter for the owner (unchanged),
+ * otherwise from the user's contact location (A4 unless US or Canada).
+ */
+export async function paperFor(kv: KVNamespace, scope: ContentScope): Promise<Paper> {
+  if (scope.kind === 'owner') return 'letter'
+  return paperForLocation((await getContactProfile(kv, scope))?.location)
 }
 
 export async function putContactProfile(
