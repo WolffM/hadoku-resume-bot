@@ -5,7 +5,13 @@ import { clip, jobText, postingCharsFor, POSTING_INSTRUCTIONS_RULE } from './job
 import { stripCodeFence } from './tailored-resume.js'
 import { normalizeTypography } from './typography.js'
 import { APPLICATION_EXTRAS_TOKENS, OPERATION_BUDGET_MS } from './constants.js'
-import { getContactProfile, renderStandardFields, type ContactProfile } from './contact.js'
+import {
+  getContactProfile,
+  renderStandardFields,
+  NoContactProfileError,
+  type ContactProfile
+} from './contact.js'
+import { OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
 
 // See tailored-resume.ts for why this is 30 days and not 24 hours.
 const CACHE_TTL_SECONDS = 2592000 // 30 days
@@ -86,12 +92,15 @@ function cap(s: string, n: number): string {
 export async function generateApplicationExtras(
   client: LLMChain,
   kv: KVNamespace,
-  req: ApplicationExtrasRequest
+  req: ApplicationExtrasRequest,
+  /** Whose contact profile grounds the kit, and whose cache it lives in. */
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<ApplicationExtrasResponse> {
   const { job_title, company, description, resume_markdown, job_location, workplace_type } = req
 
-  const contact = await getContactProfile(kv)
+  const contact = await getContactProfile(kv, scope)
   if (!contact) {
+    if (scope.kind === 'user') throw new NoContactProfileError()
     throw new Error('Contact profile not configured (resume:profile:contact missing from KV)')
   }
   const standard_fields = renderStandardFields(contact)
@@ -100,7 +109,7 @@ export async function generateApplicationExtras(
   // Location fields are part of the key: a caller that starts sending them must
   // not be served a location-blind kit generated before they existed.
   const key = await cacheKey(
-    'resume:extras',
+    scopeKeys(scope).cache('extras'),
     // Kits cached before the whole posting was read were written from its first
     // 3,000 characters; a new key retires them rather than serving them 30 days.
     'full-posting',

@@ -5,6 +5,7 @@ import { clip, jobText, postingCharsFor, POSTING_INSTRUCTIONS_RULE } from './job
 import { normalizeTypography } from './typography.js'
 import { COVER_LETTER_TOKENS, OPERATION_BUDGET_MS } from './constants.js'
 import { stripCodeFence } from './tailored-resume.js'
+import { OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
 
 // See tailored-resume.ts for why this is 30 days and not 24 hours.
 const CACHE_TTL_SECONDS = 2592000 // 30 days
@@ -27,13 +28,21 @@ export async function generateCoverLetter(
   resumeContent: string,
   req: CoverLetterRequest,
   /** Epoch ms this generation must finish by. See generateTailoredResume. */
-  deadline: number = Date.now() + OPERATION_BUDGET_MS
+  deadline: number = Date.now() + OPERATION_BUDGET_MS,
+  /** Whose cache this letter lives in; the caller passes that scope's résumé. */
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<CoverLetterResponse> {
   const { job_title, company, description, tone = 'conversational' } = req
 
   // 'full-posting': letters cached before the posting was sent as text, and
   // with the rule about what a posting asks of the applicant, are retired.
-  const key = await cacheKey('resume:coverletter', 'full-posting', job_title, company, description)
+  const key = await cacheKey(
+    scopeKeys(scope).cache('coverletter'),
+    'full-posting',
+    job_title,
+    company,
+    description
+  )
   const hit = await kv.get(key)
   if (hit) {
     const result = JSON.parse(hit) as CoverLetterResponse

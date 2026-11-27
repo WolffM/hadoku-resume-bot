@@ -34,7 +34,48 @@ alive downstream.
 
 ## Worker API endpoints
 
-All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/resume.pdf` (server-rendered PDF download), `/system-prompt`, `/tailored-resume`, `/cover-letter`
+All prefixed with `basePath` (typically `/resume/api`): `/chat`, `/resume`, `/resume.pdf` (server-rendered PDF download), `/system-prompt`, `/tailored-resume`, `/cover-letter`, `/application-extras`, `/variants`, `/builder/*` (admin, the owner's blocks), and per user: `/blocks`, `/blocks/:id`, `/blocks/import`, `/contact-profile`
+
+## Per-user content (`worker/src/scope.ts`)
+
+Résumé content is scoped. The owner's is the original global key set
+(`resume:blocks:<id>`, `resume:variant:<slug>`, `resume:profile:contact`, the
+unprefixed caches), unchanged. Every other user has the same keys with their
+registry userId after the namespace (`resume:blocks:<userId>:<id>`,
+`resume:variant:<userId>:<slug>`, `resume:tailored:<userId>:<hash>`, ...), plus
+`resume:variant-owner:<slug>` so a shared `?v=<slug>` link resolves. That
+pointer has no TTL and survives a delete: a user's expired or deleted packet
+answers 404 `VARIANT_GONE` on `/resume` and `/resume.pdf`, never the owner's
+resume (only an unknown or owner slug falls back to it).
+
+- Scope comes from the edge-verified identity: admin, or the userId in
+  `RESUME_OWNER_USER_ID`, is the owner; any other userId is its own scope; no
+  userId is 403. Never a fallback to the owner's blocks.
+- A service caller acting for a person (jobplatform-api) sends
+  `on_behalf_of_user_id` in the JSON body. It is honoured only when the
+  caller's own userId is in `ON_BEHALF_CALLER_USER_IDS`, and only when
+  `RESUME_OWNER_USER_ID` is set (503 otherwise, so the owner named by
+  jobplatform never lands in a fresh user scope).
+- A user with no blocks gets `409 {code: "NO_RESUME_BLOCKS"}` from
+  `/tailored-resume`, `/cover-letter` and `/variants`; `/application-extras`
+  without a stored contact gets `409 {code: "NO_CONTACT_PROFILE"}`.
+- `POST /blocks/import` splits pasted résumé text into blocks
+  (`worker/src/resume-import.ts`, no LLM) for the generic layout
+  (`GENERIC_LAYOUT` in `skeleton.ts`). The owner's three-page skeleton and
+  selection rules apply to the owner only.
+- A user's tailored résumé is held to two pages (`worker/src/fit.ts`): the
+  tailoring prompt asks for it, then `fitResumeToPages` measures the result
+  with the PDF typesetter's page counter and, only if it overflows, merges a
+  bulleted skills list into one paragraph, caps bullets per job by recency
+  (oldest jobs down to one or two), shortens certifications and optional
+  sections, and as a last resort drops optional sections. Every job heading,
+  employer line, date and the education section always stay. A user's packet
+  PDF uses the `compact` style in `pdf.ts` and the title "<Name> - Resume",
+  on A4, or US Letter when the user's contact location is in the US or Canada
+  (`worker/src/paper.ts`); the fitter measures on the same paper. The owner's
+  PDF layout, Letter paper and title are unchanged.
+- `RESUME_OWNER_USER_ID` and `ON_BEHALF_CALLER_USER_IDS` are plain `[vars]` on
+  resume-api in hadoku_site's wrangler config.
 
 ## Versioning
 
@@ -50,7 +91,9 @@ upgrades `@wolffm/*` across major boundaries, ignoring the semver range.
 ## Does NOT
 
 - Have its own wrangler.toml -- worker is deployed by hadoku_site (see `../hadoku_site/`)
-- Have tests -- no test framework configured
+- Have a test framework dependency -- `pnpm test` runs `worker/tests/` on node's
+  built-in `node:test`. `worker/tests/golden/owner.json` is the owner's output
+  recorded before per-user scoping; it must stay byte-identical.
 - Have a local backend server -- the old Express server/ was removed
 - Use .env for secrets -- all secrets are Cloudflare bindings
 

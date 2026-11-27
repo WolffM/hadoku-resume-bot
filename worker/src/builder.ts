@@ -1,14 +1,22 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { getAllBlocks, type ResumeBlock } from './blocks.js'
+import {
+  OWNER_SCOPE,
+  derivedCachePrefixes,
+  isUserScopedRemainder,
+  scopeKeys,
+  type ContentScope
+} from './scope.js'
 
 // KV layout (shared with resume_ingest.py --blocks):
 //   resume:blocks:index      → JSON string[] of block ids, in render order
 //   resume:blocks:{id}        → JSON ResumeBlock
 //   resume:blocks:feedback    → JSON { [id]: { text, updated } } (builder-only)
 // `index` and `feedback` are reserved ids so they can't collide with a block key.
-const BLOCK_PREFIX = 'resume:blocks:'
-const INDEX_KEY = 'resume:blocks:index'
-const FEEDBACK_KEY = 'resume:blocks:feedback'
+//
+// That is the OWNER's layout. Every function here takes an optional scope and
+// defaults to the owner; a user scope uses the same three keys with the
+// userId after `resume:blocks:` (scope.ts), so users never touch the owner's.
 const RESERVED_IDS = new Set(['index', 'feedback'])
 
 const BLOCK_TYPES: ReadonlySet<ResumeBlock['type']> = new Set([
@@ -77,8 +85,8 @@ export function validateBlock(raw: unknown): ResumeBlock {
   }
 }
 
-async function getIndex(kv: KVNamespace): Promise<string[]> {
-  const json = await kv.get(INDEX_KEY)
+async function getIndex(kv: KVNamespace, scope: ContentScope): Promise<string[]> {
+  const json = await kv.get(scopeKeys(scope).blockIndex)
   return json ? (JSON.parse(json) as string[]) : []
 }
 
@@ -87,35 +95,72 @@ async function getIndex(kv: KVNamespace): Promise<string[]> {
  * tailoring pipeline would produce, but those caches are keyed by job hash, not
  * by block — so a plain edit would otherwise serve stale output for 24h.
  */
-async function bustDerivedCaches(kv: KVNamespace): Promise<void> {
-  for (const prefix of ['resume:tailored:', 'resume:coverletter:', 'resume:extras:']) {
+async function bustDerivedCaches(kv: KVNamespace, scope: ContentScope): Promise<void> {
+  for (const prefix of derivedCachePrefixes(scope)) {
     let cursor: string | undefined
     do {
       const page = await kv.list({ prefix, cursor })
-      await Promise.all(page.keys.map(k => kv.delete(k.name)))
+      // The owner's prefixes also cover users' caches (`resume:tailored:<userId>:…`);
+      // an owner edit changes nothing a user generates, so those stay.
+      const mine =
+        scope.kind === 'owner'
+          ? page.keys.filter(k => !isUserScopedRemainder(k.name.slice(prefix.length)))
+          : page.keys
+      await Promise.all(mine.map(k => kv.delete(k.name)))
       cursor = page.list_complete ? undefined : page.cursor
     } while (cursor)
   }
 }
 
 /** Create or update a block. New ids are appended to the render index. */
-export async function upsertBlock(kv: KVNamespace, block: ResumeBlock): Promise<void> {
-  await kv.put(`${BLOCK_PREFIX}${block.id}`, JSON.stringify(block))
-  const index = await getIndex(kv)
+export async function upsertBlock(
+  kv: KVNamespace,
+  block: ResumeBlock,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<void> {
+  const keys = scopeKeys(scope)
+  await kv.put(keys.block(block.id), JSON.stringify(block))
+  const index = await getIndex(kv, scope)
   if (!index.includes(block.id)) {
     index.push(block.id)
-    await kv.put(INDEX_KEY, JSON.stringify(index))
+    await kv.put(keys.blockIndex, JSON.stringify(index))
   }
-  await bustDerivedCaches(kv)
+  await bustDerivedCaches(kv, scope)
+}
+
+/**
+ * Replace a scope's whole block set in one go: the import path. Blocks no
+ * longer present are deleted, the index is rewritten in the given order, and
+ * the scope's derived caches are busted once. Refuses the owner's set, which
+ * is edited block by block through the admin builder only.
+ */
+export async function replaceBlocks(
+  kv: KVNamespace,
+  blocks: ResumeBlock[],
+  scope: ContentScope
+): Promise<void> {
+  if (scope.kind === 'owner') throw new Error("refusing to replace the owner's block set")
+  const keys = scopeKeys(scope)
+  const next = new Set(blocks.map(b => b.id))
+  const previous = await getIndex(kv, scope)
+  await Promise.all(previous.filter(id => !next.has(id)).map(id => kv.delete(keys.block(id))))
+  await Promise.all(blocks.map(b => kv.put(keys.block(b.id), JSON.stringify(b))))
+  await kv.put(keys.blockIndex, JSON.stringify(blocks.map(b => b.id)))
+  await bustDerivedCaches(kv, scope)
 }
 
 /** Delete a block + drop it from the index. Returns false if it wasn't present. */
-export async function deleteBlock(kv: KVNamespace, id: string): Promise<boolean> {
-  const index = await getIndex(kv)
+export async function deleteBlock(
+  kv: KVNamespace,
+  id: string,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<boolean> {
+  const keys = scopeKeys(scope)
+  const index = await getIndex(kv, scope)
   if (!index.includes(id)) return false
-  await kv.delete(`${BLOCK_PREFIX}${id}`)
-  await kv.put(INDEX_KEY, JSON.stringify(index.filter(x => x !== id)))
-  await bustDerivedCaches(kv)
+  await kv.delete(keys.block(id))
+  await kv.put(keys.blockIndex, JSON.stringify(index.filter(x => x !== id)))
+  await bustDerivedCaches(kv, scope)
   return true
 }
 
@@ -127,19 +172,26 @@ export async function deleteBlock(kv: KVNamespace, id: string): Promise<boolean>
  * though no block's content moved. It did not bust before, which only went
  * unnoticed because the 24h TTL swept everything overnight anyway.
  */
-export async function reorderBlocks(kv: KVNamespace, ids: string[]): Promise<void> {
-  const current = await getIndex(kv)
+export async function reorderBlocks(
+  kv: KVNamespace,
+  ids: string[],
+  scope: ContentScope = OWNER_SCOPE
+): Promise<void> {
+  const current = await getIndex(kv, scope)
   const currentSet = new Set(current)
   const nextSet = new Set(ids)
   if (ids.length !== current.length || [...currentSet].some(id => !nextSet.has(id))) {
     throw new Error('reorder must be a permutation of the existing block ids')
   }
-  await kv.put(INDEX_KEY, JSON.stringify(ids))
-  await bustDerivedCaches(kv)
+  await kv.put(scopeKeys(scope).blockIndex, JSON.stringify(ids))
+  await bustDerivedCaches(kv, scope)
 }
 
-export async function getFeedback(kv: KVNamespace): Promise<BlockFeedback> {
-  const json = await kv.get(FEEDBACK_KEY)
+export async function getFeedback(
+  kv: KVNamespace,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<BlockFeedback> {
+  const json = await kv.get(scopeKeys(scope).feedback)
   return json ? (JSON.parse(json) as BlockFeedback) : {}
 }
 
@@ -147,19 +199,23 @@ export async function getFeedback(kv: KVNamespace): Promise<BlockFeedback> {
 export async function setFeedback(
   kv: KVNamespace,
   id: string,
-  text: string
+  text: string,
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<BlockFeedback> {
-  const feedback = await getFeedback(kv)
+  const feedback = await getFeedback(kv, scope)
   if (text.trim()) {
     feedback[id] = { text, updated: new Date().toISOString() }
   } else {
     delete feedback[id]
   }
-  await kv.put(FEEDBACK_KEY, JSON.stringify(feedback))
+  await kv.put(scopeKeys(scope).feedback, JSON.stringify(feedback))
   return feedback
 }
 
 /** Blocks in render order — the exact array shape `blocks.json` holds, for git backup. */
-export async function exportBlocks(kv: KVNamespace): Promise<ResumeBlock[]> {
-  return getAllBlocks(kv)
+export async function exportBlocks(
+  kv: KVNamespace,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<ResumeBlock[]> {
+  return getAllBlocks(kv, scope)
 }

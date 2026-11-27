@@ -4,6 +4,17 @@ This is the owner's layout requirement, stated once so nobody has to re-explain
 it. Any change to the résumé — code, blocks, or tailoring — must preserve this.
 Last confirmed by owner: 2026-08-21.
 
+It applies to the **owner's** content only (`OWNER_LAYOUT`). Every other user's
+résumé (per-user blocks, `worker/src/scope.ts`) uses `GENERIC_LAYOUT` in
+`skeleton.ts`: header (name, contact line), Summary, Experience, Projects,
+Skills, Education, Languages, Certifications, then any extra section (each
+carries its own heading, e.g. "Hackathons"), with no forced page breaks, no
+project tiers or quotas and no projects anchor.
+A user's résumé targets **two pages**, rendered in the compact PDF style on A4
+(Letter for a US or Canadian location);
+`worker/src/fit.ts` condenses older jobs' bullets (never the jobs themselves)
+when a tailored version would run longer.
+
 The résumé is a **fixed 3-page skeleton**. Tailoring selects WHICH blocks fill
 each section; it never reorders sections, never moves a section across pages,
 and never changes the page budgets below.

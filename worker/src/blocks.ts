@@ -1,4 +1,5 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
+import { OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
 
 export interface ResumeBlock {
   id: string
@@ -9,14 +10,22 @@ export interface ResumeBlock {
   priority: number
 }
 
-export async function getAllBlocks(kv: KVNamespace): Promise<ResumeBlock[]> {
-  const indexJson = await kv.get('resume:blocks:index')
+/**
+ * Every block in one scope, in render order. Defaults to the owner's global
+ * set; a user scope reads only that user's keys (scope.ts).
+ */
+export async function getAllBlocks(
+  kv: KVNamespace,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<ResumeBlock[]> {
+  const keys = scopeKeys(scope)
+  const indexJson = await kv.get(keys.blockIndex)
   if (!indexJson) return []
 
   const ids = JSON.parse(indexJson) as string[]
   const blocks = await Promise.all(
     ids.map(async id => {
-      const json = await kv.get(`resume:blocks:${id}`)
+      const json = await kv.get(keys.block(id))
       if (!json) return null
       return JSON.parse(json) as ResumeBlock
     })

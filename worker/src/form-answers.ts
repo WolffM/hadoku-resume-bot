@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { cacheKey } from './blocks.js'
 import { type ContactProfile } from './contact.js'
+import { OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
 import { OPERATION_BUDGET_MS, FORM_ANSWERS_TOKENS } from './constants.js'
 import { clip, jobText, postingCharsFor, POSTING_INSTRUCTIONS_RULE } from './job-text.js'
 import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
@@ -48,11 +49,13 @@ export async function generateFormAnswers(
   client: LLMChain,
   kv: KVNamespace,
   input: FormAnswersInput,
-  deadline: number = Date.now() + OPERATION_BUDGET_MS
+  deadline: number = Date.now() + OPERATION_BUDGET_MS,
+  /** Whose cache the answers live in; `input.contact` is already that scope's. */
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<ScreeningAnswer[]> {
   const { job_title, company, description, resume_markdown, contact, questions } = input
   const key = await cacheKey(
-    'resume:form-answers',
+    scopeKeys(scope).cache('form-answers'),
     job_title,
     company,
     description,

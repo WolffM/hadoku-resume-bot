@@ -17,8 +17,8 @@ pnpm format
 `pnpm install` and `pnpm dev` need no credential or `.npmrc`: the `@wolffm/*`
 dev dependencies are npm aliases of their public npmjs copies, and the dev
 harness talks to the public résumé API. The friend-only API routes take your
-own hadoku.me key, at friend tier, as `X-User-Key`. There is no test framework
-configured in this repo — there are no tests to run.
+own hadoku.me key, at friend tier, as `X-User-Key`. `pnpm test` runs the
+worker tests (see "Tests and gates").
 
 Pass URL parameters to the dev harness to see different states:
 `?theme=ocean`, `?userType=admin&sessionId=test-123`.
@@ -87,8 +87,17 @@ pnpm format      # prettier --write
 pnpm format:check
 ```
 
-No unit or end-to-end test suite exists in this repo (`AGENTS.md`, "Does
-NOT"). Verification today is manual probing against the real API.
+```sh
+pnpm test        # worker/tests on node:test, no extra dependency
+```
+
+The worker tests run the source directly (node's type stripping plus a
+`.js` to `.ts` resolve hook) against an in-memory KV and a scripted LLM chain:
+per-user isolation, résumé import, variant scoping and the HTTP gates. The
+owner golden (`worker/tests/golden/owner.json`) records what the owner's
+pipeline produced before per-user scoping; regenerate it only on purpose, with
+`node --import ./worker/tests/register.mjs worker/tests/golden/write-owner-golden.ts`.
+There is no end-to-end suite; the UI is still verified by hand.
 
 ## How it deploys
 

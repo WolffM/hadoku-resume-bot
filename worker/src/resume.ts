@@ -1,6 +1,7 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import { getAllBlocks } from './blocks.js'
-import { assembleResume, filterCanonical, stripPageBreaks } from './skeleton.js'
+import { assembleResume, filterCanonical, layoutFor, stripPageBreaks } from './skeleton.js'
+import { NoResumeBlocksError, OWNER_SCOPE, type ContentScope } from './scope.js'
 
 export interface ResumeEnv {
   CONTENT_KV: KVNamespace
@@ -19,9 +20,19 @@ export interface ResumeEnv {
  * display, the PDF and the chatbot never drift from a stale pre-baked blob.
  * Falls back to the legacy pre-rendered keys only if no block carries the tag.
  */
-export async function getResumeContent(env: ResumeEnv): Promise<string> {
-  const blocks = await getAllBlocks(env.CONTENT_KV)
+export async function getResumeContent(
+  env: ResumeEnv,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<string> {
+  const blocks = await getAllBlocks(env.CONTENT_KV, scope)
   const canonical = filterCanonical(blocks)
+  if (scope.kind === 'user') {
+    // A user's résumé is their own blocks or nothing. The legacy keys below
+    // are the owner's, so they are never a fallback for anyone else.
+    const chosen = canonical.length > 0 ? canonical : blocks
+    if (chosen.length === 0) throw new NoResumeBlocksError(scope)
+    return assembleResume(chosen, layoutFor(scope))
+  }
   if (canonical.length > 0) return assembleResume(canonical)
 
   const content = (await env.CONTENT_KV.get('resume:full')) ?? (await env.CONTENT_KV.get('resume'))
