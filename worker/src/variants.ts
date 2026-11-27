@@ -296,10 +296,12 @@ export async function mintVariant(
     req.ttl_days && req.ttl_days > 0
       ? { expirationTtl: Math.round(req.ttl_days * 86400) }
       : undefined
-  await kv.put(scopeKeys(scope).variant(slug), JSON.stringify(variant), opts)
   // No TTL on the pointer: once the variant expires, the slug must still read
-  // as this user's (gone), never fall through to the owner's resume.
+  // as this user's (gone), never fall through to the owner's resume. Written
+  // first, so a variant write that fails part way leaves the slug reading as
+  // gone rather than as an unclaimed slug that shows the owner's resume.
   if (scope.kind === 'user') await kv.put(variantOwnerKey(slug), scope.userId)
+  await kv.put(scopeKeys(scope).variant(slug), JSON.stringify(variant), opts)
   return variant
 }
 

@@ -319,6 +319,28 @@ describe('variants', () => {
     }
   })
 
+  it("a user's packet whose write failed part way is gone, not the owner's resume", async () => {
+    await call('POST', '/blocks/import', friendA, { resume_text: PERSONA_MARKDOWN })
+    const realPut = kv.put.bind(kv)
+    kv.put = async (key, value, opts) => {
+      if (key === 'resume:variant:user-a:robin-torn') throw new Error('KV write failed')
+      return realPut(key, value, opts)
+    }
+    const minted = await call('POST', '/variants', friendA, {
+      label: 'a',
+      slug: 'robin-torn',
+      markdown: '# R'
+    })
+    kv.put = realPut
+    assert.notEqual(minted.status, 200)
+    for (const path of ['/resume?v=robin-torn', '/resume.pdf?v=robin-torn']) {
+      const res = await call('GET', path, null)
+      assert.equal(res.status, 404, path)
+      assert.equal(res.body.code, 'VARIANT_GONE', path)
+      assert.doesNotMatch(JSON.stringify(res.body), /Jordan Example/, path)
+    }
+  })
+
   it("a user's packet with nothing left to render is gone, not the owner's resume", async () => {
     await call('POST', '/blocks/import', friendA, { resume_text: PERSONA_MARKDOWN })
     const blocks = (await call('GET', '/blocks', friendA)).body.blocks as { id: string }[]
