@@ -13,6 +13,8 @@ export interface FakeLLM {
 export interface FakeLLMOptions {
   /** The block ids the selection pass answers with. */
   select?: (prompt: string) => string[]
+  /** What the tailoring pass returns for the résumé it was given. */
+  tailor?: (resume: string) => string
 }
 
 /** Every block id the selection prompt offered, in the order offered. */
@@ -35,7 +37,8 @@ export function fakeLLM(opts: FakeLLMOptions = {}): FakeLLM {
       }
       if (prompt.startsWith('You are tailoring a resume')) {
         const resume = prompt.split('Resume to tailor:\n')[1]?.split('\n\nReturn only')[0] ?? ''
-        return { message: resume.replace(/Built/g, 'Delivered'), provider: 'fake' }
+        const out = opts.tailor ? opts.tailor(resume) : resume.replace(/Built/g, 'Delivered')
+        return { message: out, provider: 'fake' }
       }
       if (prompt.startsWith('Write a tailored cover letter')) {
         return { message: 'Dear hiring team,\n\nA fake letter.', provider: 'fake' }

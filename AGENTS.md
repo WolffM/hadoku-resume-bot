@@ -58,6 +58,15 @@ registry userId after the namespace (`resume:blocks:<userId>:<id>`,
   (`worker/src/resume-import.ts`, no LLM) for the generic layout
   (`GENERIC_LAYOUT` in `skeleton.ts`). The owner's three-page skeleton and
   selection rules apply to the owner only.
+- A user's tailored résumé is held to two pages (`worker/src/fit.ts`): the
+  tailoring prompt asks for it, then `fitResumeToPages` measures the result
+  with the PDF typesetter's page counter and, only if it overflows, merges a
+  bulleted skills list into one paragraph, caps bullets per job by recency
+  (oldest jobs down to one or two), shortens certifications and optional
+  sections, and as a last resort drops optional sections. Every job heading,
+  employer line, date and the education section always stay. A user's packet
+  PDF uses the `compact` style in `pdf.ts` and the title "<Name> - Resume";
+  the owner's PDF layout and title are unchanged.
 - `RESUME_OWNER_USER_ID` and `ON_BEHALF_CALLER_USER_IDS` are plain `[vars]` on
   resume-api in hadoku_site's wrangler config.
 

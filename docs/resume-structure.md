@@ -10,6 +10,9 @@ résumé (per-user blocks, `worker/src/scope.ts`) uses `GENERIC_LAYOUT` in
 Skills, Education, Languages, Certifications, then any extra section (each
 carries its own heading, e.g. "Hackathons"), with no forced page breaks, no
 project tiers or quotas and no projects anchor.
+A user's résumé targets **two pages**, rendered in the compact PDF style;
+`worker/src/fit.ts` condenses older jobs' bullets (never the jobs themselves)
+when a tailored version would run longer.
 
 The résumé is a **fixed 3-page skeleton**. Tailoring selects WHICH blocks fill
 each section; it never reorders sections, never moves a section across pages,

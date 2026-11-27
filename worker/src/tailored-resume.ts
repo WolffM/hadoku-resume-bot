@@ -13,6 +13,8 @@ import { NoResumeBlocksError, OWNER_SCOPE, scopeKeys, type ContentScope } from '
 import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
 import { clip, jobText, postingCharsFor } from './job-text.js'
 import { normalizeTypography } from './typography.js'
+import { createPageCounter } from './pdf.js'
+import { fitResumeToPages, GENERIC_MAX_PAGES } from './fit.js'
 import {
   TAILORED_RESUME_TOKENS,
   SELECTION_BUDGET,
@@ -392,6 +394,16 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
     }
   }
 
+  // A user's résumé is held to two pages (the owner's skeleton has its own
+  // fixed page structure). Measured with the PDF typesetter itself, on the
+  // text as the PDF route will render it.
+  if (!isOwner) {
+    const countPages = await createPageCounter('compact')
+    resumeMarkdown = fitResumeToPages(resumeMarkdown, GENERIC_MAX_PAGES, md =>
+      countPages(normalizeTypography(md))
+    ).markdown
+  }
+
   const result: TailoredResumeResponse = {
     resume_markdown: resumeMarkdown,
     blocks_used: selectedIds,
@@ -447,6 +459,8 @@ function genericTailoringPrompt(
   return `You are tailoring a resume for a specific job application. Rewrite the summary and the bullet points in the experience and project sections to better emphasize the skills and impact relevant to this role. Keep all facts strictly accurate: adjust emphasis and phrasing only, never invent achievements, employers, numbers or dates.
 ${breakRule}
 Keep the name and contact line, every heading, and every employer, job title, location and date exactly as written. Keep all number formatting exactly as written. Never use em dashes anywhere; use commas, colons, or hyphens instead.
+
+The resume must fit on two pages. Within each job, order the bullets by relevance to this role, most relevant first, and keep them concise (one or two lines each). Give the most recent jobs the most bullets (at most five or six); condense the oldest jobs to one or two bullets. Keep every job, though: employment history stays complete.
 
 Job: ${jobTitle} at ${company}
 Description:
