@@ -44,7 +44,7 @@ export class NoResumeBlocksError extends Error {
   }
 }
 
-export type ScopeResult = { scope: ContentScope } | { status: 400 | 403; error: string }
+export type ScopeResult = { scope: ContentScope } | { status: 400 | 403 | 503; error: string }
 
 /** A userId goes into KV keys, so it must be a plain token: no ':' and no spaces. */
 const USER_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
@@ -63,7 +63,9 @@ function listed(csv: string | undefined, id: string): boolean {
  * - `onBehalfOf` (a service caller naming the user it acts for) is honoured
  *   only for an admin, or a service caller whose OWN edge-verified userId is
  *   listed in ON_BEHALF_CALLER_USER_IDS. Anyone else naming a user gets 403:
- *   a friend cannot read another user's content by naming them.
+ *   a friend cannot read another user's content by naming them. With
+ *   RESUME_OWNER_USER_ID unset it is 503, since the owner could not be told
+ *   apart from any other user.
  * - Otherwise an admin caller is the owner.
  * - Otherwise the caller's own userId decides: the owner's id maps to the
  *   owner scope, any other id to that user's own scope.
@@ -89,6 +91,15 @@ export function resolveScope(
         status: 403,
         error:
           'Only admin, or a service caller listed in ON_BEHALF_CALLER_USER_IDS, may act on behalf of a user.'
+      }
+    }
+    // Without the owner's id, a request made on the owner's behalf would land
+    // in a fresh user scope and be seeded from scratch, silently replacing the
+    // owner's curated resume. Refuse loudly instead.
+    if (!env.RESUME_OWNER_USER_ID?.trim()) {
+      return {
+        status: 503,
+        error: 'RESUME_OWNER_USER_ID is not configured, so on_behalf_of_user_id cannot be honoured.'
       }
     }
     userId = named

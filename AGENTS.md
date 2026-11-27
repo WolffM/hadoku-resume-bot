@@ -53,7 +53,9 @@ resume (only an unknown or owner slug falls back to it).
   userId is 403. Never a fallback to the owner's blocks.
 - A service caller acting for a person (jobplatform-api) sends
   `on_behalf_of_user_id` in the JSON body. It is honoured only when the
-  caller's own userId is in `ON_BEHALF_CALLER_USER_IDS`.
+  caller's own userId is in `ON_BEHALF_CALLER_USER_IDS`, and only when
+  `RESUME_OWNER_USER_ID` is set (503 otherwise, so the owner named by
+  jobplatform never lands in a fresh user scope).
 - A user with no blocks gets `409 {code: "NO_RESUME_BLOCKS"}` from
   `/tailored-resume`, `/cover-letter` and `/variants`; `/application-extras`
   without a stored contact gets `409 {code: "NO_CONTACT_PROFILE"}`.

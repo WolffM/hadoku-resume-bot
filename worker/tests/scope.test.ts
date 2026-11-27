@@ -75,6 +75,18 @@ describe('resolveScope', () => {
       scope: { kind: 'user', userId: OWNER_ID }
     })
   })
+
+  it('refuses on_behalf_of_user_id when RESUME_OWNER_USER_ID is not configured', () => {
+    // Otherwise the owner, named by jobplatform, would silently get a fresh user scope.
+    const noOwner = { ON_BEHALF_CALLER_USER_IDS: JOBPLATFORM_ID }
+    for (const named of [OWNER_ID, 'user-a']) {
+      const r = resolveScope(auth('service', JOBPLATFORM_ID), noOwner, named)
+      assert.ok('status' in r && r.status === 503, named)
+    }
+    const blank = { ...noOwner, RESUME_OWNER_USER_ID: '  ' }
+    const r = resolveScope(auth('service', JOBPLATFORM_ID), blank, OWNER_ID)
+    assert.ok('status' in r && r.status === 503)
+  })
 })
 
 describe('scopeKeys', () => {
