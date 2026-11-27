@@ -1,4 +1,5 @@
 import type { ResumeBlock } from './blocks.js'
+import type { ContentScope } from './scope.js'
 
 /**
  * The résumé is a fixed skeleton of sections in a fixed order, grouped into
@@ -16,6 +17,10 @@ export type SectionId =
   | 'skills'
   | 'experience-secondary'
   | 'education'
+  // Generic layout only (GENERIC_LAYOUT below); the owner's skeleton has none.
+  | 'languages'
+  | 'certifications'
+  | 'extra'
 
 /** Sections in render order, top of page 1 to bottom of the last page. */
 export const SECTION_ORDER: readonly SectionId[] = [
@@ -43,7 +48,6 @@ export const PAGE_BREAK_BEFORE: ReadonlySet<SectionId> = new Set(['projects', 's
  */
 export const PAGE_BREAK_MARKER = '<!-- page-break -->'
 
-const SECTION_IDS = new Set<string>(SECTION_ORDER)
 const SECTION_TAG_PREFIX = 'section:'
 
 /**
@@ -75,6 +79,67 @@ const CATEGORY_ORDER: ReadonlyArray<{ id: string; heading: string }> = [
   { id: 'data-automation', heading: '### Data & Automation' },
   { id: 'apps-games-tools', heading: '### Apps, Games & Tools' }
 ]
+
+/**
+ * A page skeleton: which sections exist, in what order, under which headings,
+ * where the hard page breaks fall and whether projects group by category.
+ *
+ * OWNER_LAYOUT is the owner's fixed three-page résumé (docs/resume-structure.md)
+ * and is what every caller gets by default. GENERIC_LAYOUT is for every other
+ * user: a single flowing document with no owner-specific page budgets.
+ */
+export interface ResumeLayout {
+  order: readonly SectionId[]
+  headings: Partial<Record<SectionId, string>>
+  pageBreakBefore: ReadonlySet<SectionId>
+  projectCategories: ReadonlyArray<{ id: string; heading: string }> | null
+}
+
+export const OWNER_LAYOUT: ResumeLayout = {
+  order: SECTION_ORDER,
+  headings: SECTION_HEADINGS,
+  pageBreakBefore: PAGE_BREAK_BEFORE,
+  projectCategories: CATEGORY_ORDER
+}
+
+/**
+ * Header (name, contact line), summary, experience, projects, skills,
+ * education, languages, certifications, then any extra section. An `extra`
+ * block carries its own `#` heading (e.g. "# Hackathons"), so one layout fits
+ * whatever additional section a résumé has. No forced page breaks: the PDF
+ * flows onto as many pages as the content needs.
+ */
+export const GENERIC_LAYOUT: ResumeLayout = {
+  order: [
+    'header',
+    'summary',
+    'experience-primary',
+    'experience-secondary',
+    'projects',
+    'skills',
+    'education',
+    'languages',
+    'certifications',
+    'extra'
+  ],
+  headings: {
+    summary: '# Summary',
+    'experience-primary': '# Experience',
+    'experience-secondary': '# Additional Experience',
+    projects: '# Projects',
+    skills: '# Skills',
+    education: '# Education',
+    languages: '# Languages',
+    certifications: '# Certifications'
+  },
+  pageBreakBefore: new Set(),
+  projectCategories: null
+}
+
+/** The owner's content uses the owner's skeleton; everyone else the generic one. */
+export function layoutFor(scope: ContentScope): ResumeLayout {
+  return scope.kind === 'owner' ? OWNER_LAYOUT : GENERIC_LAYOUT
+}
 
 function categoryOf(block: ResumeBlock): string | null {
   const tag = block.tags.find(t => t.startsWith(CATEGORY_TAG_PREFIX))
@@ -122,11 +187,11 @@ export function stripPageBreaks(markdown: string): string {
     .trim()
 }
 
-function sectionOf(block: ResumeBlock): SectionId {
+function sectionOf(block: ResumeBlock, layout: ResumeLayout = OWNER_LAYOUT): SectionId {
   const tag = block.tags.find(t => t.startsWith(SECTION_TAG_PREFIX))
   if (tag) {
     const id = tag.slice(SECTION_TAG_PREFIX.length)
-    if (SECTION_IDS.has(id)) return id as SectionId
+    if ((layout.order as readonly string[]).includes(id)) return id as SectionId
   }
   switch (block.type) {
     case 'header':
@@ -155,17 +220,17 @@ function sectionOf(block: ResumeBlock): SectionId {
  * (a per-job variant) — either way the output has the same page structure. The
  * caller's ordering is intentionally ignored; the skeleton decides order.
  */
-export function assembleResume(blocks: ResumeBlock[]): string {
+export function assembleResume(blocks: ResumeBlock[], layout: ResumeLayout = OWNER_LAYOUT): string {
   const bySection = new Map<SectionId, ResumeBlock[]>()
   for (const block of blocks) {
-    const section = sectionOf(block)
+    const section = sectionOf(block, layout)
     const group = bySection.get(section)
     if (group) group.push(block)
     else bySection.set(section, [block])
   }
 
   const parts: string[] = []
-  for (const section of SECTION_ORDER) {
+  for (const section of layout.order) {
     const group = bySection.get(section)
     if (!group || group.length === 0) continue
     // Stable sort: higher priority first, preserving input order within ties.
@@ -173,17 +238,18 @@ export function assembleResume(blocks: ResumeBlock[]): string {
       .map((block, i) => ({ block, i }))
       .sort((a, b) => b.block.priority - a.block.priority || a.i - b.i)
       .map(x => x.block)
-    if (parts.length > 0 && PAGE_BREAK_BEFORE.has(section)) parts.push(PAGE_BREAK_MARKER)
+    if (parts.length > 0 && layout.pageBreakBefore.has(section)) parts.push(PAGE_BREAK_MARKER)
 
-    const heading = SECTION_HEADINGS[section]
+    const heading = layout.headings[section]
     if (heading) parts.push(heading)
     const emit = (block: ResumeBlock) =>
       parts.push(heading ? stripLeadingHeading(block.content, heading) : block.content)
 
-    if (section === 'projects') {
+    const categories = layout.projectCategories
+    if (section === 'projects' && categories) {
       const uncategorized = ordered.filter(b => categoryOf(b) === null)
       for (const block of uncategorized) emit(block)
-      for (const { id, heading: catHeading } of CATEGORY_ORDER) {
+      for (const { id, heading: catHeading } of categories) {
         const members = ordered.filter(b => categoryOf(b) === id)
         if (members.length === 0) continue
         parts.push(catHeading)
@@ -191,7 +257,7 @@ export function assembleResume(blocks: ResumeBlock[]): string {
       }
       // Categories outside CATEGORY_ORDER still render (after the known ones)
       // rather than silently disappearing.
-      const known = new Set(CATEGORY_ORDER.map(c => c.id))
+      const known = new Set(categories.map(c => c.id))
       for (const block of ordered) {
         const cat = categoryOf(block)
         if (cat !== null && !known.has(cat)) emit(block)

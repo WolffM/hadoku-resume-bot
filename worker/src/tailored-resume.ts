@@ -3,11 +3,13 @@ import { getAllBlocks, cacheKey, type ResumeBlock } from './blocks.js'
 import {
   assembleResume,
   countPageBreaks,
+  layoutFor,
   projectsAnchorText,
   restoreProjectsAnchor,
   ALWAYS_TAG,
   PAGE_BREAK_MARKER
 } from './skeleton.js'
+import { NoResumeBlocksError, OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
 import { sendChatCompletion, type LLMChain, type LLMProvider } from './llm.js'
 import { clip, jobText, postingCharsFor } from './job-text.js'
 import { normalizeTypography } from './typography.js'
@@ -73,9 +75,16 @@ export async function generateTailoredResume(
    * passes ITS deadline instead, because there the résumé shares one edge
    * timeout with a cover letter generated afterwards.
    */
-  deadline: number = Date.now() + OPERATION_BUDGET_MS
+  deadline: number = Date.now() + OPERATION_BUDGET_MS,
+  /**
+   * Whose blocks to tailor from. The owner's by default; a user scope reads
+   * only that user's blocks, caches under that user's keys, and uses the
+   * generic layout and prompts instead of the owner's three-page rules.
+   */
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<TailoredResumeResponse> {
   const { job_title, company, description, profile_type, tailor = true } = req
+  const isOwner = scope.kind === 'owner'
 
   // `profile_type` and `tailor` CHANGE THE OUTPUT and so belong in the key.
   // They were read from the request and left out of it, so two calls differing
@@ -84,7 +93,7 @@ export async function generateTailoredResume(
   // profile's selection handed to a platform one. Nothing sends them today,
   // which is the only reason it has not bitten.
   const key = await cacheKey(
-    'resume:tailored',
+    scopeKeys(scope).cache('tailored'),
     // Résumés cached before the whole posting was read were tailored to a
     // 1-2.5k-character slice of its HTML; a new key retires them.
     'full-posting',
@@ -100,9 +109,9 @@ export async function generateTailoredResume(
     return { ...result, cached: true }
   }
 
-  const blocks = await getAllBlocks(kv)
+  const blocks = await getAllBlocks(kv, scope)
   if (blocks.length === 0) {
-    throw new Error('No resume blocks found in KV storage')
+    throw new NoResumeBlocksError(scope)
   }
 
   // Pass 1: block selection. Send only enough of each block to judge RELEVANCE
@@ -128,6 +137,8 @@ export async function generateTailoredResume(
     const profileHint = profile_type
       ? `\nProfile preference: "${profile_type}" — prefer blocks tagged with this, but include cross-tag blocks where genuinely relevant (e.g. a Staff ML role will usually want a leadership block too).`
       : ''
+
+    if (!isOwner) return genericSelectionPrompt(job_title, company, jdForSelection, blockSummaries)
 
     return `You are assembling a tailored resume for a job application. Select the most relevant resume blocks and return their IDs in the order they should appear.${profileHint}
 
@@ -174,19 +185,27 @@ Rules:
     )
   }
 
-  const selectionResponse = await sendChatCompletion(
-    client,
-    provider => [{ role: 'user', content: selectionFor(provider) }],
-    { maxTokens: TAILORED_RESUME_TOKENS.SELECTION, temperature: 0.1, deadline }
-  )
+  // A user palette where every block is structural (`always`) leaves the
+  // selector nothing to choose, so it is not asked. The owner's palette is
+  // always asked, as before.
+  const nothingToSelect = !isOwner && blocks.every(b => b.tags.includes(ALWAYS_TAG))
 
   let selectedIds: string[]
-  try {
-    const parsed = JSON.parse(selectionResponse.message) as unknown
-    if (!Array.isArray(parsed)) throw new Error('Response was not a JSON array')
-    selectedIds = parsed.filter((id): id is string => typeof id === 'string')
-  } catch {
-    throw new Error(`Block selection returned unparseable response: ${selectionResponse.message}`)
+  if (nothingToSelect) {
+    selectedIds = blocks.map(b => b.id)
+  } else {
+    const selectionResponse = await sendChatCompletion(
+      client,
+      provider => [{ role: 'user', content: selectionFor(provider) }],
+      { maxTokens: TAILORED_RESUME_TOKENS.SELECTION, temperature: 0.1, deadline }
+    )
+    try {
+      const parsed = JSON.parse(selectionResponse.message) as unknown
+      if (!Array.isArray(parsed)) throw new Error('Response was not a JSON array')
+      selectedIds = parsed.filter((id): id is string => typeof id === 'string')
+    } catch {
+      throw new Error(`Block selection returned unparseable response: ${selectionResponse.message}`)
+    }
   }
 
   // Validate IDs against actual index — LLMs hallucinate
@@ -231,7 +250,7 @@ Rules:
   const pickedProjects = blocks.filter(
     b => selectedNow.has(b.id) && isProject(b) && !b.tags.includes(ALWAYS_TAG)
   )
-  if (pickedProjects.length < PROJECT_FLOOR) {
+  if (isOwner && pickedProjects.length < PROJECT_FLOOR) {
     const topUp = blocks
       .filter(b => !selectedNow.has(b.id) && isProject(b) && !b.tags.includes(ALWAYS_TAG))
       .sort((a, b) => tierOf(a) - tierOf(b) || b.priority - a.priority)
@@ -260,7 +279,7 @@ Rules:
   const page1Len = (ids: Set<string>) =>
     blocks.filter(b => ids.has(b.id) && onPage1(b)).reduce((n, b) => n + b.content.length, 0)
   let page1Set = new Set(selectedIds)
-  if (page1Len(page1Set) > PAGE1_CHAR_BUDGET) {
+  if (isOwner && page1Len(page1Set) > PAGE1_CHAR_BUDGET) {
     const trimmable = blocks
       .filter(b => page1Set.has(b.id) && onPage1(b) && !b.tags.includes(ALWAYS_TAG))
       .sort((a, b) => a.priority - b.priority || b.content.length - a.content.length)
@@ -289,7 +308,7 @@ Rules:
   // Assemble along the fixed skeleton: the selector's ordering is ignored, the
   // skeleton buckets blocks into sections and inserts page-break markers so a
   // tailored résumé has the same three-page structure as the canonical one.
-  let resumeMarkdown = assembleResume(selectedBlocks)
+  let resumeMarkdown = assembleResume(selectedBlocks, layoutFor(scope))
   const expectedBreaks = countPageBreaks(resumeMarkdown)
 
   // Pass 2: optional tailoring. Two hard rules learned in production:
@@ -304,7 +323,9 @@ Rules:
   //    deterministic skeleton assembly instead of failing the request.
   if (tailor) {
     const buildTailoringPrompt = (jd: string) =>
-      `You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.
+      !isOwner
+        ? genericTailoringPrompt(job_title, company, jd, resumeMarkdown, expectedBreaks)
+        : `You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.
 
 The resume contains \`${PAGE_BREAK_MARKER}\` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.
 
@@ -359,7 +380,11 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
         // projects anchor is restored verbatim — its verified figures are exempt
         // from rewriting no matter what the model did with the instruction.
         if (countPageBreaks(tailored) === expectedBreaks) {
-          resumeMarkdown = restoreProjectsAnchor(tailored, projectsAnchorText(selectedBlocks))
+          // The anchor is the owner's verified platform paragraph; a user's
+          // projects are ordinary blocks and are tailored like any other.
+          resumeMarkdown = isOwner
+            ? restoreProjectsAnchor(tailored, projectsAnchorText(selectedBlocks))
+            : tailored
         }
       } catch {
         // Deterministic assembly already in resumeMarkdown — ship it untailored.
@@ -375,4 +400,60 @@ Return only the full rewritten resume markdown, no preamble or explanation.`
 
   await kv.put(key, JSON.stringify(result), { expirationTtl: CACHE_TTL_SECONDS })
   return result
+}
+
+/**
+ * Pass 1 for a non-owner palette. Same contract as the owner's prompt (a JSON
+ * array of ids back), but none of the owner's page rules: no employer-specific
+ * page, no project tiers or quotas. Employment history stays complete.
+ */
+function genericSelectionPrompt(
+  jobTitle: string,
+  company: string,
+  jd: string,
+  blockSummaries: string
+): string {
+  return `You are assembling a tailored resume for a job application. Select the most relevant resume blocks and return their IDs in the order they should appear.
+
+Job: ${jobTitle} at ${company}
+Description:
+${jd}
+
+Available blocks:
+${blockSummaries}
+
+Rules:
+- Always include the header block if present
+- Always include every experience block: employment history must stay complete, never tailored away
+- Always include the education, languages and certifications blocks if present
+- Include the skills blocks that matter for this role
+- Include a project block or an extra section (for example hackathons or awards) only when it supports this application
+- Select at most ONE block from each "variant:<group>" tag group (e.g. only one summary)
+- Respond with ONLY a valid JSON array of block IDs, nothing else. Example: ["header", "summary", "experience-1"]`
+}
+
+/** Pass 2 for a non-owner résumé: emphasis only, every fact and heading kept. */
+function genericTailoringPrompt(
+  jobTitle: string,
+  company: string,
+  jd: string,
+  resumeMarkdown: string,
+  pageBreaks: number
+): string {
+  const breakRule =
+    pageBreaks > 0
+      ? `\nThe resume contains \`${PAGE_BREAK_MARKER}\` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position.\n`
+      : ''
+  return `You are tailoring a resume for a specific job application. Rewrite the summary and the bullet points in the experience and project sections to better emphasize the skills and impact relevant to this role. Keep all facts strictly accurate: adjust emphasis and phrasing only, never invent achievements, employers, numbers or dates.
+${breakRule}
+Keep the name and contact line, every heading, and every employer, job title, location and date exactly as written. Keep all number formatting exactly as written. Never use em dashes anywhere; use commas, colons, or hyphens instead.
+
+Job: ${jobTitle} at ${company}
+Description:
+${jd}
+
+Resume to tailor:
+${resumeMarkdown}
+
+Return only the full rewritten resume markdown, no preamble or explanation.`
 }

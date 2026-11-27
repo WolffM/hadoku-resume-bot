@@ -1,12 +1,23 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
 import type { LLMChain } from './llm.js'
 import { getAllBlocks, type ResumeBlock } from './blocks.js'
-import { assembleResume, projectsAnchorText, restoreProjectsAnchor } from './skeleton.js'
+import { assembleResume, layoutFor, projectsAnchorText, restoreProjectsAnchor } from './skeleton.js'
 import { generateTailoredResume } from './tailored-resume.js'
 import { generateCoverLetter } from './cover-letter.js'
+import { getContactProfile } from './contact.js'
 import { OPERATION_BUDGET_MS } from './constants.js'
+import {
+  OWNER_SCOPE,
+  isUserScopedRemainder,
+  scopeKeys,
+  variantOwnerKey,
+  type ContentScope
+} from './scope.js'
 
-const VARIANT_PREFIX = 'resume:variant:'
+// Owner variants live at `resume:variant:<slug>`, as they always have. A
+// user's live at `resume:variant:<userId>:<slug>`, with a slug -> userId
+// pointer (scope.ts `variantOwnerKey`) so a shared `?v=<slug>` link still
+// resolves from the slug alone. Slugs are unique across everyone.
 
 export interface ResumeVariant {
   slug: string
@@ -20,7 +31,29 @@ export interface ResumeVariant {
   /** Posting context, so the delivered page can label the packet. */
   company?: string
   job_title?: string
+  /**
+   * The person the packet belongs to, for the PDF's file name and metadata.
+   * Set on user variants only; the owner's use the handler's ownerName.
+   */
+  candidate_name?: string
   created_at: string
+}
+
+/** A variant together with whose it is. */
+export interface ScopedVariant {
+  variant: ResumeVariant
+  scope: ContentScope
+}
+
+/** A slug safe to put in a key: what randomSlug emits, plus readable hyphens. */
+const SLUG_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
+
+/** Thrown when a requested slug already belongs to someone else. */
+export class SlugTakenError extends Error {
+  constructor(slug: string) {
+    super(`Variant slug '${slug}' is already taken`)
+    this.name = 'SlugTakenError'
+  }
 }
 
 export interface MintVariantRequest {
@@ -54,16 +87,53 @@ function randomSlug(): string {
     .replace(/\//g, '_')
 }
 
-export async function getVariant(kv: KVNamespace, slug: string): Promise<ResumeVariant | null> {
-  const json = await kv.get(`${VARIANT_PREFIX}${slug}`)
+/** One scope's variant by slug. Defaults to the owner's. */
+export async function getVariant(
+  kv: KVNamespace,
+  slug: string,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<ResumeVariant | null> {
+  const json = await kv.get(scopeKeys(scope).variant(slug))
   return json ? (JSON.parse(json) as ResumeVariant) : null
+}
+
+/**
+ * Find a variant by slug alone, whoever's it is: the public `?v=<slug>` path.
+ * The owner's key first (every link minted before per-user variants), then
+ * the slug pointer to a user's. A slug with a ':' is refused outright, so
+ * `?v=<userId>:<slug>` cannot read a user's variant as if it were the owner's.
+ */
+export async function findVariant(kv: KVNamespace, slug: string): Promise<ScopedVariant | null> {
+  if (!slug || slug.includes(':')) return null
+  const owned = await getVariant(kv, slug, OWNER_SCOPE)
+  if (owned) return { variant: owned, scope: OWNER_SCOPE }
+  const userId = await kv.get(variantOwnerKey(slug))
+  if (!userId) return null
+  const scope: ContentScope = { kind: 'user', userId }
+  const variant = await getVariant(kv, slug, scope)
+  return variant ? { variant, scope } : null
 }
 
 /** Resolve a variant to resume markdown. Returns null when it holds no renderable content. */
 export async function renderVariant(
   kv: KVNamespace,
-  variant: ResumeVariant
+  variant: ResumeVariant,
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<string | null> {
+  if (scope.kind === 'user') {
+    // A user's markdown is served as minted: the projects-anchor splice below
+    // is the owner's verified paragraph and has no place in anyone else's.
+    if (variant.markdown) return variant.markdown
+    if (variant.block_ids?.length) {
+      const byId = new Map((await getAllBlocks(kv, scope)).map(b => [b.id, b]))
+      const chosen = variant.block_ids
+        .map(id => byId.get(id))
+        .filter((b): b is ResumeBlock => b !== undefined)
+      if (chosen.length > 0) return assembleResume(chosen, layoutFor(scope))
+    }
+    return null
+  }
+
   if (variant.markdown) {
     // The projects anchor carries verified platform figures and is exempt from
     // tailoring — splice the current canonical text over whatever the mint-time
@@ -85,12 +155,39 @@ export async function renderVariant(
   return null
 }
 
+/**
+ * The first `# ` heading of a résumé, which is the name line in every layout.
+ * Used to name a user's PDF when no contact profile is stored.
+ */
+export function nameFromMarkdown(markdown: string | undefined): string | null {
+  const line = markdown?.split('\n').find(l => /^# \S/.test(l))
+  const name = line?.slice(2).replace(/[*_`]/g, '').trim()
+  return name ? name.slice(0, 120) : null
+}
+
+/** Refuse a slug someone else already holds, in either key space. */
+async function assertSlugFree(kv: KVNamespace, slug: string, scope: ContentScope): Promise<void> {
+  const pointer = await kv.get(variantOwnerKey(slug))
+  if (scope.kind === 'owner') {
+    if (pointer) throw new SlugTakenError(slug)
+    return
+  }
+  if (!SLUG_PATTERN.test(slug)) {
+    throw new Error('slug must be 1-64 characters of A-Z, a-z, 0-9, hyphen or underscore')
+  }
+  if (pointer && pointer !== scope.userId) throw new SlugTakenError(slug)
+  if (await kv.get(scopeKeys(OWNER_SCOPE).variant(slug))) throw new SlugTakenError(slug)
+}
+
 export async function mintVariant(
   client: LLMChain,
   kv: KVNamespace,
-  req: MintVariantRequest
+  req: MintVariantRequest,
+  /** Whose variant this is. The owner's by default (see the key layout above). */
+  scope: ContentScope = OWNER_SCOPE
 ): Promise<ResumeVariant> {
   const slug = req.slug ?? randomSlug()
+  await assertSlugFree(kv, slug, scope)
 
   const variant: ResumeVariant = {
     slug,
@@ -101,7 +198,7 @@ export async function mintVariant(
   if (req.markdown) {
     variant.markdown = req.markdown
   } else if (req.block_ids?.length) {
-    const blocks = await getAllBlocks(kv)
+    const blocks = await getAllBlocks(kv, scope)
     const validIds = new Set(blocks.map(b => b.id))
     const unknown = req.block_ids.filter(id => !validIds.has(id))
     if (unknown.length > 0) {
@@ -126,7 +223,8 @@ export async function mintVariant(
         profile_type: req.profile_type,
         tailor: req.tailor
       },
-      deadline
+      deadline,
+      scope
     )
     variant.markdown = tailored.resume_markdown
     variant.block_ids = tailored.blocks_used
@@ -153,7 +251,8 @@ export async function mintVariant(
             company: req.company,
             description: req.description
           },
-          deadline
+          deadline,
+          scope
         )
         variant.cover_letter_markdown = letter.cover_letter_markdown
       } catch {
@@ -174,11 +273,18 @@ export async function mintVariant(
   if (req.job_title) variant.job_title = req.job_title
   if (req.company) variant.company = req.company
 
+  if (scope.kind === 'user') {
+    const contact = await getContactProfile(kv, scope)
+    const name = contact?.name || nameFromMarkdown(variant.markdown)
+    if (name) variant.candidate_name = name
+  }
+
   const opts =
     req.ttl_days && req.ttl_days > 0
       ? { expirationTtl: Math.round(req.ttl_days * 86400) }
       : undefined
-  await kv.put(`${VARIANT_PREFIX}${slug}`, JSON.stringify(variant), opts)
+  await kv.put(scopeKeys(scope).variant(slug), JSON.stringify(variant), opts)
+  if (scope.kind === 'user') await kv.put(variantOwnerKey(slug), scope.userId, opts)
   return variant
 }
 
@@ -189,12 +295,25 @@ export interface VariantSummary {
   source: 'markdown' | 'blocks'
 }
 
-export async function listVariants(kv: KVNamespace): Promise<VariantSummary[]> {
+/**
+ * One scope's variants, newest first. The owner's listing walks the owner's
+ * prefix and skips the users' keys nested under it; a user's walks only
+ * `resume:variant:<userId>:`.
+ */
+export async function listVariants(
+  kv: KVNamespace,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<VariantSummary[]> {
+  const prefix = scopeKeys(scope).variantListPrefix
   const summaries: VariantSummary[] = []
   let cursor: string | undefined
   do {
-    const page = await kv.list({ prefix: VARIANT_PREFIX, cursor })
-    const variants = await Promise.all(page.keys.map(k => kv.get(k.name)))
+    const page = await kv.list({ prefix, cursor })
+    const mine =
+      scope.kind === 'owner'
+        ? page.keys.filter(k => !isUserScopedRemainder(k.name.slice(prefix.length)))
+        : page.keys
+    const variants = await Promise.all(mine.map(k => kv.get(k.name)))
     for (const json of variants) {
       if (!json) continue
       const v = JSON.parse(json) as ResumeVariant
@@ -211,9 +330,16 @@ export async function listVariants(kv: KVNamespace): Promise<VariantSummary[]> {
   return summaries.sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
-export async function deleteVariant(kv: KVNamespace, slug: string): Promise<boolean> {
-  const existing = await kv.get(`${VARIANT_PREFIX}${slug}`)
+export async function deleteVariant(
+  kv: KVNamespace,
+  slug: string,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<boolean> {
+  if (slug.includes(':')) return false
+  const key = scopeKeys(scope).variant(slug)
+  const existing = await kv.get(key)
   if (!existing) return false
-  await kv.delete(`${VARIANT_PREFIX}${slug}`)
+  await kv.delete(key)
+  if (scope.kind === 'user') await kv.delete(variantOwnerKey(slug))
   return true
 }

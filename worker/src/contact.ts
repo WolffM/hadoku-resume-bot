@@ -1,4 +1,5 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
+import { OWNER_SCOPE, scopeKeys, type ContentScope } from './scope.js'
 
 /**
  * The owner's constant application facts — the boring, repeated form fields plus
@@ -28,9 +29,62 @@ export interface ContactProfile {
 
 export const CONTACT_KEY = 'resume:profile:contact'
 
-export async function getContactProfile(kv: KVNamespace): Promise<ContactProfile | null> {
-  const json = await kv.get(CONTACT_KEY)
+/** Thrown when a user-scoped generator needs a contact profile the user has not stored. */
+export class NoContactProfileError extends Error {
+  readonly code = 'NO_CONTACT_PROFILE'
+  constructor() {
+    super('Contact profile not configured for this user. Store one first (PUT /contact-profile).')
+    this.name = 'NoContactProfileError'
+  }
+}
+
+/** The owner's at CONTACT_KEY; a user's at `resume:profile:contact:<userId>`. */
+export async function getContactProfile(
+  kv: KVNamespace,
+  scope: ContentScope = OWNER_SCOPE
+): Promise<ContactProfile | null> {
+  const json = await kv.get(scopeKeys(scope).contact)
   return json ? (JSON.parse(json) as ContactProfile) : null
+}
+
+export async function putContactProfile(
+  kv: KVNamespace,
+  profile: ContactProfile,
+  scope: ContentScope
+): Promise<void> {
+  if (scope.kind === 'owner') throw new Error("refusing to overwrite the owner's contact profile")
+  await kv.put(scopeKeys(scope).contact, JSON.stringify(profile))
+}
+
+const CONTACT_FIELDS = [
+  'name',
+  'email',
+  'phone',
+  'linkedin',
+  'github',
+  'location',
+  'work_auth',
+  'relocation',
+  'salary_line'
+] as const satisfies readonly (keyof ContactProfile)[]
+
+/** Longest value kept per field; anything longer is cut, not rejected. */
+const MAX_CONTACT_FIELD_CHARS = 300
+
+/**
+ * An untrusted contact object, made safe to store: only the known fields, each
+ * a trimmed string (missing becomes ''), each capped. Returns null when there
+ * is no name, since every generated answer signs with it.
+ */
+export function sanitizeContact(raw: unknown): ContactProfile | null {
+  if (typeof raw !== 'object' || raw === null) return null
+  const r = raw as Record<string, unknown>
+  const out = {} as ContactProfile
+  for (const f of CONTACT_FIELDS) {
+    const v = r[f]
+    out[f] = typeof v === 'string' ? v.trim().slice(0, MAX_CONTACT_FIELD_CHARS) : ''
+  }
+  return out.name ? out : null
 }
 
 /**
