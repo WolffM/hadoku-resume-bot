@@ -132,11 +132,28 @@ export function parseContact(name: string, preamble: string[]): ContactProfile {
   return contact
 }
 
-/** Nested bullets flatten to top-level ones: the PDF typesetter renders one level. */
+const NESTED_BULLET = /^\s+[-*•]\s+/
+
+/**
+ * Nested bullets flatten to top-level ones: the PDF typesetter renders one
+ * level. Items under a lead-in bullet ("- Projects included:") join onto that
+ * bullet instead ("- Projects included: A; B; C"), so they read as one point
+ * and a page-fitting cap on bullets cannot keep the lead-in without its items.
+ */
 function normalizeBody(lines: string[]): string {
-  return lines
-    .map(l => l.replace(/\s+$/, ''))
-    .map(l => l.replace(/^\s+[-*•]\s+/, '- ').replace(/^[•]\s+/, '- '))
+  const out: string[] = []
+  let leadIn = -1
+  for (const raw of lines.map(l => l.replace(/\s+$/, ''))) {
+    if (NESTED_BULLET.test(raw) && leadIn >= 0) {
+      const item = raw.replace(NESTED_BULLET, '')
+      out[leadIn] += out[leadIn].endsWith(':') ? ` ${item}` : `; ${item}`
+      continue
+    }
+    const line = raw.replace(NESTED_BULLET, '- ').replace(/^[•]\s+/, '- ')
+    leadIn = /^[-*] .*:$/.test(line) && !NESTED_BULLET.test(raw) ? out.length : -1
+    out.push(line)
+  }
+  return out
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
