@@ -33,6 +33,7 @@
     "dev": "vite",
     "build": "vite build && vite build --config builder/vite.config.ts && vite build --config worker/vite.config.ts && tsc -p tsconfig.build.json && tsc -p tsconfig.worker-types.json",
     "typecheck": "tsc --noEmit",
+    "test": "node --import ./worker/tests/register.mjs --test \"worker/tests/**/*.test.ts\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:css": "stylelint \"src/**/*.css\" && node node_modules/@wolffm/themes/scripts/check-usage.mjs ./src",

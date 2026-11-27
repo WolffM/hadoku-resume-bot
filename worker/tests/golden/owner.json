@@ -1,0 +1,364 @@
+{
+  "keysAfterUpsert": [
+    "resume:blocks:education",
+    "resume:blocks:exp-additional",
+    "resume:blocks:exp-contoso-infra",
+    "resume:blocks:exp-contoso-rollup",
+    "resume:blocks:exp-contoso-search",
+    "resume:blocks:header",
+    "resume:blocks:index",
+    "resume:blocks:proj-agent",
+    "resume:blocks:proj-anchor",
+    "resume:blocks:proj-game",
+    "resume:blocks:proj-odd",
+    "resume:blocks:proj-scraper",
+    "resume:blocks:skills",
+    "resume:blocks:summary-ml",
+    "resume:blocks:summary-platform"
+  ],
+  "index": "[\"header\",\"summary-platform\",\"summary-ml\",\"exp-contoso-rollup\",\"exp-contoso-search\",\"exp-contoso-infra\",\"proj-anchor\",\"proj-agent\",\"proj-scraper\",\"proj-game\",\"proj-odd\",\"skills\",\"exp-additional\",\"education\"]",
+  "assembledAll": "# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\nML engineer who Built ranking models and evaluation tooling.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n- Built query understanding for the search box, cutting zero-result queries.\n\n- Built deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Built a daily puzzle with a shared leaderboard.\n\n**Odd one** - Built something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science",
+  "assembledCanonical": "# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science",
+  "resumeContent": "# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science",
+  "systemPrompt": "You are a resume assistant.\n\n## Resume Content\n\nHere is Jordan Example's complete resume. Use this information to answer questions accurately:\n\n# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science\n\nRemember: Only provide information that is explicitly stated in the resume above. Do not invent or speculate about information not present in the resume.",
+  "tailored": {
+    "resume_markdown": "# Jordan Example\n\njordan@example.com | +1,555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nML engineer who Delivered ranking models and evaluation tooling.\n\n# Experience\n\n- Delivered query understanding for the search box, cutting zero-result queries.\n\n- Delivered deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Delivered a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Delivered 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Delivered a daily puzzle with a shared leaderboard.\n\n**Odd one** - Delivered something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python",
+    "blocks_used": [
+      "summary-ml",
+      "exp-contoso-search",
+      "exp-contoso-infra",
+      "proj-game",
+      "proj-agent",
+      "proj-scraper",
+      "proj-odd",
+      "header",
+      "proj-anchor",
+      "skills"
+    ],
+    "cached": false
+  },
+  "tailoredPrompts": [
+    "You are assembling a tailored resume for a job application. Select the most relevant resume blocks and return their IDs in the order they should appear.\n\nJob: Senior Platform Engineer at Initech\nDescription:\nBuild the search platform. Go, Kubernetes, ranking.\n\nAvailable blocks:\nID: header\nType: header\nTags: always, canonical, section:header\nTitle: Header\n---\n# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\nID: summary-platform\nType: summary\nTags: canonical, section:summary, variant:summary\nTitle: Summary (platform)\n---\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\nID: summary-ml\nType: summary\nTags: section:summary, variant:summary, ml\nTitle: Summary (ML)\n---\nML engineer who Built ranking models and evaluation tooling.\n\nID: exp-contoso-rollup\nType: experience\nTags: canonical, section:experience-primary, variant:contoso\nTitle: Contoso rollup\n---\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\nID: exp-contoso-search\nType: experience\nTags: section:experience-primary, search\nTitle: Contoso search detail\n---\n- Built query understanding for the search box, cutting zero-result queries.\n\nID: exp-contoso-infra\nType: experience\nTags: section:experience-primary, infra\nTitle: Contoso infra detail\n---\n- Built deployment tooling used by forty teams.\n\nID: proj-anchor\nType: project\nTags: always, canonical, section:projects\nTitle: Platform anchor\n---\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\nID: proj-agent\nType: project\nTags: canonical, section:projects, cat:ai-agents, tier:1\nTitle: Agent runner\n---\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\nID: proj-scraper\nType: project\nTags: canonical, section:projects, cat:data-automation, tier:1\nTitle: Scraper\n---\n**Scraper** - Built 12 scraper verticals feeding one index.\n\nID: proj-game\nType: project\nTags: section:projects, cat:apps-games-tools, tier:2\nTitle: Puzzle game\n---\n**Puzzle game** - Built a daily puzzle with a shared leaderboard.\n\nID: proj-odd\nType: project\nTags: section:projects, cat:misc, tier:3\nTitle: Odd one\n---\n**Odd one** - Built something uncategorised.\n\nID: skills\nType: skills\nTags: always, canonical, section:skills\nTitle: Technical skills\n---\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\nID: exp-additional\nType: experience\nTags: canonical, section:experience-secondary\nTitle: Additional experience\n---\n**Fabrikam** - Junior Developer, 2015-2018\n\nID: education\nType: education\nTags: canonical, section:education\nTitle: Education\n---\n**State University** - BSc Computer Science\n\nRules:\n- Always include the header block if present\n- Always include the education block if present\n- Always include the additional-experience (non-Microsoft employment) block if present: employment history should be complete, not tailored away\n- Select experience and project blocks most relevant to this specific role\n- Prefer the most role-relevant variant when multiple variants of the same experience exist (e.g. prefer ml-tagged over generic for an ML role)\n- Project blocks carry a \"tier:N\" tag reflecting the owner's own ranking (tier:1 = flagship, tier:3 = least). tier:1 projects are default-include: drop one only when it is clearly irrelevant to this specific role AND its slot is needed for a more role-relevant project. When space is tight, cut tier:3 before tier:2 before tier:1. A strongly role-relevant tier:2/3 project may replace the LEAST-relevant tier:1 project, never several of them.\n- Aim for 6-7 project blocks (plus the platform-anchor project block). Fewer wastes the projects page; more overflows it.\n- Select at most ONE block from each \"variant:<group>\" tag group (e.g. only one summary, and either the Microsoft rollup or its level-history blocks — never both).\n- Never select a rollup block AND its constituent detail blocks together; their bullets would duplicate.\n- Respond with ONLY a valid JSON array of block IDs, nothing else. Example: [\"header\", \"exp_microsoft_se2\", \"skills_ml\"]",
+    "You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.\n\nThe resume contains `<!-- page-break -->` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.\n\nThe paragraph immediately after the \"# Projects\" heading is a platform overview with independently verified figures — reproduce it character-for-character, do not rewrite it. Keep all number formatting exactly as written: \"3,800\" never \"3 800\", \"74%\" never \"74 %\", \"84k\" never \"84 k\". Never use em dashes anywhere; use commas, colons, or hyphens instead.\n\nJob: Senior Platform Engineer at Initech\nDescription:\nBuild the search platform. Go, Kubernetes, ranking.\n\nResume to tailor:\n# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nML engineer who Built ranking models and evaluation tooling.\n\n# Experience\n\n- Built query understanding for the search box, cutting zero-result queries.\n\n- Built deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Built a daily puzzle with a shared leaderboard.\n\n**Odd one** - Built something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\nReturn only the full rewritten resume markdown, no preamble or explanation."
+  ],
+  "tailoredCached": {
+    "resume_markdown": "# Jordan Example\n\njordan@example.com | +1,555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nML engineer who Delivered ranking models and evaluation tooling.\n\n# Experience\n\n- Delivered query understanding for the search box, cutting zero-result queries.\n\n- Delivered deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Delivered a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Delivered 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Delivered a daily puzzle with a shared leaderboard.\n\n**Odd one** - Delivered something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python",
+    "blocks_used": [
+      "summary-ml",
+      "exp-contoso-search",
+      "exp-contoso-infra",
+      "proj-game",
+      "proj-agent",
+      "proj-scraper",
+      "proj-odd",
+      "header",
+      "proj-anchor",
+      "skills"
+    ],
+    "cached": true
+  },
+  "keysAfterTailor": [
+    "resume:blocks:education",
+    "resume:blocks:exp-additional",
+    "resume:blocks:exp-contoso-infra",
+    "resume:blocks:exp-contoso-rollup",
+    "resume:blocks:exp-contoso-search",
+    "resume:blocks:header",
+    "resume:blocks:index",
+    "resume:blocks:proj-agent",
+    "resume:blocks:proj-anchor",
+    "resume:blocks:proj-game",
+    "resume:blocks:proj-odd",
+    "resume:blocks:proj-scraper",
+    "resume:blocks:skills",
+    "resume:blocks:summary-ml",
+    "resume:blocks:summary-platform",
+    "resume:prompt",
+    "resume:tailored:6ad82d43024d7ce0e0b49ff0e4bc7612d82090e23fa8d16aa5e367c2cc6e5db7"
+  ],
+  "coverLetter": {
+    "cover_letter_markdown": "Dear hiring team,\n\nA fake letter.",
+    "cached": false
+  },
+  "coverLetterPrompts": [
+    "Write a tailored cover letter for a job application. Use a conversational but professional tone — confident, direct, and human. Avoid stiff corporate phrasing.\n\nStructure: exactly 3 paragraphs:\n1. Why this company specifically — reference something genuine about their work, mission, or the role itself\n2. What I bring — connect my most relevant experience and skills directly to what the role needs\n3. Call to action — brief, confident close\n\nJob: Senior Platform Engineer at Initech\nJob Description:\nBuild the search platform. Go, Kubernetes, ranking.\n\nMy Resume:\n# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science\n\nNever use em dashes anywhere; use commas, colons, or hyphens instead.\n\nIf the posting asks applicants to do something specific in their application (mention a particular word or phrase, answer a question, follow a format), do it, naturally, in the cover letter and in the answers about why the candidate is applying.\n\nReturn only the cover letter in markdown, no preamble or explanation."
+  ],
+  "keysAfterLetter": [
+    "resume:blocks:education",
+    "resume:blocks:exp-additional",
+    "resume:blocks:exp-contoso-infra",
+    "resume:blocks:exp-contoso-rollup",
+    "resume:blocks:exp-contoso-search",
+    "resume:blocks:header",
+    "resume:blocks:index",
+    "resume:blocks:proj-agent",
+    "resume:blocks:proj-anchor",
+    "resume:blocks:proj-game",
+    "resume:blocks:proj-odd",
+    "resume:blocks:proj-scraper",
+    "resume:blocks:skills",
+    "resume:blocks:summary-ml",
+    "resume:blocks:summary-platform",
+    "resume:coverletter:6a84996cf57361eb11d08176a667bbd0d1a7e82b0b364dec809625c487cec6a3",
+    "resume:prompt",
+    "resume:tailored:6ad82d43024d7ce0e0b49ff0e4bc7612d82090e23fa8d16aa5e367c2cc6e5db7"
+  ],
+  "extras": {
+    "cover_letter_markdown": "",
+    "intro_email": "",
+    "why_hook": "",
+    "screening_answers": [],
+    "salary_line": "Targeting 150k base",
+    "linkedin_note": "",
+    "talking_points": [],
+    "standard_fields": "Name: Jordan Example\nEmail: jordan@example.com\nPhone: +1 555 0100\nLinkedIn: linkedin.com/in/jordan-example\nGitHub: github.com/example\nLocation: Springfield\nWork authorization: Authorized to work in the US\nRelocation: Remote preferred",
+    "contact": {
+      "name": "Jordan Example",
+      "email": "jordan@example.com",
+      "phone": "+1 555 0100",
+      "linkedin": "linkedin.com/in/jordan-example",
+      "github": "github.com/example",
+      "location": "Springfield",
+      "work_auth": "Authorized to work in the US",
+      "relocation": "Remote preferred",
+      "salary_line": "Targeting 150k base"
+    },
+    "cached": false
+  },
+  "formAnswers": [
+    {
+      "q": "Why Initech?",
+      "a": ""
+    }
+  ],
+  "extrasPrompts": [
+    "You are preparing everything a candidate needs to apply for a job, besides the résumé itself — including the cover letter. Produce it as one JSON object.\n\nCandidate facts (use verbatim where relevant — never invent or contradict these):\n- Name: Jordan Example\n- Location: Springfield\n- Work authorization: Authorized to work in the US\n- Relocation / remote: Remote preferred\n- Target compensation: Targeting 150k base\n\nJob: Senior Platform Engineer at Initech\nJob location: Remote (workplace type: remote)\n\nLocation rule: every location-related statement in the kit — cover letter, screening answers, availability — must be consistent with THIS job's location/workplace type above and the candidate's relocation/remote stance. If the job is hybrid or onsite outside the candidate's area, address it honestly using the relocation fact (e.g. openness to relocation or the stated remote preference); never imply the candidate is local to the job's city unless their location fact says so, and never answer as if the job were remote when it isn't.\n\nJob description:\nBuild the search platform. Go, Kubernetes, ranking.\n\nThe candidate's tailored résumé for this role:\n# Jordan Example\n\njordan@example.com | +1,555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nML engineer who Delivered ranking models and evaluation tooling.\n\n# Experience\n\n- Delivered query understanding for the search box, cutting zero-result queries.\n\n- Delivered deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Delivered a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Delivered 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Delivered a daily puzzle with a shared leaderboard.\n\n**Odd one** - Delivered something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\nNever use em dashes anywhere in any field; use commas, colons, or hyphens instead.\n\nReturn ONLY a JSON object with exactly these keys, no preamble, no markdown fence:\n{\n  \"cover_letter_markdown\": \"A tailored cover letter in markdown, exactly 3 paragraphs — (1) why this company/role specifically, referencing something genuine about their work; (2) what the candidate brings, connecting the most relevant résumé experience to what the role needs; (3) a brief, confident close. Conversational but professional; no placeholders.\",\n  \"intro_email\": \"A short (100-140 word) outreach email to a recruiter or hiring manager. Confident, human, specific to this role. No subject line, no placeholders like [Name] — sign it as Jordan Example.\",\n  \"why_hook\": \"2-3 sentences on why this company/role specifically, grounded in something real about their work or the role. Reusable in a form field.\",\n  \"screening_answers\": [\n    {\"q\": \"Why are you interested in this role?\", \"a\": \"...\"},\n    {\"q\": \"Why do you want to work here?\", \"a\": \"...\"},\n    {\"q\": \"Tell us about a relevant project.\", \"a\": \"...\"},\n    {\"q\": \"What are your greatest strengths for this role?\", \"a\": \"...\"},\n    {\"q\": \"Do you require visa sponsorship?\", \"a\": \"Answer directly from the work-authorization fact above.\"},\n    {\"q\": \"What is your availability / notice period?\", \"a\": \"Two weeks' notice; available to start promptly.\"}\n  ],\n  \"salary_line\": \"The expected-comp answer for a salary field. Base it on the target-compensation fact above, phrased as an affirmative target, not an ultimatum.\",\n  \"linkedin_note\": \"A LinkedIn connection note to the recruiter, MAXIMUM 300 characters.\",\n  \"talking_points\": [\"3 to 5 short bullets for a recruiter phone screen — concrete, résumé-grounded strengths for THIS role.\"]\n}\n\nKeep every answer truthful to the résumé and the candidate facts. Do not fabricate employers, dates, or metrics.\n\nIf the posting asks applicants to do something specific in their application (mention a particular word or phrase, answer a question, follow a format), do it, naturally, in the cover letter and in the answers about why the candidate is applying.",
+    "You are filling in the free-text questions on Jordan Example's application for a job. Answer as the candidate, in the first person.\n\nCandidate facts (use verbatim where relevant; never invent or contradict these):\n- Name: Jordan Example\n- Location: Springfield\n- Work authorization: Authorized to work in the US\n- Relocation / remote: Remote preferred\n- Target compensation: Targeting 150k base\n\nJob: Senior Platform Engineer at Initech\nJob location: not stated in the posting (workplace type: not stated)\n\nThe full job posting:\nBuild the search platform. Go, Kubernetes, ranking.\n\nThe candidate's tailored résumé for this role:\n# Jordan Example\n\njordan@example.com | +1,555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nML engineer who Delivered ranking models and evaluation tooling.\n\n# Experience\n\n- Delivered query understanding for the search box, cutting zero-result queries.\n\n- Delivered deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Delivered a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Delivered 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Delivered a daily puzzle with a shared leaderboard.\n\n**Odd one** - Delivered something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\nThe application form's questions:\n1. Why Initech?\n\nRules:\n- Answer each question directly. A question asking for detail gets 2-5 sentences grounded in the résumé; a short factual question gets a short answer.\n- Keep everything truthful to the résumé and the candidate facts. Never invent employers, dates, metrics, people or events.\n- Asked who referred the candidate, or anything about a person: there is no referral, so answer the way the question says to when there is none (for example \"N/A\"), or \"No\" if it gives no such instruction.\n- Asked how the candidate heard about the job: they found the posting while searching for roles. Never name a website, event or person.\n- Asked for a fact you do not have (an address, a date, a number not in the résumé, a link not given above): return an empty string for that answer. The candidate will answer it themselves.\n- If the posting asks applicants to do something specific in their application (mention a particular word or phrase, answer a question, follow a format), do it, naturally, in the cover letter and in the answers about why the candidate is applying. When the posting asks applicants to mention something, put it in the answer about why they are applying, or the closest fit.\n- Never use em dashes; use commas, colons, or hyphens instead.\n\nReturn ONLY a JSON object, no preamble and no markdown fence, with one answer per question in the same order:\n{\"answers\": [\"answer to question 1\", \"answer to question 2\"]}"
+  ],
+  "keysAfterExtras": [
+    "resume:blocks:education",
+    "resume:blocks:exp-additional",
+    "resume:blocks:exp-contoso-infra",
+    "resume:blocks:exp-contoso-rollup",
+    "resume:blocks:exp-contoso-search",
+    "resume:blocks:header",
+    "resume:blocks:index",
+    "resume:blocks:proj-agent",
+    "resume:blocks:proj-anchor",
+    "resume:blocks:proj-game",
+    "resume:blocks:proj-odd",
+    "resume:blocks:proj-scraper",
+    "resume:blocks:skills",
+    "resume:blocks:summary-ml",
+    "resume:blocks:summary-platform",
+    "resume:coverletter:6a84996cf57361eb11d08176a667bbd0d1a7e82b0b364dec809625c487cec6a3",
+    "resume:extras:7c939daed089f31e9dd7e544e79e55e5d8bb94839e9598a7808e68e6a30d1cdf",
+    "resume:form-answers:44b97bc89b1b4bb4298a7fa4cd975f7194bb4fd5b507e40d0e04bef15ef9fe5d",
+    "resume:profile:contact",
+    "resume:prompt",
+    "resume:tailored:6ad82d43024d7ce0e0b49ff0e4bc7612d82090e23fa8d16aa5e367c2cc6e5db7"
+  ],
+  "variants": [
+    {
+      "slug": "owner-md",
+      "label": "Initech packet",
+      "created_at": "<time>",
+      "markdown": "# Jordan Example\n\n# Projects\n\nA rewritten anchor.\n\n### AI & Agents\n\nx",
+      "cover_letter_markdown": "Dear Initech",
+      "job_title": "Senior Platform Engineer",
+      "company": "Initech"
+    },
+    {
+      "slug": "owner-blocks",
+      "label": "Blocks only",
+      "created_at": "<time>",
+      "block_ids": ["header", "summary-ml", "education"]
+    },
+    {
+      "slug": "owner-tailored",
+      "label": "Tailored at mint",
+      "created_at": "<time>",
+      "markdown": "# Jordan Example\n\njordan@example.com | +1,555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Delivered a self-hosted app platform and shipped search at scale.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Delivered the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n- Delivered query understanding for the search box, cutting zero-result queries.\n\n- Delivered deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Delivered a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Delivered 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Delivered a daily puzzle with a shared leaderboard.\n\n**Odd one** - Delivered something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science",
+      "block_ids": [
+        "header",
+        "summary-platform",
+        "exp-contoso-rollup",
+        "exp-contoso-search",
+        "exp-contoso-infra",
+        "proj-anchor",
+        "proj-agent",
+        "proj-scraper",
+        "proj-game",
+        "proj-odd",
+        "skills",
+        "exp-additional",
+        "education"
+      ],
+      "cover_letter_markdown": "Dear hiring team,\n\nA fake letter.",
+      "job_title": "Senior Platform Engineer",
+      "company": "Initech"
+    }
+  ],
+  "mintPrompts": [
+    "You are assembling a tailored resume for a job application. Select the most relevant resume blocks and return their IDs in the order they should appear.\nProfile preference: \"platform\" — prefer blocks tagged with this, but include cross-tag blocks where genuinely relevant (e.g. a Staff ML role will usually want a leadership block too).\n\nJob: Senior Platform Engineer at Initech\nDescription:\nBuild the search platform. Go, Kubernetes, ranking.\n\nAvailable blocks:\nID: header\nType: header\nTags: always, canonical, section:header\nTitle: Header\n---\n# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\nID: summary-platform\nType: summary\nTags: canonical, section:summary, variant:summary\nTitle: Summary (platform)\n---\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\nID: summary-ml\nType: summary\nTags: section:summary, variant:summary, ml\nTitle: Summary (ML)\n---\nML engineer who Built ranking models and evaluation tooling.\n\nID: exp-contoso-rollup\nType: experience\nTags: canonical, section:experience-primary, variant:contoso\nTitle: Contoso rollup\n---\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\nID: exp-contoso-search\nType: experience\nTags: section:experience-primary, search\nTitle: Contoso search detail\n---\n- Built query understanding for the search box, cutting zero-result queries.\n\nID: exp-contoso-infra\nType: experience\nTags: section:experience-primary, infra\nTitle: Contoso infra detail\n---\n- Built deployment tooling used by forty teams.\n\nID: proj-anchor\nType: project\nTags: always, canonical, section:projects\nTitle: Platform anchor\n---\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\nID: proj-agent\nType: project\nTags: canonical, section:projects, cat:ai-agents, tier:1\nTitle: Agent runner\n---\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\nID: proj-scraper\nType: project\nTags: canonical, section:projects, cat:data-automation, tier:1\nTitle: Scraper\n---\n**Scraper** - Built 12 scraper verticals feeding one index.\n\nID: proj-game\nType: project\nTags: section:projects, cat:apps-games-tools, tier:2\nTitle: Puzzle game\n---\n**Puzzle game** - Built a daily puzzle with a shared leaderboard.\n\nID: proj-odd\nType: project\nTags: section:projects, cat:misc, tier:3\nTitle: Odd one\n---\n**Odd one** - Built something uncategorised.\n\nID: skills\nType: skills\nTags: always, canonical, section:skills\nTitle: Technical skills\n---\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\nID: exp-additional\nType: experience\nTags: canonical, section:experience-secondary\nTitle: Additional experience\n---\n**Fabrikam** - Junior Developer, 2015-2018\n\nID: education\nType: education\nTags: canonical, section:education\nTitle: Education\n---\n**State University** - BSc Computer Science\n\nRules:\n- Always include the header block if present\n- Always include the education block if present\n- Always include the additional-experience (non-Microsoft employment) block if present: employment history should be complete, not tailored away\n- Select experience and project blocks most relevant to this specific role\n- Prefer the most role-relevant variant when multiple variants of the same experience exist (e.g. prefer ml-tagged over generic for an ML role)\n- Project blocks carry a \"tier:N\" tag reflecting the owner's own ranking (tier:1 = flagship, tier:3 = least). tier:1 projects are default-include: drop one only when it is clearly irrelevant to this specific role AND its slot is needed for a more role-relevant project. When space is tight, cut tier:3 before tier:2 before tier:1. A strongly role-relevant tier:2/3 project may replace the LEAST-relevant tier:1 project, never several of them.\n- Aim for 6-7 project blocks (plus the platform-anchor project block). Fewer wastes the projects page; more overflows it.\n- Select at most ONE block from each \"variant:<group>\" tag group (e.g. only one summary, and either the Microsoft rollup or its level-history blocks — never both).\n- Never select a rollup block AND its constituent detail blocks together; their bullets would duplicate.\n- Respond with ONLY a valid JSON array of block IDs, nothing else. Example: [\"header\", \"exp_microsoft_se2\", \"skills_ml\"]",
+    "You are tailoring a resume for a specific job application. Rewrite the bullet points in the experience and project sections to better emphasize skills and impact relevant to this role. Keep all facts strictly accurate — adjust emphasis and phrasing only, never invent achievements or change dates.\n\nThe resume contains `<!-- page-break -->` marker lines that force page breaks. Keep every one of them, verbatim and on its own line, in the same position. Do not add, remove, or move content across them.\n\nThe paragraph immediately after the \"# Projects\" heading is a platform overview with independently verified figures — reproduce it character-for-character, do not rewrite it. Keep all number formatting exactly as written: \"3,800\" never \"3 800\", \"74%\" never \"74 %\", \"84k\" never \"84 k\". Never use em dashes anywhere; use commas, colons, or hyphens instead.\n\nJob: Senior Platform Engineer at Initech\nDescription:\nBuild the search platform. Go, Kubernetes, ranking.\n\nResume to tailor:\n# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nPlatform engineer who Built a self-hosted app platform and shipped search at scale.\n\n# Experience\n\n**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.\n\n- Built query understanding for the search box, cutting zero-result queries.\n\n- Built deployment tooling used by forty teams.\n\n<!-- page-break -->\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\n**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\n\n### Data & Automation\n\n**Scraper** - Built 12 scraper verticals feeding one index.\n\n### Apps, Games & Tools\n\n**Puzzle game** - Built a daily puzzle with a shared leaderboard.\n\n**Odd one** - Built something uncategorised.\n\n<!-- page-break -->\n\n# Technical Skills\n\n**Languages:** TypeScript, Go, Python\n\n# Additional Experience\n\n**Fabrikam** - Junior Developer, 2015-2018\n\n# Education\n\n**State University** - BSc Computer Science\n\nReturn only the full rewritten resume markdown, no preamble or explanation."
+  ],
+  "variantList": [
+    {
+      "slug": "owner-blocks",
+      "label": "Blocks only",
+      "created_at": "<time>",
+      "source": "blocks"
+    },
+    {
+      "slug": "owner-md",
+      "label": "Initech packet",
+      "created_at": "<time>",
+      "source": "markdown"
+    },
+    {
+      "slug": "owner-tailored",
+      "label": "Tailored at mint",
+      "created_at": "<time>",
+      "source": "markdown"
+    }
+  ],
+  "renderedMarkdownVariant": "# Jordan Example\n\n# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\n\n### AI & Agents\n\nx",
+  "renderedBlocksVariant": "# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\n\n# Profile\n\nML engineer who Built ranking models and evaluation tooling.\n\n# Education\n\n**State University** - BSc Computer Science",
+  "ttls": {
+    "resume:coverletter:6a84996cf57361eb11d08176a667bbd0d1a7e82b0b364dec809625c487cec6a3": 2592000,
+    "resume:extras:7c939daed089f31e9dd7e544e79e55e5d8bb94839e9598a7808e68e6a30d1cdf": 2592000,
+    "resume:form-answers:44b97bc89b1b4bb4298a7fa4cd975f7194bb4fd5b507e40d0e04bef15ef9fe5d": 2592000,
+    "resume:tailored:3cb8850d57ab4b006c6a28f7918bb59eb01de5a696ee5ea8548fa63ae9a5d657": 2592000,
+    "resume:tailored:6ad82d43024d7ce0e0b49ff0e4bc7612d82090e23fa8d16aa5e367c2cc6e5db7": 2592000,
+    "resume:variant:owner-md": 2592000
+  },
+  "exported": [
+    {
+      "id": "education",
+      "type": "education",
+      "tags": ["canonical", "section:education"],
+      "title": "Education",
+      "content": "**State University** - BSc Computer Science",
+      "priority": 50
+    },
+    {
+      "id": "exp-additional",
+      "type": "experience",
+      "tags": ["canonical", "section:experience-secondary"],
+      "title": "Additional experience",
+      "content": "**Fabrikam** - Junior Developer, 2015-2018",
+      "priority": 50
+    },
+    {
+      "id": "skills",
+      "type": "skills",
+      "tags": ["always", "canonical", "section:skills"],
+      "title": "Technical skills",
+      "content": "# Technical Skills\n\n**Languages:** TypeScript, Go, Python",
+      "priority": 100
+    },
+    {
+      "id": "proj-game",
+      "type": "project",
+      "tags": ["section:projects", "cat:apps-games-tools", "tier:2"],
+      "title": "Puzzle game",
+      "content": "**Puzzle game** - Built a daily puzzle with a shared leaderboard.",
+      "priority": 30
+    },
+    {
+      "id": "proj-scraper",
+      "type": "project",
+      "tags": ["canonical", "section:projects", "cat:data-automation", "tier:1"],
+      "title": "Scraper",
+      "content": "**Scraper** - Built 12 scraper verticals feeding one index.",
+      "priority": 39
+    },
+    {
+      "id": "proj-agent",
+      "type": "project",
+      "tags": ["canonical", "section:projects", "cat:ai-agents", "tier:1"],
+      "title": "Agent runner",
+      "content": "**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)",
+      "priority": 40
+    },
+    {
+      "id": "proj-anchor",
+      "type": "project",
+      "tags": ["always", "canonical", "section:projects"],
+      "title": "Platform anchor",
+      "content": "# Projects\n\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.",
+      "priority": 100
+    },
+    {
+      "id": "exp-contoso-infra",
+      "type": "experience",
+      "tags": ["section:experience-primary", "infra"],
+      "title": "Contoso infra detail",
+      "content": "- Built deployment tooling used by forty teams.",
+      "priority": 50
+    },
+    {
+      "id": "exp-contoso-search",
+      "type": "experience",
+      "tags": ["section:experience-primary", "search"],
+      "title": "Contoso search detail",
+      "content": "- Built query understanding for the search box, cutting zero-result queries.",
+      "priority": 60
+    },
+    {
+      "id": "exp-contoso-rollup",
+      "type": "experience",
+      "tags": ["canonical", "section:experience-primary", "variant:contoso"],
+      "title": "Contoso rollup",
+      "content": "**Contoso** - Software Engineer II, 2018-2024\n\n- Built the search indexing pipeline.\n- Led the migration to a new storage tier.",
+      "priority": 70
+    },
+    {
+      "id": "summary-ml",
+      "type": "summary",
+      "tags": ["section:summary", "variant:summary", "ml"],
+      "title": "Summary (ML)",
+      "content": "ML engineer who Built ranking models and evaluation tooling.",
+      "priority": 80
+    },
+    {
+      "id": "summary-platform",
+      "type": "summary",
+      "tags": ["canonical", "section:summary", "variant:summary"],
+      "title": "Summary (platform)",
+      "content": "Platform engineer who Built a self-hosted app platform and shipped search at scale.",
+      "priority": 90
+    },
+    {
+      "id": "header",
+      "type": "header",
+      "tags": ["always", "canonical", "section:header"],
+      "title": "Header",
+      "content": "# Jordan Example\n\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)",
+      "priority": 100
+    }
+  ],
+  "finalStore": {
+    "resume:blocks:education": "{\"id\":\"education\",\"type\":\"education\",\"tags\":[\"canonical\",\"section:education\"],\"title\":\"Education\",\"content\":\"**State University** - BSc Computer Science\",\"priority\":50}",
+    "resume:blocks:exp-additional": "{\"id\":\"exp-additional\",\"type\":\"experience\",\"tags\":[\"canonical\",\"section:experience-secondary\"],\"title\":\"Additional experience\",\"content\":\"**Fabrikam** - Junior Developer, 2015-2018\",\"priority\":50}",
+    "resume:blocks:exp-contoso-infra": "{\"id\":\"exp-contoso-infra\",\"type\":\"experience\",\"tags\":[\"section:experience-primary\",\"infra\"],\"title\":\"Contoso infra detail\",\"content\":\"- Built deployment tooling used by forty teams.\",\"priority\":50}",
+    "resume:blocks:exp-contoso-rollup": "{\"id\":\"exp-contoso-rollup\",\"type\":\"experience\",\"tags\":[\"canonical\",\"section:experience-primary\",\"variant:contoso\"],\"title\":\"Contoso rollup\",\"content\":\"**Contoso** - Software Engineer II, 2018-2024\\n\\n- Built the search indexing pipeline.\\n- Led the migration to a new storage tier.\",\"priority\":70}",
+    "resume:blocks:exp-contoso-search": "{\"id\":\"exp-contoso-search\",\"type\":\"experience\",\"tags\":[\"section:experience-primary\",\"search\"],\"title\":\"Contoso search detail\",\"content\":\"- Built query understanding for the search box, cutting zero-result queries.\",\"priority\":60}",
+    "resume:blocks:header": "{\"id\":\"header\",\"type\":\"header\",\"tags\":[\"always\",\"canonical\",\"section:header\"],\"title\":\"Header\",\"content\":\"# Jordan Example\\n\\njordan@example.com | +1 555 0100 | Springfield | [GitHub](https://github.com/example)\",\"priority\":100}",
+    "resume:blocks:index": "[\"education\",\"exp-additional\",\"skills\",\"proj-game\",\"proj-scraper\",\"proj-agent\",\"proj-anchor\",\"exp-contoso-infra\",\"exp-contoso-search\",\"exp-contoso-rollup\",\"summary-ml\",\"summary-platform\",\"header\"]",
+    "resume:blocks:proj-agent": "{\"id\":\"proj-agent\",\"type\":\"project\",\"tags\":[\"canonical\",\"section:projects\",\"cat:ai-agents\",\"tier:1\"],\"title\":\"Agent runner\",\"content\":\"**Agent runner** - Built a job queue for coding agents. [GitHub](https://github.com/example/agent)\",\"priority\":40}",
+    "resume:blocks:proj-anchor": "{\"id\":\"proj-anchor\",\"type\":\"project\",\"tags\":[\"always\",\"canonical\",\"section:projects\"],\"title\":\"Platform anchor\",\"content\":\"# Projects\\n\\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\",\"priority\":100}",
+    "resume:blocks:proj-game": "{\"id\":\"proj-game\",\"type\":\"project\",\"tags\":[\"section:projects\",\"cat:apps-games-tools\",\"tier:2\"],\"title\":\"Puzzle game\",\"content\":\"**Puzzle game** - Built a daily puzzle with a shared leaderboard.\",\"priority\":30}",
+    "resume:blocks:proj-scraper": "{\"id\":\"proj-scraper\",\"type\":\"project\",\"tags\":[\"canonical\",\"section:projects\",\"cat:data-automation\",\"tier:1\"],\"title\":\"Scraper\",\"content\":\"**Scraper** - Built 12 scraper verticals feeding one index.\",\"priority\":39}",
+    "resume:blocks:skills": "{\"id\":\"skills\",\"type\":\"skills\",\"tags\":[\"always\",\"canonical\",\"section:skills\"],\"title\":\"Technical skills\",\"content\":\"# Technical Skills\\n\\n**Languages:** TypeScript, Go, Python\",\"priority\":100}",
+    "resume:blocks:summary-ml": "{\"id\":\"summary-ml\",\"type\":\"summary\",\"tags\":[\"section:summary\",\"variant:summary\",\"ml\"],\"title\":\"Summary (ML)\",\"content\":\"ML engineer who Built ranking models and evaluation tooling.\",\"priority\":80}",
+    "resume:blocks:summary-platform": "{\"id\":\"summary-platform\",\"type\":\"summary\",\"tags\":[\"canonical\",\"section:summary\",\"variant:summary\"],\"title\":\"Summary (platform)\",\"content\":\"Platform engineer who Built a self-hosted app platform and shipped search at scale.\",\"priority\":90}",
+    "resume:form-answers:44b97bc89b1b4bb4298a7fa4cd975f7194bb4fd5b507e40d0e04bef15ef9fe5d": "[{\"q\":\"Why Initech?\",\"a\":\"\"}]",
+    "resume:profile:contact": "{\"name\":\"Jordan Example\",\"email\":\"jordan@example.com\",\"phone\":\"+1 555 0100\",\"linkedin\":\"linkedin.com/in/jordan-example\",\"github\":\"github.com/example\",\"location\":\"Springfield\",\"work_auth\":\"Authorized to work in the US\",\"relocation\":\"Remote preferred\",\"salary_line\":\"Targeting 150k base\"}",
+    "resume:prompt": "You are a resume assistant.",
+    "resume:variant:owner-blocks": "{\"slug\":\"owner-blocks\",\"label\":\"Blocks only\",\"created_at\":\"<time>\",\"block_ids\":[\"header\",\"summary-ml\",\"education\"]}",
+    "resume:variant:owner-md": "{\"slug\":\"owner-md\",\"label\":\"Initech packet\",\"created_at\":\"<time>\",\"markdown\":\"# Jordan Example\\n\\n# Projects\\n\\nA rewritten anchor.\\n\\n### AI & Agents\\n\\nx\",\"cover_letter_markdown\":\"Dear Initech\",\"job_title\":\"Senior Platform Engineer\",\"company\":\"Initech\"}",
+    "resume:variant:owner-tailored": "{\"slug\":\"owner-tailored\",\"label\":\"Tailored at mint\",\"created_at\":\"<time>\",\"markdown\":\"# Jordan Example\\n\\njordan@example.com | +1,555 0100 | Springfield | [GitHub](https://github.com/example)\\n\\n# Profile\\n\\nPlatform engineer who Delivered a self-hosted app platform and shipped search at scale.\\n\\n# Experience\\n\\n**Contoso** - Software Engineer II, 2018-2024\\n\\n- Delivered the search indexing pipeline.\\n- Led the migration to a new storage tier.\\n\\n- Delivered query understanding for the search box, cutting zero-result queries.\\n\\n- Delivered deployment tooling used by forty teams.\\n\\n<!-- page-break -->\\n\\n# Projects\\n\\nexample.dev is a self-hosted platform of 12 apps behind one edge router, with 3,800 tests and 84k indexed items.\\n\\n### AI & Agents\\n\\n**Agent runner** - Delivered a job queue for coding agents. [GitHub](https://github.com/example/agent)\\n\\n### Data & Automation\\n\\n**Scraper** - Delivered 12 scraper verticals feeding one index.\\n\\n### Apps, Games & Tools\\n\\n**Puzzle game** - Delivered a daily puzzle with a shared leaderboard.\\n\\n**Odd one** - Delivered something uncategorised.\\n\\n<!-- page-break -->\\n\\n# Technical Skills\\n\\n**Languages:** TypeScript, Go, Python\\n\\n# Additional Experience\\n\\n**Fabrikam** - Junior Developer, 2015-2018\\n\\n# Education\\n\\n**State University** - BSc Computer Science\",\"block_ids\":[\"header\",\"summary-platform\",\"exp-contoso-rollup\",\"exp-contoso-search\",\"exp-contoso-infra\",\"proj-anchor\",\"proj-agent\",\"proj-scraper\",\"proj-game\",\"proj-odd\",\"skills\",\"exp-additional\",\"education\"],\"cover_letter_markdown\":\"Dear hiring team,\\n\\nA fake letter.\",\"job_title\":\"Senior Platform Engineer\",\"company\":\"Initech\"}"
+  }
+}
