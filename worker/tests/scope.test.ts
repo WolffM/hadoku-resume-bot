@@ -34,6 +34,17 @@ describe('resolveScope', () => {
     assert.ok('error' in none)
   })
 
+  it('refuses an on_behalf_of_user_id that is not a string', () => {
+    for (const bad of [42, { id: 'user-b' }, ['user-b'], true]) {
+      const r = resolveScope(auth('service', JOBPLATFORM_ID), env, bad)
+      assert.ok('error' in r, JSON.stringify(bad))
+      assert.equal(r.status, 400, JSON.stringify(bad))
+    }
+    assert.deepEqual(resolveScope(auth('friend', 'user-a'), env, null), {
+      scope: { kind: 'user', userId: 'user-a' }
+    })
+  })
+
   it('honours on_behalf_of_user_id from an allowlisted service caller', () => {
     assert.deepEqual(resolveScope(auth('service', JOBPLATFORM_ID), env, 'user-b'), {
       scope: { kind: 'user', userId: 'user-b' }

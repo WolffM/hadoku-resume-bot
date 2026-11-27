@@ -77,6 +77,11 @@ export function resolveScope(
   env: ScopeEnv,
   onBehalfOf?: unknown
 ): ScopeResult {
+  // A field that is present but not a string is a caller bug: refuse it rather
+  // than silently act as the caller itself.
+  if (onBehalfOf !== undefined && onBehalfOf !== null && typeof onBehalfOf !== 'string') {
+    return { status: 400, error: 'on_behalf_of_user_id must be a string' }
+  }
   const named = typeof onBehalfOf === 'string' ? onBehalfOf.trim() : ''
   let userId: string | null
   if (named) {
