@@ -43,7 +43,10 @@ Résumé content is scoped. The owner's is the original global key set
 unprefixed caches), unchanged. Every other user has the same keys with their
 registry userId after the namespace (`resume:blocks:<userId>:<id>`,
 `resume:variant:<userId>:<slug>`, `resume:tailored:<userId>:<hash>`, ...), plus
-`resume:variant-owner:<slug>` so a shared `?v=<slug>` link resolves.
+`resume:variant-owner:<slug>` so a shared `?v=<slug>` link resolves. That
+pointer has no TTL and survives a delete: a user's expired or deleted packet
+answers 404 `VARIANT_GONE` on `/resume` and `/resume.pdf`, never the owner's
+resume (only an unknown or owner slug falls back to it).
 
 - Scope comes from the edge-verified identity: admin, or the userId in
   `RESUME_OWNER_USER_ID`, is the owner; any other userId is its own scope; no

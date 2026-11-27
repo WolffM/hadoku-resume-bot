@@ -37,7 +37,10 @@ résumé's content — it is not a general-purpose assistant.
 specific job, published behind its own short, unguessable link. Opening the
 link without being signed in shows the tailored content directly; if a link
 expires or is revoked, it falls back to the full résumé rather than showing
-an error, so a link someone already has never breaks.
+an error, so a link someone already has never breaks. A packet minted for
+another user (through jobplatform) is the exception: once it expires or is
+deleted its link answers "expired or removed", because the full résumé is the
+owner's, not that user's.
 
 **How to use it.** Minting a variant (from markdown, specific content
 blocks, or straight from a job posting) and listing or revoking existing

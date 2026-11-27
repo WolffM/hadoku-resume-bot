@@ -137,6 +137,17 @@ function missingContent(err: unknown) {
   return null
 }
 
+/**
+ * A user's packet link whose variant expired, was deleted or holds nothing to
+ * render. Unlike an unknown slug, it must not fall back to the owner's resume:
+ * that would hand a recruiter (or an apply runner uploading the PDF) the
+ * owner's resume under the user's application.
+ */
+const VARIANT_GONE = {
+  error: 'This application packet has expired or was removed.',
+  code: 'VARIANT_GONE'
+} as const
+
 /** The service caller's `on_behalf_of_user_id`, when a JSON body carries one. */
 function onBehalfOf(body: unknown): unknown {
   return typeof body === 'object' && body !== null
@@ -439,14 +450,17 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
 
   app.get(`${basePath}/resume`, async c => {
     try {
-      // ?v={slug} serves a link-tailored variant; unknown/expired slugs fall
-      // back to the full resume so a shared link never renders a broken page.
+      // ?v={slug} serves a link-tailored variant; unknown/expired owner slugs
+      // fall back to the full resume so a shared link never renders a broken
+      // page. A user's expired or deleted packet is a 404 (VARIANT_GONE).
       const slug = c.req.query('v')
       if (slug) {
         const found = await findVariant(c.env.CONTENT_KV, slug)
+        if (found && 'gone' in found) return c.json(VARIANT_GONE, 404)
         if (found) {
           const { variant, scope } = found
           const content = await renderVariant(c.env.CONTENT_KV, variant, scope)
+          if (!content && scope.kind === 'user') return c.json(VARIANT_GONE, 404)
           if (content)
             // Normalized on the way OUT so variants minted before the
             // typography cleanup (whose slugs recruiters already hold) come
@@ -481,7 +495,8 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   // markdown /resume serves — the UI download button points here instead of
   // reconstructing the document through the browser's print dialog.
   // Same visibility and variant semantics as /resume, including the fall-back
-  // to the full résumé on an unknown/expired slug.
+  // to the full résumé on an unknown/expired owner slug and the 404 for a
+  // user's gone packet.
   app.get(`${basePath}/resume.pdf`, async c => {
     try {
       const slug = c.req.query('v')
@@ -496,8 +511,10 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
 
       if (slug) {
         const found = await findVariant(c.env.CONTENT_KV, slug)
+        if (found && 'gone' in found) return c.json(VARIANT_GONE, 404)
         if (found) {
           const rendered = await renderVariant(c.env.CONTENT_KV, found.variant, found.scope)
+          if (!rendered && found.scope.kind === 'user') return c.json(VARIANT_GONE, 404)
           if (rendered) {
             content = rendered
             coverLetter = found.variant.cover_letter_markdown ?? null

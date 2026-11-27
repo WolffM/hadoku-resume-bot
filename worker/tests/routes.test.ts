@@ -275,7 +275,77 @@ describe('variants', () => {
     assert.equal((await call('DELETE', '/variants/mine', friendB)).status, 404)
     assert.equal((await call('DELETE', '/variants/shared', friendA)).status, 404)
     assert.equal((await call('DELETE', '/variants/mine', friendA)).status, 200)
-    assert.equal(await kv.get('resume:variant-owner:mine'), null)
+    assert.equal(
+      await kv.get('resume:variant-owner:mine'),
+      'user-a',
+      "the slug stays marked as user-a's after delete"
+    )
+    assert.equal(
+      (await call('POST', '/variants', friendB, { label: 'b', slug: 'mine', markdown: '# Sam' }))
+        .status,
+      409,
+      'a deleted slug cannot be taken over by another user'
+    )
+  })
+
+  it("a user's expired or deleted packet is gone, never the owner's resume", async () => {
+    await call('POST', '/blocks/import', friendA, { resume_text: PERSONA_MARKDOWN })
+    const minted = await call('POST', '/variants', jobplatform, {
+      on_behalf_of_user_id: 'user-a',
+      label: 'Initech - Delivery Manager',
+      slug: 'robin-expiring',
+      markdown: '# Robin Quillfeather\n\n# Summary\n\nDelivery lead.',
+      ttl_days: 30
+    })
+    assert.equal(minted.status, 200)
+    assert.equal(kv.ttls.get('resume:variant:user-a:robin-expiring'), 30 * 86400)
+    assert.equal(kv.ttls.has('resume:variant-owner:robin-expiring'), false, 'pointer has no TTL')
+
+    // What KV does when the TTL runs out: the variant disappears, the pointer stays.
+    await kv.delete('resume:variant:user-a:robin-expiring')
+    for (const path of ['/resume?v=robin-expiring', '/resume.pdf?v=robin-expiring']) {
+      const res = await call('GET', path, null)
+      assert.equal(res.status, 404, path)
+      assert.equal(res.body.code, 'VARIANT_GONE', path)
+      assert.doesNotMatch(JSON.stringify(res.body), /Jordan Example/, path)
+    }
+
+    await call('POST', '/variants', friendA, { label: 'a', slug: 'robin-deleted', markdown: '# R' })
+    assert.equal((await call('DELETE', '/variants/robin-deleted', friendA)).status, 200)
+    for (const path of ['/resume?v=robin-deleted', '/resume.pdf?v=robin-deleted']) {
+      const res = await call('GET', path, null)
+      assert.equal(res.status, 404, path)
+      assert.equal(res.body.code, 'VARIANT_GONE', path)
+    }
+  })
+
+  it("a user's packet with nothing left to render is gone, not the owner's resume", async () => {
+    await call('POST', '/blocks/import', friendA, { resume_text: PERSONA_MARKDOWN })
+    const blocks = (await call('GET', '/blocks', friendA)).body.blocks as { id: string }[]
+    await call('POST', '/variants', friendA, {
+      label: 'a',
+      slug: 'robin-blocks',
+      block_ids: [blocks[0].id]
+    })
+    assert.equal((await call('DELETE', `/blocks/${blocks[0].id}`, friendA)).status, 200)
+    for (const path of ['/resume?v=robin-blocks', '/resume.pdf?v=robin-blocks']) {
+      const res = await call('GET', path, null)
+      assert.equal(res.status, 404, path)
+      assert.equal(res.body.code, 'VARIANT_GONE', path)
+    }
+  })
+
+  it("an unknown or expired owner slug still falls back to the owner's resume", async () => {
+    const page = await call('GET', '/resume?v=never-minted', null)
+    assert.equal(page.status, 200)
+    assert.equal(page.body.variant, undefined)
+    assert.match(page.body.content, /Jordan Example/)
+    const pdf = await call('GET', '/resume.pdf?v=never-minted', null)
+    assert.equal(pdf.status, 200)
+    assert.equal(
+      pdf.headers.get('Content-Disposition'),
+      'attachment; filename="jordan-example-resume.pdf"'
+    )
   })
 
   it("a user's shared link resolves by slug and is named for that user", async () => {

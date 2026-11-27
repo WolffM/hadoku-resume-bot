@@ -97,13 +97,26 @@ export async function getVariant(
   return json ? (JSON.parse(json) as ResumeVariant) : null
 }
 
+/** A user's slug whose variant has expired or was deleted. */
+export interface GoneVariant {
+  gone: true
+}
+
 /**
  * Find a variant by slug alone, whoever's it is: the public `?v=<slug>` path.
  * The owner's key first (every link minted before per-user variants), then
  * the slug pointer to a user's. A slug with a ':' is refused outright, so
  * `?v=<userId>:<slug>` cannot read a user's variant as if it were the owner's.
+ *
+ * A user's pointer outlives the variant (it is written without a TTL and kept
+ * on delete), so an expired or deleted user packet is reported as gone rather
+ * than looking like an unknown slug, which the public routes answer with the
+ * owner's resume.
  */
-export async function findVariant(kv: KVNamespace, slug: string): Promise<ScopedVariant | null> {
+export async function findVariant(
+  kv: KVNamespace,
+  slug: string
+): Promise<ScopedVariant | GoneVariant | null> {
   if (!slug || slug.includes(':')) return null
   const owned = await getVariant(kv, slug, OWNER_SCOPE)
   if (owned) return { variant: owned, scope: OWNER_SCOPE }
@@ -111,7 +124,7 @@ export async function findVariant(kv: KVNamespace, slug: string): Promise<Scoped
   if (!userId) return null
   const scope: ContentScope = { kind: 'user', userId }
   const variant = await getVariant(kv, slug, scope)
-  return variant ? { variant, scope } : null
+  return variant ? { variant, scope } : { gone: true }
 }
 
 /** Resolve a variant to resume markdown. Returns null when it holds no renderable content. */
@@ -284,7 +297,9 @@ export async function mintVariant(
       ? { expirationTtl: Math.round(req.ttl_days * 86400) }
       : undefined
   await kv.put(scopeKeys(scope).variant(slug), JSON.stringify(variant), opts)
-  if (scope.kind === 'user') await kv.put(variantOwnerKey(slug), scope.userId, opts)
+  // No TTL on the pointer: once the variant expires, the slug must still read
+  // as this user's (gone), never fall through to the owner's resume.
+  if (scope.kind === 'user') await kv.put(variantOwnerKey(slug), scope.userId)
   return variant
 }
 
@@ -339,7 +354,9 @@ export async function deleteVariant(
   const key = scopeKeys(scope).variant(slug)
   const existing = await kv.get(key)
   if (!existing) return false
+  // A user's slug pointer stays, so the deleted packet's public link answers
+  // "gone" instead of serving the owner's resume, and nobody else can take
+  // the slug over.
   await kv.delete(key)
-  if (scope.kind === 'user') await kv.delete(variantOwnerKey(slug))
   return true
 }
