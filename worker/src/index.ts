@@ -490,6 +490,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       // A user's packet is named for that user, never the owner.
       let filename = `${filenameBase}.pdf`
       let documentName = ownerName
+      let userPacket = false
 
       if (slug) {
         const found = await findVariant(c.env.CONTENT_KV, slug)
@@ -501,6 +502,7 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
             if (found.scope.kind === 'user') {
               documentName = candidateName(found.variant.candidate_name, rendered)
               filename = `${filenameStem(documentName)}.pdf`
+              userPacket = true
             }
           }
         }
@@ -511,7 +513,10 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
       const bytes = await renderResumePdf({
         resume: normalizeTypography(content),
         coverLetter: coverLetter ? normalizeTypography(coverLetter) : null,
-        ownerName: documentName
+        ownerName: documentName,
+        // A user's packet: the compact two-page layout, and a plain title.
+        // The owner's PDF keeps its layout and title unchanged.
+        ...(userPacket ? { style: 'compact' as const, title: `${documentName} - Resume` } : {})
       })
       // Copy into a fresh ArrayBuffer — hono's BodyInit typing rejects the
       // ArrayBufferLike-backed view pdf-lib returns.

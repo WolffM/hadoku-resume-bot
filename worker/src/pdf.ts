@@ -32,7 +32,23 @@ export interface ResumePdfInput {
   coverLetter?: string | null
   /** Document metadata: title bar in PDF viewers, and the Author field. */
   ownerName: string
+  /**
+   * Overrides the Title metadata. Default: the owner's historical title
+   * (the name, an em dash, "Résumé"), kept so the owner's PDF does not change.
+   */
+  title?: string
+  /** Page geometry and type sizes. Default: the owner's layout. */
+  style?: PdfStyle
 }
+
+/**
+ * - `owner`: the owner's layout, unchanged (roomy, every heading level drawn
+ *   as a ruled section heading, page breaks from the skeleton's markers).
+ * - `compact`: everyone else's. Tighter margins and type, and `##`/`###`
+ *   headings (one per job) drawn as bold entry lines without a rule, so a
+ *   typical five-role résumé fits on two pages.
+ */
+export type PdfStyle = 'owner' | 'compact'
 
 interface InlineRun {
   text: string
@@ -42,7 +58,7 @@ interface InlineRun {
 }
 
 type Block =
-  | { kind: 'heading'; runs: InlineRun[] }
+  | { kind: 'heading'; level: number; runs: InlineRun[] }
   | { kind: 'paragraph'; lines: InlineRun[][] }
   | { kind: 'bullet'; runs: InlineRun[] }
   | { kind: 'rule' }
@@ -102,7 +118,11 @@ export function parseBlocks(markdown: string): Block[] {
       blocks.push({ kind: 'page-break' })
     } else if (/^#{1,3} /.test(line)) {
       flush()
-      blocks.push({ kind: 'heading', runs: parseInline(line.replace(/^#{1,3} /, '')) })
+      blocks.push({
+        kind: 'heading',
+        level: line.indexOf(' '),
+        runs: parseInline(line.replace(/^#{1,3} /, ''))
+      })
     } else if (/^[-*] /.test(line)) {
       flush()
       blocks.push({ kind: 'bullet', runs: parseInline(line.slice(2)) })
@@ -121,18 +141,69 @@ export function parseBlocks(markdown: string): Block[] {
 
 // --- Layout -----------------------------------------------------------------
 
-const PAGE_WIDTH = 612 // US Letter
-const PAGE_HEIGHT = 792
-const MARGIN_X = 58
-const MARGIN_TOP = 64
-const MARGIN_BOTTOM = 58
-const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2
+interface Typography {
+  pageWidth: number
+  pageHeight: number
+  marginX: number
+  marginTop: number
+  marginBottom: number
+  bodySize: number
+  bodyLeading: number
+  headingSize: number
+  /** Space above a section heading (not at the top of a page). */
+  headingGap: number
+  /** Space between a section heading's baseline and its rule, and below the rule. */
+  headingRuleGap: number
+  headingAfterRule: number
+  nameSize: number
+  bulletIndent: number
+  paragraphGap: number
+  bulletGap: number
+  /** How `##` and `###` headings are drawn; null draws them like `#`. */
+  entryHeading: { size: number; gap: number; after: number } | null
+}
 
-const BODY_SIZE = 10.5
-const BODY_LEADING = 15
-const HEADING_SIZE = 13.5
-const NAME_SIZE = 15
-const BULLET_INDENT = 18
+const OWNER_TYPOGRAPHY: Typography = {
+  pageWidth: 612, // US Letter
+  pageHeight: 792,
+  marginX: 58,
+  marginTop: 64,
+  marginBottom: 58,
+  bodySize: 10.5,
+  bodyLeading: 15,
+  headingSize: 13.5,
+  headingGap: 14,
+  headingRuleGap: 7,
+  headingAfterRule: 4,
+  nameSize: 15,
+  bulletIndent: 18,
+  paragraphGap: 5,
+  bulletGap: 2,
+  entryHeading: null
+}
+
+const COMPACT_TYPOGRAPHY: Typography = {
+  pageWidth: 612,
+  pageHeight: 792,
+  marginX: 46,
+  marginTop: 42,
+  marginBottom: 40,
+  bodySize: 9.5,
+  bodyLeading: 12.4,
+  headingSize: 11.5,
+  headingGap: 9,
+  headingRuleGap: 4,
+  headingAfterRule: 2,
+  nameSize: 16,
+  bulletIndent: 13,
+  paragraphGap: 2.5,
+  bulletGap: 0.6,
+  entryHeading: { size: 10, gap: 6, after: 1 }
+}
+
+function typographyFor(style: PdfStyle | undefined): Typography {
+  return style === 'compact' ? COMPACT_TYPOGRAPHY : OWNER_TYPOGRAPHY
+}
 
 const TEXT_COLOR = rgb(0.13, 0.13, 0.13)
 const RULE_COLOR = rgb(0.75, 0.75, 0.75)
@@ -240,31 +311,45 @@ function wrapWords(words: Word[], fonts: FontSet, size: number, maxWidth: number
   return lines
 }
 
+/**
+ * Lays the document out page by page. With `measureOnly` it runs the same
+ * layout without drawing anything or adding pages, and only counts them: the
+ * page count of a real render, for the cost of the arithmetic.
+ */
 class Typesetter {
-  private page!: PDFPage
+  private page: PDFPage | null = null
   private y = 0
+  pages = 0
 
   constructor(
     private readonly doc: PDFDocument,
-    private readonly fonts: FontSet
+    private readonly fonts: FontSet,
+    private readonly t: Typography,
+    private readonly measureOnly = false
   ) {
     this.newPage()
   }
 
+  private get contentWidth(): number {
+    return this.t.pageWidth - this.t.marginX * 2
+  }
+
   newPage(): void {
-    this.page = this.doc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
-    this.y = PAGE_HEIGHT - MARGIN_TOP
+    this.pages++
+    if (!this.measureOnly) this.page = this.doc.addPage([this.t.pageWidth, this.t.pageHeight])
+    this.y = this.t.pageHeight - this.t.marginTop
   }
 
   private ensureRoom(height: number): void {
-    if (this.y - height < MARGIN_BOTTOM) this.newPage()
+    if (this.y - height < this.t.marginBottom) this.newPage()
   }
 
   private atTopOfPage(): boolean {
-    return this.y === PAGE_HEIGHT - MARGIN_TOP
+    return this.y === this.t.pageHeight - this.t.marginTop
   }
 
   private addLinkAnnotation(x: number, width: number, size: number, url: string): void {
+    if (!this.page) return
     const action = this.doc.context.obj({
       Type: PDFName.of('Action'),
       S: PDFName.of('URI'),
@@ -289,6 +374,7 @@ class Typesetter {
 
   /** Draw one pre-wrapped line of words at the current cursor. */
   private drawLine(line: Word[], size: number, x: number): void {
+    if (!this.page) return
     const spaceWidth = this.fonts.regular.widthOfTextAtSize(' ', size)
     let cx = x
     for (const [i, word] of line.entries()) {
@@ -322,35 +408,46 @@ class Typesetter {
     }
   }
 
-  heading(runs: InlineRun[]): void {
-    // Keep the heading attached to at least two lines of what follows.
-    this.ensureRoom(HEADING_SIZE + 10 + BODY_LEADING * 2)
-    if (!this.atTopOfPage()) this.y -= 14
-    this.y -= HEADING_SIZE
+  heading(runs: InlineRun[], level = 1): void {
+    const t = this.t
     const boldRuns = runs.map(r => ({ ...r, bold: true }))
-    this.drawLine(toWords(boldRuns, this.fonts, HEADING_SIZE), HEADING_SIZE, MARGIN_X)
-    this.y -= 7
+    const entry = level > 1 ? t.entryHeading : null
+    if (entry) {
+      // A job or project heading: a bold line, kept with two lines of its body.
+      this.ensureRoom(entry.size + entry.gap + t.bodyLeading * 2)
+      if (!this.atTopOfPage()) this.y -= entry.gap
+      this.drawWrapped(boldRuns, entry.size, entry.size * 1.25, t.marginX, this.contentWidth)
+      this.y -= entry.after
+      return
+    }
+    // Keep the heading attached to at least two lines of what follows.
+    this.ensureRoom(t.headingSize + 10 + t.bodyLeading * 2)
+    if (!this.atTopOfPage()) this.y -= t.headingGap
+    this.y -= t.headingSize
+    this.drawLine(toWords(boldRuns, this.fonts, t.headingSize), t.headingSize, t.marginX)
+    this.y -= t.headingRuleGap
     this.rule()
-    this.y -= 4
+    this.y -= t.headingAfterRule
   }
 
   rule(): void {
     this.ensureRoom(2)
+    if (!this.page) return
     this.page.drawLine({
-      start: { x: MARGIN_X, y: this.y },
-      end: { x: PAGE_WIDTH - MARGIN_X, y: this.y },
+      start: { x: this.t.marginX, y: this.y },
+      end: { x: this.t.pageWidth - this.t.marginX, y: this.y },
       thickness: 0.75,
       color: RULE_COLOR
     })
   }
 
   paragraph(lines: InlineRun[][], options: { size?: number; leading?: number } = {}): void {
-    const size = options.size ?? BODY_SIZE
-    const leading = options.leading ?? BODY_LEADING
+    const size = options.size ?? this.t.bodySize
+    const leading = options.leading ?? this.t.bodyLeading
     for (const lineRuns of lines) {
-      this.drawWrapped(lineRuns, size, leading, MARGIN_X, CONTENT_WIDTH)
+      this.drawWrapped(lineRuns, size, leading, this.t.marginX, this.contentWidth)
     }
-    this.y -= 5
+    this.y -= this.t.paragraphGap
   }
 
   /** Render a parsed document. The first paragraph before any heading is the
@@ -362,16 +459,16 @@ class Typesetter {
       switch (block.kind) {
         case 'heading':
           seenHeading = true
-          this.heading(block.runs)
+          this.heading(block.runs, block.level)
           break
         case 'paragraph':
           if (isFirstBlock && !seenHeading && block.lines.length > 0) {
             const [nameLine, ...rest] = block.lines
             this.paragraph([nameLine.map(r => ({ ...r, bold: true }))], {
-              size: NAME_SIZE,
-              leading: NAME_SIZE * 1.4
+              size: this.t.nameSize,
+              leading: this.t.nameSize * 1.4
             })
-            this.y += 5
+            this.y += this.t.paragraphGap
             if (rest.length > 0) this.paragraph(rest)
           } else {
             this.paragraph(block.lines)
@@ -398,49 +495,69 @@ class Typesetter {
   private drawBullet(runs: InlineRun[]): void {
     // Draw the text first (wrapping handles pagination), then place the dot
     // level with the first line actually drawn.
-    const words = toWords(runs, this.fonts, BODY_SIZE)
-    const lines = wrapWords(words, this.fonts, BODY_SIZE, CONTENT_WIDTH - BULLET_INDENT)
+    const t = this.t
+    const words = toWords(runs, this.fonts, t.bodySize)
+    const lines = wrapWords(words, this.fonts, t.bodySize, this.contentWidth - t.bulletIndent)
     for (const [i, line] of lines.entries()) {
-      this.ensureRoom(BODY_LEADING)
-      this.y -= BODY_LEADING
-      if (i === 0) {
+      this.ensureRoom(t.bodyLeading)
+      this.y -= t.bodyLeading
+      if (i === 0 && this.page) {
         this.page.drawText('•', {
-          x: MARGIN_X + 6,
+          x: t.marginX + t.bulletIndent / 3,
           y: this.y,
-          size: BODY_SIZE,
+          size: t.bodySize,
           font: this.fonts.regular,
           color: TEXT_COLOR
         })
       }
-      this.drawLine(line, BODY_SIZE, MARGIN_X + BULLET_INDENT)
+      this.drawLine(line, t.bodySize, t.marginX + t.bulletIndent)
     }
-    this.y -= 2
+    this.y -= t.bulletGap
   }
 }
 
 // --- Entry point --------------------------------------------------------------
 
-export async function renderResumePdf(input: ResumePdfInput): Promise<Uint8Array> {
-  const doc = await PDFDocument.create()
-  doc.setTitle(`${input.ownerName} — Résumé`)
-  doc.setAuthor(input.ownerName)
-
+async function embedFonts(doc: PDFDocument): Promise<FontSet> {
   const regular = await doc.embedFont(StandardFonts.Helvetica)
-  const fonts: FontSet = {
+  return {
     regular,
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
     italic: await doc.embedFont(StandardFonts.HelveticaOblique),
     boldItalic: await doc.embedFont(StandardFonts.HelveticaBoldOblique),
     charset: new Set(regular.getCharacterSet())
   }
+}
 
-  const typesetter = new Typesetter(doc, fonts)
+/**
+ * A page counter for résumé markdown in one style: how many pages
+ * `renderResumePdf` would produce for it (without a cover letter). Fonts are
+ * embedded once, so measuring many candidate versions stays cheap.
+ */
+export async function createPageCounter(style: PdfStyle): Promise<(markdown: string) => number> {
+  const doc = await PDFDocument.create()
+  const fonts = await embedFonts(doc)
+  const t = typographyFor(style)
+  return markdown => {
+    const typesetter = new Typesetter(doc, fonts, t, true)
+    typesetter.render(parseBlocks(markdown))
+    return typesetter.pages
+  }
+}
+
+export async function renderResumePdf(input: ResumePdfInput): Promise<Uint8Array> {
+  const doc = await PDFDocument.create()
+  doc.setTitle(input.title ?? `${input.ownerName} — Résumé`)
+  doc.setAuthor(input.ownerName)
+
+  const fonts = await embedFonts(doc)
+  const typesetter = new Typesetter(doc, fonts, typographyFor(input.style))
   typesetter.render(parseBlocks(input.resume))
 
   if (input.coverLetter && input.coverLetter.length > 0) {
     typesetter.newPage()
     typesetter.render([
-      { kind: 'heading', runs: [{ text: 'Cover Letter', bold: true, italic: false }] },
+      { kind: 'heading', level: 1, runs: [{ text: 'Cover Letter', bold: true, italic: false }] },
       ...parseBlocks(input.coverLetter)
     ])
   }

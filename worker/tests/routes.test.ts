@@ -5,6 +5,7 @@
  */
 import { beforeEach, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import { PDFDocument } from 'pdf-lib'
 import { createResumeHandler } from '../src/index.ts'
 import { upsertBlock } from '../src/builder.ts'
 import { CONTACT_KEY } from '../src/contact.ts'
@@ -299,6 +300,9 @@ describe('variants', () => {
     )
     const text = Buffer.from(pdf.body as ArrayBuffer).toString('latin1')
     assert.ok(!text.includes('Jordan Example'), 'PDF metadata names the user, not the owner')
+    const doc = await PDFDocument.load(pdf.body as ArrayBuffer, { updateMetadata: false })
+    assert.equal(doc.getTitle(), 'Robin Quillfeather - Resume', 'plain title, no em dash')
+    assert.equal(doc.getAuthor(), 'Robin Quillfeather')
   })
 
   it("the owner's links and PDF are unchanged", async () => {
@@ -314,6 +318,8 @@ describe('variants', () => {
       pdf.headers.get('Content-Disposition'),
       'attachment; filename="jordan-example-resume.pdf"'
     )
+    const doc = await PDFDocument.load(pdf.body as ArrayBuffer, { updateMetadata: false })
+    assert.equal(doc.getTitle(), 'Jordan Example \u2014 R\u00e9sum\u00e9', 'owner title unchanged')
   })
 
   it('a slug with a colon cannot reach into a user key space', async () => {
