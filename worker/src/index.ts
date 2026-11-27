@@ -270,7 +270,8 @@ export function createResumeHandler(basePath: string, options: ResumeHandlerOpti
   // Per-user blocks: each friend-tier user's own palette, in their own keys.
   // The owner's global set is not reachable here; it stays behind /builder.
   const ownerSetRefusal = {
-    error: "The owner's blocks are edited through /builder, not /blocks."
+    error: "The owner's blocks are edited through /builder, not /blocks.",
+    code: 'OWNER_SET'
   }
 
   app.get(`${basePath}/blocks`, async c => {

@@ -131,6 +131,7 @@ describe('per-user blocks', () => {
       on_behalf_of_user_id: OWNER_ID
     })
     assert.equal(onBehalfOwner.status, 403)
+    assert.equal(onBehalfOwner.body.code, 'OWNER_SET')
     assert.equal((await kv.get('resume:blocks:index'))?.includes('summary-platform'), true)
   })
 
